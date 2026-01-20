@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => \App\Http\Middleware\EnsureTenant::class,
             'role' => \App\Http\Middleware\CheckRole::class,
+            'project' => \App\Http\Middleware\EnsureProjectSelected::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

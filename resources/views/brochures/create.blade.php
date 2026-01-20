@@ -7,20 +7,18 @@
     <div class="bg-white shadow rounded-lg p-6">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Upload Brochure</h2>
         
+        <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
+            <p class="text-sm font-medium text-indigo-900 mb-1">Selected Project:</p>
+            <p class="text-lg font-semibold text-indigo-700">{{ $project->name }}</p>
+            @if($project->location)
+                <p class="text-sm text-indigo-600 mt-1">{{ $project->location }}</p>
+            @endif
+        </div>
+
         <form action="{{ route('brochures.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             
             <div class="space-y-6">
-                <div>
-                    <label for="project_id" class="block text-sm font-medium text-gray-700">Project *</label>
-                    <select name="project_id" id="project_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                        <option value="">Select a project</option>
-                        @foreach($projects as $project)
-                            <option value="{{ $project->id }}" {{ old('project_id') == $project->id ? 'selected' : '' }}>{{ $project->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                
                 <div>
                     <label for="brochure_file" class="block text-sm font-medium text-gray-700">Brochure File (PDF) *</label>
                     <input type="file" name="brochure_file" id="brochure_file" accept=".pdf" required class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">

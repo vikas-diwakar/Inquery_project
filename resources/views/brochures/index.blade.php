@@ -4,10 +4,18 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Brochures</h1>
-        <a href="{{ route('brochures.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-            Upload Brochure
+    <div class="mb-6">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Brochures</h1>
+                <p class="mt-1 text-sm text-gray-600">Project: <strong>{{ $project->name }}</strong></p>
+            </div>
+            <a href="{{ route('brochures.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                Upload Brochure
+            </a>
+        </div>
+        <a href="{{ route('dashboard') }}" class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800">
+            ← Back to Dashboard
         </a>
     </div>
 
@@ -23,7 +31,7 @@
                                 </svg>
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-900">{{ $brochure->file_name }}</p>
-                                    <p class="text-sm text-gray-500">{{ $brochure->project->name }}</p>
+                                    <p class="text-sm text-gray-500">Uploaded: {{ $brochure->created_at->format('M d, Y') }}</p>
                                 </div>
                             </div>
                             <div class="flex items-center space-x-4">

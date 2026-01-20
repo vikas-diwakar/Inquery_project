@@ -9,12 +9,16 @@ use Illuminate\Http\Request;
 class InquiryController extends Controller
 {
     /**
-     * Display a listing of inquiries
+     * Display a listing of inquiries (filtered by selected project)
      */
     public function index(Request $request)
     {
+        $selectedProjectId = session('selected_project_id');
+        
+        // Filter by selected project (required)
         $query = Inquiry::where('company_id', auth()->user()->company_id)
-            ->with(['project', 'assignedUser']);
+            ->where('project_id', $selectedProjectId)
+            ->with(['assignedUser']);
 
         // Apply filters
         if ($request->filled('search')) {
@@ -24,10 +28,6 @@ class InquiryController extends Controller
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('email', 'like', "%{$search}%");
             });
-        }
-
-        if ($request->filled('project_id')) {
-            $query->where('project_id', $request->project_id);
         }
 
         if ($request->filled('status')) {
@@ -43,9 +43,9 @@ class InquiryController extends Controller
         }
 
         $inquiries = $query->latest()->paginate(20);
-        $projects = Project::where('company_id', auth()->user()->company_id)->get();
+        $project = Project::findOrFail($selectedProjectId);
 
-        return view('inquiries.index', compact('inquiries', 'projects'));
+        return view('inquiries.index', compact('inquiries', 'project'));
     }
 
     /**

@@ -54,55 +54,42 @@
         </div>
     </div>
 
-    <!-- Existing Inquiry Form QR Codes -->
+    <!-- Current Project Inquiry Form QR Code -->
     <div class="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 class="text-xl font-semibold mb-4">Existing Inquiry Form QR Codes</h2>
-        @if($projects->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">QR Code Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($projects as $project)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">{{ $project->name }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-500">{{ $project->location ?? 'N/A' }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($project->inquiry_qr_code)
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Generated
-                                        </span>
-                                    @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            Not Generated
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    @if($project->inquiry_qr_code)
-                                        <a href="{{ route('forms-qr.show-inquiry-qr', $project) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View QR</a>
-                                    @else
-                                        <a href="{{ route('forms-qr.create-inquiry-form') }}?project={{ $project->id }}" class="text-indigo-600 hover:text-indigo-900">Generate QR</a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+        <h2 class="text-xl font-semibold mb-4">Inquiry Form QR Code for: {{ $project->name }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <p class="text-sm font-medium text-gray-500">Project Name</p>
+                <p class="text-lg font-semibold text-gray-900">{{ $project->name }}</p>
             </div>
-        @else
-            <p class="text-gray-500">No projects found. <a href="{{ route('projects.create') }}" class="text-indigo-600 hover:text-indigo-800">Create a project</a> first to generate inquiry form QR codes.</p>
-        @endif
+            <div>
+                <p class="text-sm font-medium text-gray-500">Location</p>
+                <p class="text-lg text-gray-900">{{ $project->location ?? 'N/A' }}</p>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-500">QR Code Status</p>
+                @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        Generated
+                    </span>
+                @else
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                        Not Generated
+                    </span>
+                @endif
+            </div>
+        </div>
+        <div class="mt-4">
+            @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
+                <a href="{{ route('forms-qr.show-inquiry-qr') }}" class="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                    View QR Code
+                </a>
+            @else
+                <a href="{{ route('forms-qr.create-inquiry-form') }}" class="inline-flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                    Generate QR Code
+                </a>
+            @endif
+        </div>
     </div>
 </div>
 @endsection

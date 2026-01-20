@@ -12,17 +12,20 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class BrochureController extends Controller
 {
     /**
-     * Display a listing of brochures
+     * Display a listing of brochures (filtered by selected project)
      */
     public function index()
     {
+        $selectedProjectId = session('selected_project_id');
+        
         $brochures = Brochure::where('company_id', auth()->user()->company_id)
-            ->with('project')
+            ->where('project_id', $selectedProjectId)
             ->latest()
             ->paginate(15);
-            // dd($brochures);
 
-        return view('brochures.index', compact('brochures'));
+        $project = Project::findOrFail($selectedProjectId);
+
+        return view('brochures.index', compact('brochures', 'project'));
     }
 
     /**
@@ -30,8 +33,10 @@ class BrochureController extends Controller
      */
     public function create()
     {
-        $projects = Project::where('company_id', auth()->user()->company_id)->get();
-        return view('brochures.create', compact('projects'));
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
+        return view('brochures.create', compact('project'));
     }
 
     /**
@@ -39,12 +44,13 @@ class BrochureController extends Controller
      */
     public function store(Request $request)
     {
+        $selectedProjectId = session('selected_project_id');
+        
         $validated = $request->validate([
-            'project_id' => 'required|exists:projects,id',
             'brochure_file' => 'required|mimes:pdf|max:10240', // Max 10MB
         ]);
 
-        $project = Project::findOrFail($validated['project_id']);
+        $project = Project::findOrFail($selectedProjectId);
 
         // Verify project belongs to company
         if ($project->company_id !== auth()->user()->company_id) {
@@ -58,7 +64,7 @@ class BrochureController extends Controller
 
         $brochure = Brochure::create([
             'company_id' => auth()->user()->company_id,
-            'project_id' => $validated['project_id'],
+            'project_id' => $selectedProjectId,
             'file_path' => $filePath,
             'file_name' => $fileName,
         ]);

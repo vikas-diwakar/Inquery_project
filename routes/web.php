@@ -40,10 +40,15 @@ Route::middleware('auth')->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Projects
+    // Projects (accessible without project selection)
     Route::middleware('tenant')->group(function () {
         Route::resource('projects', ProjectController::class);
+        Route::get('/projects/{project}/select', [ProjectController::class, 'select'])->name('projects.select');
+        Route::post('/projects/clear-selection', [ProjectController::class, 'clearSelection'])->name('projects.clear-selection');
+    });
 
+    // Project-specific routes (require project selection)
+    Route::middleware(['tenant', 'project'])->group(function () {
         // Inquiries
         Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
         Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
@@ -60,14 +65,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/forms-qr', [FormQRController::class, 'index'])->name('forms-qr.index');
         Route::get('/forms-qr/create-inquiry-form', [FormQRController::class, 'createInquiryForm'])->name('forms-qr.create-inquiry-form');
         Route::post('/forms-qr/generate-inquiry-qr', [FormQRController::class, 'generateInquiryQR'])->name('forms-qr.generate-inquiry-qr');
-        Route::get('/forms-qr/inquiry-qr/{project}', [FormQRController::class, 'showInquiryQR'])->name('forms-qr.show-inquiry-qr');
-        Route::get('/forms-qr/inquiry-qr/{project}/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
+        Route::get('/forms-qr/inquiry-qr', [FormQRController::class, 'showInquiryQR'])->name('forms-qr.show-inquiry-qr');
+        Route::get('/forms-qr/inquiry-qr/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
         Route::get('/forms-qr/brochure-qr', [FormQRController::class, 'brochureQR'])->name('forms-qr.brochure-qr');
         Route::get('/forms-qr/brochure-qr/{brochure}', [FormQRController::class, 'showBrochureQR'])->name('forms-qr.show-brochure-qr');
+    });
 
         // Users (Admin only)
         Route::middleware('role:Admin')->group(function () {
             Route::resource('users', UserController::class);
         });
-    });
 });

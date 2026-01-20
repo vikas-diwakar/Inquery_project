@@ -11,44 +11,39 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class FormQRController extends Controller
 {
     /**
-     * Display the Forms & QR Codes management page
+     * Display the Forms & QR Codes management page (for selected project)
      */
     public function index()
     {
-        $projects = Project::where('company_id', auth()->user()->company_id)
-            ->latest()
-            ->get();
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
         
         $brochures = Brochure::where('company_id', auth()->user()->company_id)
-            ->with('project')
+            ->where('project_id', $selectedProjectId)
             ->latest()
             ->get();
 
-        return view('forms-qr.index', compact('projects', 'brochures'));
+        return view('forms-qr.index', compact('project', 'brochures'));
     }
 
     /**
-     * Show form to create inquiry form QR for a project
+     * Show form to create inquiry form QR for selected project
      */
     public function createInquiryForm()
     {
-        $projects = Project::where('company_id', auth()->user()->company_id)
-            ->latest()
-            ->get();
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
 
-        return view('forms-qr.create-inquiry-form', compact('projects'));
+        return view('forms-qr.create-inquiry-form', compact('project'));
     }
 
     /**
-     * Generate/Regenerate inquiry form QR for a project
+     * Generate/Regenerate inquiry form QR for selected project
      */
     public function generateInquiryQR(Request $request)
     {
-        $validated = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-        ]);
-
-        $project = Project::findOrFail($validated['project_id']);
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
         
         // Ensure user owns this project
         if ($project->company_id !== auth()->user()->company_id) {
@@ -84,10 +79,13 @@ class FormQRController extends Controller
     }
 
     /**
-     * Show inquiry form QR details for a project
+     * Show inquiry form QR details for selected project
      */
-    public function showInquiryQR(Project $project)
+    public function showInquiryQR(Request $request)
     {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
         // Ensure user owns this project
         if ($project->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access');
@@ -123,8 +121,11 @@ class FormQRController extends Controller
     /**
      * Download inquiry QR code image
      */
-    public function downloadInquiryQR(Project $project)
+    public function downloadInquiryQR(Request $request)
     {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
         // Ensure user owns this project
         if ($project->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access');
@@ -141,16 +142,19 @@ class FormQRController extends Controller
     }
 
     /**
-     * Show brochure QR management
+     * Show brochure QR management (for selected project)
      */
     public function brochureQR()
     {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
         $brochures = Brochure::where('company_id', auth()->user()->company_id)
-            ->with('project')
+            ->where('project_id', $selectedProjectId)
             ->latest()
             ->get();
 
-        return view('forms-qr.brochure-qr', compact('brochures'));
+        return view('forms-qr.brochure-qr', compact('brochures', 'project'));
     }
 
     /**

@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class ProjectController extends Controller
 {
-    use AuthorizesRequests;
     /**
      * Display a listing of projects
      */
@@ -67,8 +65,40 @@ class ProjectController extends Controller
         $project->inquiry_qr_code = $inquiryUrl;
         $project->save();
 
-        return redirect()->route('projects.index')
+        return redirect()->route('dashboard')
             ->with('success', 'Project created successfully!');
+    }
+
+    /**
+     * Select a project (set in session)
+     */
+    public function select(Request $request, Project $project)
+    {
+        if (!auth()->user()->can('view', $project)) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Verify project belongs to user's company
+        if ($project->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        // Set selected project in session
+        session(['selected_project_id' => $project->id]);
+
+        return redirect()->route('dashboard')
+            ->with('success', "Project '{$project->name}' selected successfully!");
+    }
+
+    /**
+     * Clear selected project from session
+     */
+    public function clearSelection()
+    {
+        session()->forget('selected_project_id');
+        
+        return redirect()->route('dashboard')
+            ->with('success', 'Project selection cleared. Please select a project to continue.');
     }
 
     /**
@@ -134,7 +164,7 @@ class ProjectController extends Controller
             $project->save();
         }
 
-        return redirect()->route('projects.index')
+        return redirect()->route('dashboard')
             ->with('success', 'Project updated successfully!');
     }
 
@@ -145,14 +175,24 @@ class ProjectController extends Controller
     {
         $this->authorize('delete', $project);
 
+        // Clear selected project from session if this is the selected project
+        if (session('selected_project_id') == $project->id) {
+            session()->forget('selected_project_id');
+        }
+
         // Delete logo if exists
         if ($project->logo) {
             Storage::disk('public')->delete($project->logo);
         }
 
+        // Delete QR code if exists
+        if ($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code)) {
+            Storage::disk('public')->delete($project->inquiry_qr_code);
+        }
+
         $project->delete();
 
-        return redirect()->route('projects.index')
+        return redirect()->route('dashboard')
             ->with('success', 'Project deleted successfully!');
     }
 }

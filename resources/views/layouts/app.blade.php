@@ -22,9 +22,11 @@
                             <a href="{{ route('dashboard') }}" class="border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                 Dashboard
                             </a>
+                             @if(!session('selected_project_id'))
                             <a href="{{ route('projects.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                 Projects
                             </a>
+                            @endif
                             @if(session('selected_project_id'))
                                 <a href="{{ route('inquiries.index') }}" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                                     Inquiries

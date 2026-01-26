@@ -29,6 +29,7 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
    - Inquiry fields: customer name, phone, email, budget, flat type, message
    - Inquiry status tracking: new, contacted, qualified, booked, rejected
    - Assignment to sales executives
+   - **Excel export** with filtering and search capabilities
 
 5. **Project Brochure System**
    - PDF brochure upload per project
@@ -50,13 +51,23 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
      - **Manager**: View and limited actions (projects, inquiries, brochures)
      - **Sales Executive**: Only inquiry management
 
+8. **Subscription Management System**
+   - **Free Trial**: 3-month free trial for new companies
+   - **Paid Plans**: 6-month and 1-year subscription plans
+   - **Payment Integration**: Razorpay payment gateway
+   - **Access Control**: Feature blocking for expired subscriptions
+   - **Automatic Expiry**: Background job to expire subscriptions
+   - **Trial Reactivation**: Allow trial reactivation after expiry
+
 ## Technology Stack
 
 - **Backend**: Laravel 11
 - **Frontend**: Blade Templates with Tailwind CSS
 - **Database**: MySQL/PostgreSQL/SQLite
-- **QR Code Generation**: JavaScript (qrcode.js library)
+- **Payment Gateway**: Razorpay
+- **QR Code Generation**: SimpleSoftwareIO QRCode (SVG format)
 - **File Storage**: Laravel Storage (local/public)
+- **UI Components**: Modern confirmation modals, responsive design
 
 ## Installation
 
@@ -91,7 +102,7 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
    php artisan key:generate
    ```
 
-   Update `.env` with your database credentials:
+   Update `.env` with your database credentials and Razorpay keys:
    ```env
    DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
@@ -99,7 +110,17 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
    DB_DATABASE=property_inquiry
    DB_USERNAME=root
    DB_PASSWORD=
+
+   # Razorpay Payment Gateway
+   RAZORPAY_KEY=your_razorpay_key_here
+   RAZORPAY_SECRET=your_razorpay_secret_here
    ```
+
+   **Getting Razorpay Keys:**
+   1. Sign up at [Razorpay Dashboard](https://dashboard.razorpay.com/)
+   2. Go to Settings → API Keys
+   3. Copy your Key ID and Key Secret
+   4. Add them to your `.env` file
 
 5. **Run Migrations**
    ```bash
@@ -154,6 +175,7 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
 2. **Admin Inquiry Management**:
    - View all inquiries in the "Inquiries" section
    - Filter by project, status, date range, or search
+   - **Export inquiries to Excel** with all applied filters
    - Update inquiry status and assign to users
    - View detailed inquiry information
 

@@ -30,7 +30,20 @@ class AuthController extends Controller
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $request->session()->regenerate();
-            
+
+            $user = Auth::user();
+            $company = $user->company;
+
+            // Check subscription status and redirect accordingly
+            if ($company->isFirstLogin()) {
+                // First login - redirect to plan selection
+                return redirect()->route('subscription.choose-plan');
+            } elseif (!$company->hasActiveSubscription()) {
+                // No active subscription - redirect to subscription required
+                return redirect()->route('subscription.required');
+            }
+
+            // Has active subscription - proceed to dashboard
             return redirect()->intended(route('dashboard'));
         }
 

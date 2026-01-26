@@ -5,17 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class ProjectController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of projects
      */
     public function index()
     {
-        $projects = Project::where('company_id', auth()->user()->company_id)
-            ->latest()
-            ->paginate(15);
+        $query = Project::where('company_id', auth()->user()->company_id);
+
+        // If user is not admin, only show projects they're assigned to
+        $user = auth()->user();
+        if (!$user->isAdmin()) {
+            $assignedProjectIds = $user->projects()->pluck('projects.id')->toArray();
+            if (!empty($assignedProjectIds)) {
+                $query->whereIn('id', $assignedProjectIds);
+            } else {
+                // If user has no assigned projects, show empty result
+                $query->whereRaw('1 = 0');
+            }
+        }
+
+        $projects = $query->latest()->paginate(15);
 
         return view('projects.index', compact('projects'));
     }

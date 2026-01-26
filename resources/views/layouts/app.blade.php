@@ -95,5 +95,107 @@
 
         @yield('content')
     </main>
+
+    @include('components.confirmation-modal')
+
+  <script>
+    let confirmationCallback = null;
+
+    function showConfirmationModal(title, message, callback) {
+        const modal = document.getElementById('confirmationModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        confirmationCallback = callback;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeConfirmationModal() {
+        const modal = document.getElementById('confirmationModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+
+        confirmationCallback = null;
+    }
+
+    function confirmAction() {
+        if (typeof confirmationCallback === 'function') {
+            confirmationCallback(); // 🔥 THIS was never called
+        }
+        closeConfirmationModal();
+    }
+
+
+    function hideConfirmationModal() {
+        console.log('hideConfirmationModal called');
+        const modal = document.getElementById('confirmationModal');
+        
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        confirmationCallback = null;
+    }
+
+    // Attach event listeners when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('DOM loaded, attaching modal event listeners');
+        
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const modal = document.getElementById('confirmationModal');
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                console.log('Cancel button clicked');
+                hideConfirmationModal();
+            });
+        } else {
+            console.error('Cancel button not found');
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                console.log('Confirm button clicked');
+                if (confirmationCallback) {
+                    confirmationCallback();
+                }
+                hideConfirmationModal();
+            });
+        } else {
+            console.error('Confirm button not found');
+        }
+        
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    console.log('Modal backdrop clicked');
+                    hideConfirmationModal();
+                }
+            });
+        } else {
+            console.error('Modal not found');
+        }
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal && modal.style.display !== 'none') {
+                console.log('Escape key pressed');
+                hideConfirmationModal();
+            }
+        });
+    });
+
+    // Test function to check if modal works
+    window.testModal = function() {
+        showConfirmationModal('Test', 'This is a test modal', function() {
+            alert('Confirmed!');
+        });
+    };
+    </script>
 </body>
 </html>

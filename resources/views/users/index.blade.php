@@ -33,10 +33,12 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <a href="{{ route('users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                                 @if($user->id !== auth()->id())
-                                    <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure?')">
+                                    <button type="button"
+                                            onclick="showConfirmationModal('Delete User', 'Are you sure you want to delete this user? This action cannot be undone.', function() { document.getElementById('delete-form-{{ $user->id }}').submit(); })"
+                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                    <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user) }}" method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                                     </form>
                                 @endif
                             </td>

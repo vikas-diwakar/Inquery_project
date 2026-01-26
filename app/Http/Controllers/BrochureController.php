@@ -7,10 +7,12 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 
 class BrochureController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of brochures (filtered by selected project)
      */
@@ -73,14 +75,14 @@ class BrochureController extends Controller
         $qrUrl = route('public.brochure.download', ['brochure' => $brochure->id]);
         $brochure->qr_code = $qrUrl;
 
-        $qrImage = QrCode::format('png')
+        $qrImage = QrCode::format('svg')
             ->size(300)
             ->generate($qrUrl);
 
-// Save QR image in storage
-$qrFileName = 'qrcodes/brochure_' . $brochure->id . '.png';
+        // Save QR image in storage
+        $qrFileName = 'qrcodes/brochure_' . $brochure->id . '.svg';
 
-Storage::disk('public')->put($qrFileName, $qrImage);
+        Storage::disk('public')->put($qrFileName, $qrImage);
         
         $brochure->save();
 

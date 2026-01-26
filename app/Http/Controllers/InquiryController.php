@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\Inquiry;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Exports\InquiriesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class InquiryController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Display a listing of inquiries (filtered by selected project)
      */
@@ -57,6 +61,23 @@ class InquiryController extends Controller
     }
 
     /**
+     * Show the form for creating a new inquiry (authenticated user)
+     */
+    public function create()
+    {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
+        // Check user has access to this project
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->projects()->where('projects.id', $project->id)->exists()) {
+            abort(403, 'Unauthorized access to this project.');
+        }
+
+        return view('inquiries.create', compact('project'));
+    }
+
+    /**
      * Store a new inquiry (public)
      */
     public function storePublic(Request $request, Project $project)
@@ -84,6 +105,45 @@ class InquiryController extends Controller
 
         return redirect()->back()
             ->with('success', 'Thank you for your inquiry! We will contact you soon.');
+    }
+
+    /**
+     * Store a new inquiry (authenticated user)
+     */
+    public function store(Request $request)
+    {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        
+        // Check user has access to this project
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->projects()->where('projects.id', $project->id)->exists()) {
+            abort(403, 'Unauthorized access to this project.');
+        }
+
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'budget' => 'nullable|numeric|min:0',
+            'flat_type' => 'nullable|string|max:50',
+            'message' => 'nullable|string',
+        ]);
+
+        Inquiry::create([
+            'company_id' => $project->company_id,
+            'project_id' => $project->id,
+            'customer_name' => $validated['customer_name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
+            'budget' => $validated['budget'] ?? null,
+            'flat_type' => $validated['flat_type'] ?? null,
+            'message' => $validated['message'] ?? null,
+            'status' => 'new',
+        ]);
+
+        return redirect()->route('inquiries.index')
+            ->with('success', 'Inquiry created successfully!');
     }
 
     /**
@@ -127,5 +187,45 @@ class InquiryController extends Controller
 
         return redirect()->route('inquiries.index')
             ->with('success', 'Inquiry deleted successfully!');
+    }
+
+    /**
+     * Export inquiries to Excel
+     */
+    public function export(Request $request)
+    {
+        $selectedProjectId = session('selected_project_id');
+
+        // Build the same query as the index method
+        $query = Inquiry::where('company_id', auth()->user()->company_id)
+            ->where('project_id', $selectedProjectId)
+            ->with(['assignedUser', 'project']);
+
+        // Apply the same filters as the index method
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        $project = Project::findOrFail($selectedProjectId);
+        $filename = 'inquiries_' . $project->name . '_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
+
+        return Excel::download(new InquiriesExport($query), $filename);
     }
 }

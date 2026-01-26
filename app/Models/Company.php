@@ -17,10 +17,17 @@ class Company extends Model
         'address',
         'logo',
         'is_active',
+        'subscription_status',
+        'trial_ends_at',
+        'subscription_ends_at',
+        'trial_used',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'trial_ends_at' => 'datetime',
+        'subscription_ends_at' => 'datetime',
+        'trial_used' => 'boolean',
     ];
 
     /**
@@ -61,5 +68,131 @@ class Company extends Model
     public function roles(): HasMany
     {
         return $this->hasMany(Role::class);
+    }
+
+    /**
+     * Get all subscriptions for this company
+     */
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the active subscription for this company
+     */
+    public function activeSubscription()
+    {
+        return $this->subscriptions()->active()->latest()->first();
+    }
+
+    /**
+     * Check if company has active subscription
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->subscription_status === 'active' || $this->subscription_status === 'trial';
+    }
+
+    /**
+     * Check if company is on trial
+     */
+    public function onTrial(): bool
+    {
+        return $this->subscription_status === 'trial' &&
+               $this->trial_ends_at &&
+               $this->trial_ends_at->isFuture();
+    }
+
+    /**
+     * Check if company subscription is expired
+     */
+    public function subscriptionExpired(): bool
+    {
+        return $this->subscription_status === 'expired' ||
+               ($this->subscription_ends_at && $this->subscription_ends_at->isPast());
+    }
+
+    /**
+     * Check if trial is expiring soon (within 7 days)
+     */
+    public function trialExpiringSoon(): bool
+    {
+        return $this->onTrial() &&
+               $this->trial_ends_at->diffInDays(now()) <= 7;
+    }
+
+    /**
+     * Check if subscription is expiring soon (within 7 days)
+     */
+    public function subscriptionExpiringSoon(): bool
+    {
+        return $this->hasActiveSubscription() &&
+               $this->subscription_ends_at &&
+               $this->subscription_ends_at->diffInDays(now()) <= 7;
+    }
+
+    /**
+     * Check if company can use free trial
+     */
+    public function canUseTrial(): bool
+    {
+        // Can use trial if never used it before
+        if (!$this->trial_used) {
+            return true;
+        }
+
+        // Can use trial again if the last trial subscription has expired
+        $lastTrial = $this->subscriptions()->where('status', 'trial')->latest()->first();
+        if ($lastTrial && $lastTrial->isExpired()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if this is the first login (no subscriptions ever)
+     */
+    public function isFirstLogin(): bool
+    {
+        return $this->subscriptions()->count() === 0;
+    }
+
+    /**
+     * Start trial period for the company
+     */
+    public function startTrial(): void
+    {
+        // Only set trial_used to true if this is the first time using trial
+        if (!$this->trial_used) {
+            $this->trial_used = true;
+        }
+
+        $this->update([
+            'subscription_status' => 'trial',
+            'trial_ends_at' => now()->addMonths(3),
+        ]);
+    }
+
+    /**
+     * Activate paid subscription
+     */
+    public function activateSubscription($endDate): void
+    {
+        $this->update([
+            'subscription_status' => 'active',
+            'subscription_ends_at' => $endDate,
+        ]);
+    }
+
+    /**
+     * Expire subscription
+     */
+    public function expireSubscription(): void
+    {
+        $this->update([
+            'subscription_status' => 'expired',
+        ]);
     }
 }

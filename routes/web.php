@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormQRController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,18 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+    // Subscription routes (available even when subscription expired)
+    Route::get('/subscription/required', [SubscriptionController::class, 'required'])->name('subscription.required');
+    Route::get('/subscription/choose-plan', [SubscriptionController::class, 'choosePlan'])->name('subscription.choose-plan');
+    Route::post('/subscription/activate-plan', [SubscriptionController::class, 'activatePlan'])->name('subscription.activate-plan');
+    Route::post('/subscription/create-order/{plan}', [SubscriptionController::class, 'createOrder'])->name('subscription.create-order');
+    Route::get('/subscription', [SubscriptionController::class, 'index'])->name('subscription.index');
+    Route::get('/subscription/details', [SubscriptionController::class, 'show'])->name('subscription.show');
+    Route::get('/subscription/checkout/{plan}', [SubscriptionController::class, 'checkout'])->name('subscription.checkout');
+    Route::post('/subscription/purchase/{plan}', [SubscriptionController::class, 'purchase'])->name('subscription.purchase');
+    Route::post('/subscription/renew', [SubscriptionController::class, 'renew'])->name('subscription.renew');
+    Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
+
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -47,10 +60,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/clear-selection', [ProjectController::class, 'clearSelection'])->name('projects.clear-selection');
     });
 
-    // Project-specific routes (require project selection)
-    Route::middleware(['tenant', 'project'])->group(function () {
+    // Project-specific routes (require project selection and active subscription)
+    Route::middleware(['tenant', 'project', 'subscription'])->group(function () {
         // Inquiries
         Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
+        Route::get('/inquiries/export', [InquiryController::class, 'export'])->name('inquiries.export');
+        Route::get('/inquiries/create', [InquiryController::class, 'create'])->name('inquiries.create');
+        Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
         Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
         Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
         Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');

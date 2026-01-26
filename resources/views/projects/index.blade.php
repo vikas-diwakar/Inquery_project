@@ -40,10 +40,12 @@
                                         Select
                                     </a>
                                     <a href="{{ route('projects.edit', $project) }}" class="text-indigo-600 hover:text-indigo-900 text-sm">Edit</a>
-                                    <form action="{{ route('projects.destroy', $project) }}" method="POST" onsubmit="return confirm('Are you sure?')" class="inline">
+                                    <button type="button"
+                                            onclick="showConfirmationModal('Delete Project', 'Are you sure you want to delete this project? All associated inquiries and brochures will also be deleted. This action cannot be undone.', function() { document.getElementById('delete-form-{{ $project->id }}').submit(); })"
+                                            class="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                                    <form id="delete-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-900 text-sm">Delete</button>
                                     </form>
                                 </div>
                             </div>

@@ -30,9 +30,20 @@ class EnsureProjectSelected
         $selectedProjectId = session('selected_project_id');
         $user = auth()->user();
         
-        $project = \App\Models\Project::where('id', $selectedProjectId)
-            ->where('company_id', $user->company_id)
-            ->first();
+        $query = \App\Models\Project::where('id', $selectedProjectId)
+            ->where('company_id', $user->company_id);
+
+        // If user is not admin, also check if they're assigned to this project
+        if (!$user->isAdmin()) {
+            $assignedProjectIds = $user->projects()->pluck('projects.id')->toArray();
+            if (!in_array($selectedProjectId, $assignedProjectIds)) {
+                session()->forget('selected_project_id');
+                return redirect()->route('dashboard')
+                    ->with('error', 'You do not have access to this project. Please select a different project.');
+            }
+        }
+
+        $project = $query->first();
 
         if (!$project) {
             session()->forget('selected_project_id');

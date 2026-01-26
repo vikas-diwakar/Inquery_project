@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant' => \App\Http\Middleware\EnsureTenant::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'project' => \App\Http\Middleware\EnsureProjectSelected::class,
+            'subscription' => \App\Http\Middleware\CheckSubscription::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

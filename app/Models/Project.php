@@ -6,6 +6,7 @@ use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Project extends Model
@@ -49,6 +50,15 @@ class Project extends Model
     public function brochures(): HasMany
     {
         return $this->hasMany(Brochure::class);
+    }
+
+    /**
+     * Get all users assigned to this project
+     */
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'project_user')
+            ->withTimestamps();
     }
 
     /**

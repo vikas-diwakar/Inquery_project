@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Brochure;
+use App\Models\Company;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\BrochurePolicy;
 use App\Policies\InquiryPolicy;
 use App\Policies\ProjectPolicy;
+use App\Policies\SubscriptionPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         Inquiry::class => InquiryPolicy::class,
         Brochure::class => BrochurePolicy::class,
         User::class => UserPolicy::class,
+        Company::class => SubscriptionPolicy::class,
     ];
 
     /**

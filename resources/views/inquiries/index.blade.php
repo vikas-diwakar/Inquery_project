@@ -9,9 +9,17 @@
             <h1 class="text-3xl font-bold text-gray-900">Inquiries</h1>
             <p class="mt-1 text-sm text-gray-600">Project: <strong>{{ $project->name }}</strong></p>
         </div>
-        <a href="{{ route('dashboard') }}" class="text-sm text-indigo-600 hover:text-indigo-800">
-            ← Back to Dashboard
-        </a>
+        <div class="flex space-x-3">
+            <a href="{{ route('inquiries.export', request()->query()) }}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                📊 Export to Excel
+            </a>
+            <a href="{{ route('inquiries.create') }}" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
+                + Add Inquiry
+            </a>
+            <a href="{{ route('dashboard') }}" class="text-sm text-indigo-600 hover:text-indigo-800 py-2">
+                ← Back to Dashboard
+            </a>
+        </div>
     </div>
 
     <!-- Filters -->

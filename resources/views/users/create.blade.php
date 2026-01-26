@@ -33,12 +33,27 @@
                 
                 <div>
                     <label for="role_id" class="block text-sm font-medium text-gray-700">Role *</label>
-                    <select name="role_id" id="role_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <select name="role_id" id="role_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" onchange="toggleProjectsField()">
                         <option value="">Select a role</option>
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
+                            <option value="{{ $role->id }}" data-role-name="{{ $role->name }}" {{ old('role_id') == $role->id ? 'selected' : '' }}>{{ $role->name }}</option>
                         @endforeach
                     </select>
+                </div>
+
+                <div id="projects-field" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Assign Projects (Optional)</label>
+                    <p class="text-xs text-gray-500 mb-3">Non-admin users can only access the projects you assign to them.</p>
+                    <div class="space-y-2 border border-gray-200 rounded-md p-4 bg-gray-50">
+                        @forelse($projects as $project)
+                            <div class="flex items-center">
+                                <input type="checkbox" name="project_ids[]" value="{{ $project->id }}" id="project_{{ $project->id }}" {{ in_array($project->id, old('project_ids', [])) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <label for="project_{{ $project->id }}" class="ml-2 text-sm text-gray-700">{{ $project->name }}</label>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No projects available</p>
+                        @endforelse
+                    </div>
                 </div>
             </div>
             
@@ -53,4 +68,25 @@
         </form>
     </div>
 </div>
+
+<script>
+    function toggleProjectsField() {
+        const roleSelect = document.getElementById('role_id');
+        const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+        const roleName = selectedOption.getAttribute('data-role-name');
+        const projectsField = document.getElementById('projects-field');
+        
+        // Show projects field only if not Admin role
+        if (roleName && roleName !== 'Admin') {
+            projectsField.style.display = 'block';
+        } else {
+            projectsField.style.display = 'none';
+        }
+    }
+    
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleProjectsField();
+    });
+</script>
 @endsection

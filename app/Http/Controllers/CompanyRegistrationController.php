@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use App\Models\Role;
 use App\Models\User;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -43,6 +45,8 @@ class CompanyRegistrationController extends Controller
             'phone' => $validated['company_phone'] ?? null,
             'address' => $validated['company_address'] ?? null,
             'is_active' => true,
+            'subscription_status' => 'pending', // No automatic trial assignment
+            'trial_used' => false,
         ]);
 
         // Handle logo upload
@@ -51,6 +55,9 @@ class CompanyRegistrationController extends Controller
             $company->logo = $logoPath;
             $company->save();
         }
+
+        // Note: Trial subscription will be assigned on first login when user chooses a plan
+        // No automatic trial assignment here
 
         // Create default Admin role
         $adminRole = Role::create([

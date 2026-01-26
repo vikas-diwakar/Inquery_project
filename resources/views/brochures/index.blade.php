@@ -17,6 +17,7 @@
         <a href="{{ route('dashboard') }}" class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800">
             ← Back to Dashboard
         </a>
+        <button onclick="testModal()" class="mt-2 ml-4 inline-block text-sm bg-red-600 text-white px-3 py-1 rounded">Test Modal</button>
     </div>
 
     <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -36,16 +37,20 @@
                             </div>
                             <div class="flex items-center space-x-4">
                                 <a href="{{ route('public.brochure.download', $brochure) }}" class="text-indigo-600 hover:text-indigo-900">Download</a>
-                                <form action="{{ route('brochures.destroy', $brochure) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                <button type="button"
+                                        onclick="console.log('Delete button clicked'); showConfirmationModal('Delete Brochure', 'Are you sure you want to delete this brochure? This action cannot be undone.', function() { console.log('Callback executed'); document.getElementById('delete-form-{{ $brochure->id }}').submit(); })"
+                                        class="text-red-600 hover:text-red-900">Delete</button>
+                                <form id="delete-form-{{ $brochure->id }}" action="{{ route('brochures.destroy', $brochure) }}" method="POST" class="hidden">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900">Delete</button>
                                 </form>
                             </div>
                         </div>
                         @if($brochure->qr_code)
                             <div class="mt-4 flex items-center space-x-4">
-                                <div id="qrcode-{{ $brochure->id }}" class="border-2 border-gray-200 p-2 rounded-lg"></div>
+                                <div class="border-2 border-gray-200 p-2 rounded-lg">
+                                    <img src="{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}" alt="QR Code" class="w-24 h-24">
+                                </div>
                                 <div>
                                     <p class="text-xs text-gray-600">Scan to download brochure</p>
                                     <a href="{{ $brochure->qr_code }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 break-all">{{ $brochure->qr_code }}</a>
@@ -64,18 +69,4 @@
         {{ $brochures->links() }}
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-<script>
-    @foreach($brochures as $brochure)
-        @if($brochure->qr_code)
-            QRCode.toCanvas(document.getElementById('qrcode-{{ $brochure->id }}'), '{{ $brochure->qr_code }}', {
-                width: 150,
-                margin: 2
-            }, function (error) {
-                if (error) console.error(error);
-            });
-        @endif
-    @endforeach
-</script>
 @endsection

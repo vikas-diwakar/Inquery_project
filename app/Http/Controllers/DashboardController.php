@@ -18,8 +18,21 @@ class DashboardController extends Controller
 
         // If no project is selected, show only projects list
         if (!$selectedProjectId) {
-            $projects = Project::where('company_id', $companyId)
-                ->withCount(['inquiries', 'brochures'])
+            $query = Project::where('company_id', $companyId);
+
+            // If user is not admin, only show projects they're assigned to
+            $user = auth()->user();
+            if (!$user->isAdmin()) {
+                $assignedProjectIds = $user->projects()->pluck('projects.id')->toArray();
+                if (!empty($assignedProjectIds)) {
+                    $query->whereIn('id', $assignedProjectIds);
+                } else {
+                    // If user has no assigned projects, show empty result
+                    $query->whereRaw('1 = 0');
+                }
+            }
+
+            $projects = $query->withCount(['inquiries', 'brochures'])
                 ->latest()
                 ->get();
 

@@ -33,12 +33,16 @@
                 <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->budget ? '₹' . number_format($inquiry->budget) : 'N/A' }}</dd>
             </div>
             <div>
-                <dt class="text-sm font-medium text-gray-500">Flat Type</dt>
-                <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->flat_type ?? 'N/A' }}</dd>
+                <dt class="text-sm font-medium text-gray-500">Unit/Property Type</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->selectedUnitOption ? $inquiry->selectedUnitOption->option_name : 'N/A' }}</dd>
             </div>
             <div class="sm:col-span-2">
                 <dt class="text-sm font-medium text-gray-500">Message</dt>
                 <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->message ?? 'N/A' }}</dd>
+            </div>
+            <div class="sm:col-span-2">
+                <dt class="text-sm font-medium text-gray-500">Description/Notes</dt>
+                <dd class="mt-1 text-sm text-gray-900">{{ $inquiry->description ?? 'N/A' }}</dd>
             </div>
             <div>
                 <dt class="text-sm font-medium text-gray-500">Status</dt>
@@ -86,6 +90,12 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+            
+            <div class="mt-4">
+                <label for="description" class="block text-sm font-medium text-gray-700">Description/Notes</label>
+                <textarea name="description" id="description" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Add notes about this inquiry...">{{ $inquiry->description }}</textarea>
+                <p class="mt-1 text-xs text-gray-500">Add any additional notes or follow-up information about this inquiry.</p>
             </div>
             
             <div class="mt-4">

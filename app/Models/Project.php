@@ -53,6 +53,22 @@ class Project extends Model
     }
 
     /**
+     * Get all unit options for this project
+     */
+    public function unitOptions(): HasMany
+    {
+        return $this->hasMany(ProjectUnitOption::class)->orderBy('sort_order')->orderBy('option_name');
+    }
+
+    /**
+     * Get enabled unit options for this project
+     */
+    public function enabledUnitOptions(): HasMany
+    {
+        return $this->hasMany(ProjectUnitOption::class)->where('is_enabled', true)->orderBy('sort_order')->orderBy('option_name');
+    }
+
+    /**
      * Get all users assigned to this project
      */
     public function users(): BelongsToMany

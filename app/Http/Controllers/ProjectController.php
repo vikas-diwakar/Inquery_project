@@ -54,6 +54,8 @@ class ProjectController extends Controller
             'start_date' => 'nullable|date',
             'status' => 'required|in:planning,ongoing,completed,on_hold',
             'logo' => 'nullable|image|max:2048',
+            'selected_unit_options' => 'nullable|array',
+            'selected_unit_options.*' => 'string|max:255',
         ]);
 
         $project = Project::create([
@@ -72,8 +74,27 @@ class ProjectController extends Controller
             $project->save();
         }
 
+        // Create unit options from selected predefined options
+        if ($request->has('selected_unit_options') && is_array($request->selected_unit_options)) {
+            $predefinedOptions = [
+                '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
+                'Studio', 'Penthouse', 'Villa', 'Shop', 'Office', 'Plot'
+            ];
+
+            foreach ($request->selected_unit_options as $index => $optionName) {
+                // Validate that the option is from our predefined list
+                if (in_array($optionName, $predefinedOptions)) {
+                    $project->unitOptions()->create([
+                        'option_name' => $optionName,
+                        'is_enabled' => true, // All selected options are enabled by default
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+        }
+
         // Generate unique inquiry QR code URL (company-wise and project-wise unique)
-        // This URL is automatically unique per company (via project.company_id) 
+        // This URL is automatically unique per company (via project.company_id)
         // and per project (via project.id), ensuring company-wise and project-wise uniqueness
         $inquiryUrl = $project->getInquiryFormUrl();
         $project->inquiry_qr_code = $inquiryUrl;
@@ -151,6 +172,8 @@ class ProjectController extends Controller
             'start_date' => 'nullable|date',
             'status' => 'required|in:planning,ongoing,completed,on_hold',
             'logo' => 'nullable|image|max:2048',
+            'selected_unit_options' => 'nullable|array',
+            'selected_unit_options.*' => 'required|string|max:255',
         ]);
 
         $project->update([
@@ -160,6 +183,27 @@ class ProjectController extends Controller
             'start_date' => $validated['start_date'] ?? null,
             'status' => $validated['status'],
         ]);
+
+        // Handle unit options - delete all existing and create new ones based on selection
+        $project->unitOptions()->delete(); // Remove all existing unit options
+
+        if ($request->has('selected_unit_options') && is_array($request->selected_unit_options)) {
+            $predefinedOptions = [
+                '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
+                'Studio', 'Penthouse', 'Villa', 'Shop', 'Office', 'Plot'
+            ];
+
+            foreach ($request->selected_unit_options as $index => $optionName) {
+                // Validate that the option is from our predefined list
+                if (in_array($optionName, $predefinedOptions)) {
+                    $project->unitOptions()->create([
+                        'option_name' => $optionName,
+                        'is_enabled' => true, // All selected options are enabled by default
+                        'sort_order' => $index,
+                    ]);
+                }
+            }
+        }
 
         // Ensure QR code URL is always set (in case it wasn't set during creation)
         if (!$project->inquiry_qr_code) {

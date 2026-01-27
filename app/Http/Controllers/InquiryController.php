@@ -89,6 +89,8 @@ class InquiryController extends Controller
             'budget' => 'nullable|numeric|min:0',
             'flat_type' => 'nullable|string|max:50',
             'message' => 'nullable|string',
+            'description' => 'nullable|string',
+            'selected_unit_option_id' => 'nullable|exists:project_unit_options,id',
         ]);
 
         Inquiry::create([
@@ -100,6 +102,8 @@ class InquiryController extends Controller
             'budget' => $validated['budget'] ?? null,
             'flat_type' => $validated['flat_type'] ?? null,
             'message' => $validated['message'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'selected_unit_option_id' => $validated['selected_unit_option_id'] ?? null,
             'status' => 'new',
         ]);
 
@@ -128,6 +132,8 @@ class InquiryController extends Controller
             'budget' => 'nullable|numeric|min:0',
             'flat_type' => 'nullable|string|max:50',
             'message' => 'nullable|string',
+            'description' => 'nullable|string',
+            'selected_unit_option_id' => 'nullable|exists:project_unit_options,id',
         ]);
 
         Inquiry::create([
@@ -139,6 +145,8 @@ class InquiryController extends Controller
             'budget' => $validated['budget'] ?? null,
             'flat_type' => $validated['flat_type'] ?? null,
             'message' => $validated['message'] ?? null,
+            'description' => $validated['description'] ?? null,
+            'selected_unit_option_id' => $validated['selected_unit_option_id'] ?? null,
             'status' => 'new',
         ]);
 
@@ -168,6 +176,7 @@ class InquiryController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:new,contacted,qualified,booked,rejected',
             'assigned_to' => 'nullable|exists:users,id',
+            'description' => 'nullable|string',
         ]);
 
         $inquiry->update($validated);

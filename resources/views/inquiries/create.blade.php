@@ -78,15 +78,19 @@
                 </div>
 
                 <div>
-                    <label for="flat_type" class="block text-sm font-medium text-gray-700">Interested Flat Type</label>
-                    <input
-                        id="flat_type"
-                        name="flat_type"
-                        type="text"
-                        value="{{ old('flat_type') }}"
+                    <label for="selected_unit_option_id" class="block text-sm font-medium text-gray-700">Unit/Property Type</label>
+                    <select
+                        id="selected_unit_option_id"
+                        name="selected_unit_option_id"
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                        placeholder="e.g., 2BHK, 3BHK"
                     >
+                        <option value="">Select Unit/Property Type</option>
+                        @foreach($project->enabledUnitOptions as $option)
+                            <option value="{{ $option->id }}" {{ old('selected_unit_option_id') == $option->id ? 'selected' : '' }}>
+                                {{ $option->option_name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -99,6 +103,18 @@
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Enter any additional message or notes"
                 >{{ old('message') }}</textarea>
+            </div>
+
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description/Notes</label>
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="3"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    placeholder="Add internal notes about this inquiry"
+                >{{ old('description') }}</textarea>
+                <p class="mt-1 text-xs text-gray-500">Internal notes for follow-up and tracking (not visible to customers)</p>
             </div>
 
             <div class="flex justify-end space-x-3 pt-4 border-t">

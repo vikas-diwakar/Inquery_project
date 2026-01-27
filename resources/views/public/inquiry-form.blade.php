@@ -59,8 +59,15 @@
                     </div>
 
                     <div>
-                        <label for="flat_type" class="block text-sm font-medium text-gray-700">Interested Flat Type</label>
-                        <input id="flat_type" name="flat_type" type="text" value="{{ old('flat_type') }}" placeholder="e.g., 2BHK, 3BHK" class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm">
+                        <label for="selected_unit_option_id" class="block text-sm font-medium text-gray-700">Unit/Property Type</label>
+                        <select id="selected_unit_option_id" name="selected_unit_option_id" class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm">
+                            <option value="">Select Unit/Property Type</option>
+                            @foreach($project->enabledUnitOptions as $option)
+                                <option value="{{ $option->id }}" {{ old('selected_unit_option_id') == $option->id ? 'selected' : '' }}>
+                                    {{ $option->option_name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div>

@@ -20,6 +20,8 @@ class Inquiry extends Model
         'budget',
         'flat_type',
         'message',
+        'description',
+        'selected_unit_option_id',
         'status',
         'assigned_to',
     ];
@@ -50,5 +52,13 @@ class Inquiry extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * Get the selected unit option for this inquiry
+     */
+    public function selectedUnitOption(): BelongsTo
+    {
+        return $this->belongsTo(ProjectUnitOption::class, 'selected_unit_option_id');
     }
 }

@@ -47,6 +47,30 @@
                     <label for="logo" class="block text-sm font-medium text-gray-700">Project Logo</label>
                     <input type="file" name="logo" id="logo" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
+
+                <!-- Unit/Property Type Options -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit/Property Type Options</label>
+                    <p class="text-sm text-gray-500 mb-4">Select the available unit/property types for this project. These will be shown in the inquiry form.</p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        @php
+                            $predefinedOptions = [
+                                '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
+                                'Studio', 'Penthouse', 'Villa', 'Shop', 'Office', 'Plot'
+                            ];
+                        @endphp
+
+                        @foreach($predefinedOptions as $option)
+                            <label class="flex items-center">
+                                <input type="checkbox" name="selected_unit_options[]" value="{{ $option }}" {{ in_array($option, old('selected_unit_options', [])) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                                <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <p class="mt-2 text-xs text-gray-500">Select all unit/property types available in this project.</p>
+                </div>
             </div>
             
             <div class="mt-6 flex justify-end space-x-3">

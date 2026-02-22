@@ -29,15 +29,16 @@
                 <label for="search" class="block text-sm font-medium text-gray-700">Search</label>
                 <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Name, Phone, Email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
             </div>
-            <div>
+                    <div>
                 <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
                 <select name="status" id="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                     <option value="">All Status</option>
                     <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>New</option>
                     <option value="contacted" {{ request('status') === 'contacted' ? 'selected' : '' }}>Contacted</option>
-                    <option value="qualified" {{ request('status') === 'qualified' ? 'selected' : '' }}>Qualified</option>
+                    <option value="interested" {{ request('status') === 'interested' ? 'selected' : '' }}>Interested</option>
+                    <option value="site_visit" {{ request('status') === 'site_visit' ? 'selected' : '' }}>Site Visit</option>
                     <option value="booked" {{ request('status') === 'booked' ? 'selected' : '' }}>Booked</option>
-                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                    <option value="lost" {{ request('status') === 'lost' ? 'selected' : '' }}>Lost</option>
                 </select>
             </div>
             <div>
@@ -81,18 +82,29 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->selectedUnitOption ? $inquiry->selectedUnitOption->option_name : 'N/A' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->budget ? '₹' . number_format($inquiry->budget) : 'N/A' }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                    @if($inquiry->status === 'new') bg-yellow-100 text-yellow-800
-                                    @elseif($inquiry->status === 'booked') bg-green-100 text-green-800
-                                    @elseif($inquiry->status === 'rejected') bg-red-100 text-red-800
-                                    @else bg-gray-100 text-gray-800
-                                    @endif">
-                                    {{ ucfirst($inquiry->status) }}
-                                </span>
+                                <select class="status-select mt-1 block rounded-md border border-gray-200 text-xs font-semibold px-2 py-1" data-inquiry-id="{{ $inquiry->id }}">
+                                    <option value="new" {{ $inquiry->status === 'new' ? 'selected' : '' }}>New</option>
+                                    <option value="contacted" {{ $inquiry->status === 'contacted' ? 'selected' : '' }}>Contacted</option>
+                                    <option value="interested" {{ $inquiry->status === 'interested' ? 'selected' : '' }}>Interested</option>
+                                    <option value="site_visit" {{ $inquiry->status === 'site_visit' ? 'selected' : '' }}>Site Visit</option>
+                                    <option value="booked" {{ $inquiry->status === 'booked' ? 'selected' : '' }}>Booked</option>
+                                    <option value="lost" {{ $inquiry->status === 'lost' ? 'selected' : '' }}>Lost</option>
+                                </select>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inquiry->created_at->format('M d, Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                 <a href="{{ route('inquiries.show', $inquiry) }}" class="text-indigo-600 hover:text-indigo-900">View</a>
+
+                                {{-- Quick follow-up schedule buttons (allow scheduling from listing) --}}
+                                <div class="inline-flex items-center space-x-1">
+                                    @foreach(['Today' => 0, 'Tomorrow' => 1, '3 Days' => 3] as $label => $days)
+                                        <form action="{{ route('follow-ups.store', $inquiry) }}" method="POST" style="display:inline;">
+                                            @csrf
+                                            <input type="hidden" name="follow_up_date" value="{{ now()->addDays($days)->setHour(10)->setMinute(0)->format('Y-m-d H:i:s') }}">
+                                            <button type="submit" title="Schedule: {{ $label }}" class="px-2 py-1 text-xs bg-gray-100 rounded border hover:bg-gray-200">{{ $label }}</button>
+                                        </form>
+                                    @endforeach
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -109,4 +121,36 @@
         {{ $inquiries->links() }}
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selects = document.querySelectorAll('.status-select');
+        const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        selects.forEach(function(sel) {
+            sel.addEventListener('change', function() {
+                const inquiryId = this.dataset.inquiryId;
+                const status = this.value;
+                const url = `/inquiries/${inquiryId}/status`;
+
+                fetch(url, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrf,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                }).then(res => res.json())
+                .then(data => {
+                    if (data && data.success) {
+                        // simple: reload to reflect updated styles/filters
+                        location.reload();
+                    } else {
+                        alert('Failed to update status');
+                    }
+                }).catch(() => alert('Failed to update status'));
+            });
+        });
+    });
+</script>
 @endsection

@@ -32,7 +32,7 @@
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
                 <div class="flex items-center">
@@ -104,6 +104,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- Today's Follow-ups Card -->
+        <a href="{{ route('follow-ups.index') }}" class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition">
+            <div class="p-5">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <svg class="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <dt class="text-sm font-medium text-gray-500 truncate">Today's Follow-ups</dt>
+                            <dd class="text-lg font-medium text-gray-900">{{ $todayFollowUps ?? 0 }}</dd>
+                        </div>
+                    </div>
+                    @if(($todayFollowUps ?? 0) > 0)
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">{{ $todayFollowUps }}</span>
+                    @else
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">0</span>
+                    @endif
+                </div>
+                <p class="mt-3 text-sm text-gray-500">Click to view today's follow-up list</p>
+            </div>
+        </a>
     </div>
 
     <!-- Quick Actions -->
@@ -184,5 +209,78 @@
             </div>
         </div>
     </div>
+    
+    <!-- Analytics -->
+    <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white shadow rounded-lg p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Inquiry Trend (Last 30 days)</h3>
+                <div class="text-sm text-gray-500">Updated: {{ now()->format('M d, Y') }}</div>
+            </div>
+            <canvas id="inquiryTrendChart" height="120"></canvas>
+        </div>
+
+        <div class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Project Analytics</h3>
+            <div class="space-y-4">
+                <div>
+                    <dt class="text-sm text-gray-500">Most Demanded</dt>
+                    @if(!empty($topUnits))
+                        <ul class="space-y-2">
+                            @foreach($topUnits as $u)
+                                <li class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-700">{{ $u['name'] }}</span>
+                                    <span class="text-sm font-semibold text-gray-900">{{ $u['percent'] }}% <span class="text-xs text-gray-500">({{ $u['count'] }})</span></span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <dd class="text-lg font-semibold text-gray-900">N/A</dd>
+                    @endif
+                </div>
+                <div>
+                    <dt class="text-sm text-gray-500">Conversion Rate</dt>
+                    <dd class="text-lg font-semibold text-gray-900">{{ $conversionRate }}% <span class="text-sm text-gray-500">(Booked / Total)</span></dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-gray-500">Total Inquiries</dt>
+                    <dd class="text-lg font-semibold text-gray-900">{{ $totalInquiries }}</dd>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        (function() {
+            const ctx = document.getElementById('inquiryTrendChart').getContext('2d');
+            const labels = {!! json_encode($labels) !!};
+            const data = {!! json_encode($trendData) !!};
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Inquiries',
+                        data: data,
+                        borderColor: '#6366F1',
+                        backgroundColor: 'rgba(99,102,241,0.06)',
+                        fill: true,
+                        tension: 0.25,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: { display: true },
+                        y: { beginAtZero: true }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        })();
+    </script>
 </div>
 @endsection

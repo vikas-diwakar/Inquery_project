@@ -17,8 +17,16 @@
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <div id="qrcode" class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center"></div>
-                <button id="downloadQR" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700">
+                <div class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center">
+                    @php
+                        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)
+                            ->margin(2)
+                            ->format('svg')
+                            ->generate(route('public.brochure.download', $brochure));
+                    @endphp
+                    {!! $qrCode !!}
+                </div>
+                <button id="downloadQR" class="w-full bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
                     Download QR Code
                 </button>
             </div>
@@ -54,86 +62,39 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" onerror="this.onerror=null; this.src='https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';"></script>
 <script>
-    const brochureUrl = '{{ route('public.brochure.download', $brochure) }}';
-    let qrCodeCanvas = null;
-
-    // Function to generate QR code
-    function generateQRCode() {
-        const qrCodeElement = document.getElementById('qrcode');
-        
-        if (!qrCodeElement) {
-            console.error('QR code element not found');
-            return;
-        }
-
-        // Check if QRCode library is loaded
-        if (typeof QRCode === 'undefined') {
-            console.error('QRCode library not loaded');
-            qrCodeElement.innerHTML = '<p class="text-red-500 text-sm">Error: QR Code library failed to load. Please refresh the page.</p>';
-            return;
-        }
-
-        QRCode.toCanvas(qrCodeElement, brochureUrl, {
-            width: 300,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        }, function (error, canvas) {
-            if (error) {
-                console.error('QR Code generation error:', error);
-                qrCodeElement.innerHTML = '<p class="text-red-500 text-sm">Error generating QR code. Please try again.</p>';
-                return;
-            }
-            qrCodeCanvas = canvas;
-        });
-    }
-
-    // Wait for both DOM and QRCode library to be ready
-    function initQRCode() {
-        if (typeof QRCode !== 'undefined') {
-            generateQRCode();
-        } else {
-            // If library not loaded yet, wait a bit more
-            setTimeout(function() {
-                if (typeof QRCode !== 'undefined') {
-                    generateQRCode();
-                } else {
-                    console.error('QRCode library still not loaded after timeout');
-                    document.getElementById('qrcode').innerHTML = '<p class="text-red-500 text-sm">Error: QR Code library failed to load. Please check your internet connection and refresh the page.</p>';
-                }
-            }, 500);
-        }
-    }
-
-    // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initQRCode);
-    } else {
-        // DOM is already ready
-        initQRCode();
-    }
-
     document.getElementById('downloadQR').addEventListener('click', function() {
-        if (!qrCodeCanvas) {
-            alert('QR code is still loading. Please wait a moment and try again.');
+        const svgElement = document.querySelector('svg');
+        if (!svgElement) {
+            alert('QR code is not available. Please refresh the page.');
             return;
         }
 
-        qrCodeCanvas.toBlob(function(blob) {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const fileName = '{{ addslashes($brochure->file_name) }}'.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            a.download = 'brochure-qr-' + fileName + '.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 'image/png');
+        // Convert SVG to canvas and download
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const svgString = new XMLSerializer().serializeToString(svgElement);
+        const img = new Image();
+
+        img.onload = function() {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const fileName = '{{ addslashes($brochure->file_name) }}'.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                a.download = 'brochure-qr-' + fileName + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        };
+
+        img.src = 'data:image/svg+xml;base64,' + btoa(svgString);
     });
 
     function copyToClipboard(text) {

@@ -6,6 +6,7 @@ use App\Http\Controllers\CompanyRegistrationController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FormQRController;
 use App\Http\Controllers\InquiryController;
+use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
@@ -69,7 +70,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
         Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
         Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
+        Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
         Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
+
+        // Follow-up routes
+        Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
+        Route::post('/inquiries/{inquiry}/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
+        Route::post('/inquiries/{inquiry}/follow-ups/complete', [FollowUpController::class, 'complete'])->name('follow-ups.complete');
+        Route::post('/follow-ups/bulk-schedule', [FollowUpController::class, 'bulkSchedule'])->name('follow-ups.bulk-schedule');
+        Route::get('/api/follow-ups/stats', [FollowUpController::class, 'getStats'])->name('follow-ups.stats');
 
         // Brochures
         Route::get('/brochures', [BrochureController::class, 'index'])->name('brochures.index');

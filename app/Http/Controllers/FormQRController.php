@@ -53,8 +53,8 @@ class FormQRController extends Controller
         // Generate inquiry form URL (unique per company and project)
         $inquiryUrl = route('public.inquiry.form', ['project' => $project->id]);
         
-        // Generate QR code image and save it
-        $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.png';
+        // Generate QR code (SVG) and save it - SVG backend does not require Imagick
+        $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.svg';
         $qrCodeFullPath = storage_path('app/public/' . $qrCodePath);
         
         // Create directory if it doesn't exist
@@ -63,8 +63,8 @@ class FormQRController extends Controller
             mkdir($directory, 0755, true);
         }
         
-        // Generate QR code image
-        QrCode::format('png')
+        // Generate QR code as SVG (avoids Imagick requirement)
+        QrCode::format('svg')
             ->size(300)
             ->margin(2)
             ->generate($inquiryUrl, $qrCodeFullPath);
@@ -95,8 +95,8 @@ class FormQRController extends Controller
         if (!$project->inquiry_qr_code || !Storage::disk('public')->exists($project->inquiry_qr_code)) {
             $inquiryUrl = $project->getInquiryFormUrl();
             
-            // Generate QR code image and save it
-            $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.png';
+            // Generate QR code (SVG) and save it
+            $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.svg';
             $qrCodeFullPath = storage_path('app/public/' . $qrCodePath);
             
             // Create directory if it doesn't exist
@@ -105,8 +105,8 @@ class FormQRController extends Controller
                 mkdir($directory, 0755, true);
             }
             
-            // Generate QR code image
-            QrCode::format('png')
+            // Generate QR code as SVG
+            QrCode::format('svg')
                 ->size(300)
                 ->margin(2)
                 ->generate($inquiryUrl, $qrCodeFullPath);
@@ -137,7 +137,10 @@ class FormQRController extends Controller
         }
 
         $fileName = 'inquiry-qr-' . $project->getQrCodeIdentifier() . '.png';
-        
+        // derive extension from stored path (supports .svg fallback)
+        $ext = pathinfo($project->inquiry_qr_code, PATHINFO_EXTENSION) ?: 'svg';
+        $fileName = 'inquiry-qr-' . $project->getQrCodeIdentifier() . '.' . $ext;
+
         return Storage::disk('public')->download($project->inquiry_qr_code, $fileName);
     }
 

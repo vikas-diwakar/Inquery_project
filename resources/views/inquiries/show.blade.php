@@ -49,11 +49,14 @@
                 <dd class="mt-1">
                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                         @if($inquiry->status === 'new') bg-yellow-100 text-yellow-800
+                        @elseif($inquiry->status === 'contacted') bg-blue-100 text-blue-800
+                        @elseif($inquiry->status === 'interested') bg-indigo-100 text-indigo-800
+                        @elseif($inquiry->status === 'site_visit') bg-purple-100 text-purple-800
                         @elseif($inquiry->status === 'booked') bg-green-100 text-green-800
-                        @elseif($inquiry->status === 'rejected') bg-red-100 text-red-800
+                        @elseif($inquiry->status === 'lost') bg-red-100 text-red-800
                         @else bg-gray-100 text-gray-800
                         @endif">
-                        {{ ucfirst($inquiry->status) }}
+                        {{ Str::title(str_replace('_', ' ', $inquiry->status)) }}
                     </span>
                 </dd>
             </div>
@@ -76,9 +79,10 @@
                     <select name="status" id="status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
                         <option value="new" {{ $inquiry->status === 'new' ? 'selected' : '' }}>New</option>
                         <option value="contacted" {{ $inquiry->status === 'contacted' ? 'selected' : '' }}>Contacted</option>
-                        <option value="qualified" {{ $inquiry->status === 'qualified' ? 'selected' : '' }}>Qualified</option>
+                        <option value="interested" {{ $inquiry->status === 'interested' ? 'selected' : '' }}>Interested</option>
+                        <option value="site_visit" {{ $inquiry->status === 'site_visit' ? 'selected' : '' }}>Site Visit</option>
                         <option value="booked" {{ $inquiry->status === 'booked' ? 'selected' : '' }}>Booked</option>
-                        <option value="rejected" {{ $inquiry->status === 'rejected' ? 'selected' : '' }}>Rejected</option>
+                        <option value="lost" {{ $inquiry->status === 'lost' ? 'selected' : '' }}>Lost</option>
                     </select>
                 </div>
                 <div>
@@ -104,6 +108,11 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    {{-- Follow-up scheduler (schedule or view follow-up details) --}}
+    <div class="mt-6">
+        @include('components.follow-up-scheduler', ['inquiry' => $inquiry])
     </div>
 </div>
 @endsection

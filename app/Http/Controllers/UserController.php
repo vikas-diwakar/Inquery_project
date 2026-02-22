@@ -93,7 +93,8 @@ class UserController extends Controller
 
         $roles = Role::where('company_id', auth()->user()->company_id)->get();
         $projects = Project::where('company_id', auth()->user()->company_id)->get();
-        $assignedProjectIds = $user->projects()->pluck('id')->toArray();
+        // specify table to avoid ambiguous 'id' when joining project_user
+        $assignedProjectIds = $user->projects()->pluck('projects.id')->toArray();
         
         return view('users.edit', compact('user', 'roles', 'projects', 'assignedProjectIds'));
     }

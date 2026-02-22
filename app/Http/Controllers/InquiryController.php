@@ -74,7 +74,10 @@ class InquiryController extends Controller
             abort(403, 'Unauthorized access to this project.');
         }
 
-        return view('inquiries.create', compact('project'));
+        // Get users associated with this project
+        $projectUsers = $project->users()->get();
+
+        return view('inquiries.create', compact('project', 'projectUsers'));
     }
 
     /**
@@ -134,7 +137,14 @@ class InquiryController extends Controller
             'message' => 'nullable|string',
             'description' => 'nullable|string',
             'selected_unit_option_id' => 'nullable|exists:project_unit_options,id',
+            'assigned_to' => 'nullable|exists:users,id',
+            'next_follow_up_date' => 'nullable|date_format:Y-m-d\TH:i|after:now',
         ]);
+
+        $followUpDate = null;
+        if ($validated['next_follow_up_date']) {
+            $followUpDate = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['next_follow_up_date']);
+        }
 
         Inquiry::create([
             'company_id' => $project->company_id,
@@ -147,6 +157,8 @@ class InquiryController extends Controller
             'message' => $validated['message'] ?? null,
             'description' => $validated['description'] ?? null,
             'selected_unit_option_id' => $validated['selected_unit_option_id'] ?? null,
+            'assigned_to' => $validated['assigned_to'] ?? null,
+            'next_follow_up_date' => $followUpDate,
             'status' => 'new',
         ]);
 
@@ -174,7 +186,7 @@ class InquiryController extends Controller
         $this->authorize('update', $inquiry);
 
         $validated = $request->validate([
-            'status' => 'required|in:new,contacted,qualified,booked,rejected',
+            'status' => 'required|in:new,contacted,interested,site_visit,booked,lost',
             'assigned_to' => 'nullable|exists:users,id',
             'description' => 'nullable|string',
         ]);
@@ -183,6 +195,32 @@ class InquiryController extends Controller
 
         return redirect()->route('inquiries.show', $inquiry)
             ->with('success', 'Inquiry updated successfully!');
+    }
+
+    /**
+     * Update inquiry status via AJAX/PATCH and record history
+     */
+    public function updateStatus(Request $request, Inquiry $inquiry)
+    {
+        $this->authorize('update', $inquiry);
+
+        $validated = $request->validate([
+            'status' => 'required|in:new,contacted,interested,site_visit,booked,lost',
+        ]);
+
+        $old = $inquiry->status;
+        $inquiry->status = $validated['status'];
+        $inquiry->save();
+
+        // Record history
+        \App\Models\InquiryStatusHistory::create([
+            'inquiry_id' => $inquiry->id,
+            'from_status' => $old,
+            'to_status' => $validated['status'],
+            'changed_by' => auth()->id(),
+        ]);
+
+        return response()->json(['success' => true, 'status' => $inquiry->status]);
     }
 
     /**

@@ -70,13 +70,73 @@ class DashboardController extends Controller
         // Get brochure count
         $totalBrochures = $project->brochures()->count();
 
+        // Today's follow-ups for this project
+        $todayFollowUps = Inquiry::where('company_id', $companyId)
+            ->where('project_id', $project->id)
+            ->whereNotNull('next_follow_up_date')
+            ->whereDate('next_follow_up_date', now()->toDateString())
+            ->count();
+
+        // Analytics: most demanded unit options (join to project_unit_options for accuracy)
+        $cacheKey = "project_{$project->id}_unit_stats";
+        [$topUnits, $mostPopularUnitName, $mostPopularUnitPercent] = \Illuminate\Support\Facades\Cache::remember($cacheKey, 300, function () use ($companyId, $project, $totalInquiries) {
+            $rows = \App\Models\ProjectUnitOption::where('project_unit_options.project_id', $project->id)
+                ->leftJoin('inquiries', function ($join) use ($project) {
+                    $join->on('project_unit_options.id', '=', 'inquiries.selected_unit_option_id')
+                        ->where('inquiries.project_id', '=', $project->id);
+                })
+                ->selectRaw('project_unit_options.id, project_unit_options.option_name, COUNT(inquiries.id) as cnt')
+                ->groupBy('project_unit_options.id', 'project_unit_options.option_name')
+                ->orderByDesc('cnt')
+                ->get();
+
+            $top = $rows->take(3)->map(function ($r) use ($totalInquiries) {
+                $percent = $totalInquiries > 0 ? round(($r->cnt / $totalInquiries) * 100) : 0;
+                return [
+                    'id' => $r->id,
+                    'name' => $r->option_name,
+                    'count' => (int) $r->cnt,
+                    'percent' => $percent,
+                ];
+            })->toArray();
+
+            $most = $rows->first();
+            $mostName = $most ? $most->option_name : null;
+            $mostPercent = $most && $totalInquiries > 0 ? round(($most->cnt / $totalInquiries) * 100) : 0;
+
+            return [$top, $mostName, $mostPercent];
+        });
+
+        // Inquiry trend - last 30 days
+        $days = 30;
+        $trendData = [];
+        $labels = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $date = now()->subDays($i)->toDateString();
+            $labels[] = date('M d', strtotime($date));
+            $trendData[] = Inquiry::where('company_id', $companyId)
+                ->where('project_id', $project->id)
+                ->whereDate('created_at', $date)
+                ->count();
+        }
+
+        // Conversion rate = booked / total
+        $conversionRate = $totalInquiries > 0 ? round(($bookedInquiries / $totalInquiries) * 100, 1) : 0;
+
         return view('dashboard.project-dashboard', compact(
             'project',
             'totalInquiries',
             'newInquiries',
             'bookedInquiries',
             'recentInquiries',
-            'totalBrochures'
+            'totalBrochures',
+            'topUnits',
+            'mostPopularUnitName',
+            'mostPopularUnitPercent',
+            'labels',
+            'trendData',
+            'conversionRate',
+            'todayFollowUps'
         ));
     }
 }

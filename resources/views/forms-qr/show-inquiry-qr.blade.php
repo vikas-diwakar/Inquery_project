@@ -19,11 +19,12 @@
             <div>
                 @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
                     <div class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center">
-                        <img src="{{ Storage::url($project->inquiry_qr_code) }}" alt="QR Code" class="w-64 h-64 object-contain">
+                        <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}" alt="QR Code" class="w-64 h-64 object-contain">
                     </div>
-                    <a href="{{ route('forms-qr.download-inquiry-qr', $project) }}" class="block w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-center">
-                        Download QR Code
-                    </a>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="downloadPngBtn" class="block w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-center">Download PNG</button>
+                        <button id="downloadJpegBtn" class="block w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-center">Download JPEG</button>
+                    </div>
                 @else
                     <div class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center items-center" style="min-height: 256px;">
                         <p class="text-gray-500 text-sm">QR code not generated yet</p>
@@ -103,5 +104,62 @@
             document.body.removeChild(textarea);
         });
     }
+</script>
+<script>
+    // Convert remote SVG to PNG/JPEG and trigger download (client-side)
+    async function downloadSvgAsImage(svgUrl, filename, type = 'png', quality = 0.92) {
+        try {
+            const res = await fetch(svgUrl);
+            if (!res.ok) throw new Error('Failed to fetch SVG');
+            const svgText = await res.text();
+
+            // Create a blob URL for the SVG text
+            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width || 300;
+                canvas.height = img.height || 300;
+                const ctx = canvas.getContext('2d');
+                // fill white for JPEG
+                if (type === 'jpeg') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const mime = type === 'jpeg' ? 'image/jpeg' : 'image/png';
+                canvas.toBlob(function(blob) {
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    URL.revokeObjectURL(url);
+                }, mime, quality);
+            };
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                // fallback to server download route
+                window.location.href = '{{ route('forms-qr.download-inquiry-qr', $project) }}';
+            };
+            img.src = url;
+        } catch (err) {
+            // fallback to server download route
+            window.location.href = '{{ route('forms-qr.download-inquiry-qr', $project) }}';
+        }
+    }
+
+    document.getElementById('downloadPngBtn').addEventListener('click', function() {
+        const src = document.getElementById('inquiryQrImg').src;
+        downloadSvgAsImage(src, 'inquiry-qr-{{ $project->getQrCodeIdentifier() }}.png', 'png');
+    });
+
+    document.getElementById('downloadJpegBtn').addEventListener('click', function() {
+        const src = document.getElementById('inquiryQrImg').src;
+        downloadSvgAsImage(src, 'inquiry-qr-{{ $project->getQrCodeIdentifier() }}.jpg', 'jpeg', 0.9);
+    });
 </script>
 @endsection

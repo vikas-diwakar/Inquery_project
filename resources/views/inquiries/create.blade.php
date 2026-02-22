@@ -117,6 +117,31 @@
                 <p class="mt-1 text-xs text-gray-500">Internal notes for follow-up and tracking (not visible to customers)</p>
             </div>
 
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assign To</label>
+                    <select
+                        id="assigned_to"
+                        name="assigned_to"
+                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                    >
+                        <option value="">-- Unassigned --</option>
+                        @foreach($projectUsers as $user)
+                            <option value="{{ $user->id }}" {{ old('assigned_to') == $user->id ? 'selected' : '' }}>
+                                {{ $user->name }} ({{ $user->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('assigned_to')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    {{-- Next follow-up date removed from creation form. Schedule follow-ups from the inquiry details page. --}}
+                </div>
+            </div>
+
             <div class="flex justify-end space-x-3 pt-4 border-t">
                 <a href="{{ route('inquiries.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                     Cancel

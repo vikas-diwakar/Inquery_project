@@ -5,12 +5,12 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-6 flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">{{ $project->name }}</h1>
+        <h1 class="text-3xl font-bold text-slate-900">{{ $project->name }}</h1>
         <div class="flex space-x-2">
-            <a href="{{ route('projects.edit', $project) }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+            <a href="{{ route('projects.edit', $project) }}" class="btn-primary px-4 py-2">
                 Edit
             </a>
-            <a href="{{ route('projects.index') }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">
+            <a href="{{ route('projects.index') }}" class="btn-secondary px-4 py-2">
                 Back
             </a>
         </div>
@@ -22,15 +22,15 @@
                 <h2 class="text-xl font-semibold mb-4">Project Details</h2>
                 <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Location</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $project->location ?? 'N/A' }}</dd>
+                        <dt class="text-sm font-medium text-slate-500">Location</dt>
+                        <dd class="mt-1 text-sm text-slate-900">{{ $project->location ?? 'N/A' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Status</dt>
+                        <dt class="text-sm font-medium text-slate-500">Status</dt>
                         <dd class="mt-1">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                                 @if($project->status === 'ongoing') bg-green-100 text-green-800
-                                @elseif($project->status === 'completed') bg-gray-100 text-gray-800
+                                @elseif($project->status === 'completed') bg-slate-100 text-slate-800
                                 @elseif($project->status === 'on_hold') bg-yellow-100 text-yellow-800
                                 @else bg-blue-100 text-blue-800
                                 @endif">
@@ -39,17 +39,17 @@
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Start Date</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $project->start_date?->format('M d, Y') ?? 'N/A' }}</dd>
+                        <dt class="text-sm font-medium text-slate-500">Start Date</dt>
+                        <dd class="mt-1 text-sm text-slate-900">{{ $project->start_date?->format('M d, Y') ?? 'N/A' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm font-medium text-gray-500">Total Inquiries</dt>
-                        <dd class="mt-1 text-sm text-gray-900">{{ $project->inquiries->count() }}</dd>
+                        <dt class="text-sm font-medium text-slate-500">Total Inquiries</dt>
+                        <dd class="mt-1 text-sm text-slate-900">{{ $project->inquiries->count() }}</dd>
                     </div>
                     @if($project->description)
                         <div class="sm:col-span-2">
-                            <dt class="text-sm font-medium text-gray-500">Description</dt>
-                            <dd class="mt-1 text-sm text-gray-900">{{ $project->description }}</dd>
+                            <dt class="text-sm font-medium text-slate-500">Description</dt>
+                            <dd class="mt-1 text-sm text-slate-900">{{ $project->description }}</dd>
                         </div>
                     @endif
                 </dl>
@@ -60,23 +60,23 @@
                 <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-4">
                     <div class="flex flex-col items-center">
                         <div id="qrcode" class="border-2 border-gray-200 p-4 rounded-lg bg-white"></div>
-                        <button id="downloadQR" class="mt-3 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-sm">
+                        <button id="downloadQR" class="mt-3 btn-primary text-sm px-4 py-2">
                             Download QR Code
                         </button>
                     </div>
                     <div class="flex-1">
-                        <p class="text-sm text-gray-600 mb-2">
+                        <p class="text-sm text-slate-600 mb-2">
                             This is a unique QR code for <strong>{{ $project->name }}</strong>. 
                             Public users can scan this QR code to access and submit the inquiry form for this project.
                         </p>
-                        <p class="text-xs text-gray-500 mb-3">
+                        <p class="text-xs text-slate-500 mb-3">
                             QR Code ID: {{ $project->getQrCodeIdentifier() }} (Company-Project unique)
                         </p>
                         <div class="space-y-2">
-                            <a href="{{ route('public.inquiry.form', $project) }}" target="_blank" class="block text-sm text-indigo-600 hover:text-indigo-800 break-all">
+                            <a href="{{ route('public.inquiry.form', $project) }}" target="_blank" class="block text-sm text-primary-600 hover:text-primary-700 break-all">
                                 {{ route('public.inquiry.form', $project) }}
                             </a>
-                            <button onclick="copyToClipboard('{{ route('public.inquiry.form', $project) }}')" class="text-xs text-gray-600 hover:text-gray-800 underline">
+                            <button onclick="copyToClipboard('{{ route('public.inquiry.form', $project) }}')" class="text-xs text-slate-600 hover:text-slate-800 underline">
                                 Copy Link
                             </button>
                         </div>
@@ -91,7 +91,7 @@
                 @if($project->logo)
                     <img src="{{ \Illuminate\Support\Facades\Storage::url($project->logo) }}" alt="{{ $project->name }}" class="w-full rounded-lg">
                 @else
-                    <div class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                    <div class="w-full h-48 bg-slate-200 rounded-lg flex items-center justify-center text-slate-400">
                         No logo
                     </div>
                 @endif
@@ -101,11 +101,11 @@
                 <h2 class="text-xl font-semibold mb-4">Brochures</h2>
                 @forelse($project->brochures as $brochure)
                     <div class="mb-4 p-3 border rounded-lg">
-                        <p class="text-sm font-medium text-gray-900">{{ $brochure->file_name }}</p>
-                        <a href="{{ route('public.brochure.download', $brochure) }}" class="text-sm text-indigo-600 hover:text-indigo-800">Download</a>
+                        <p class="text-sm font-medium text-slate-900">{{ $brochure->file_name }}</p>
+                        <a href="{{ route('public.brochure.download', $brochure) }}" class="text-sm text-primary-600 hover:text-primary-700">Download</a>
                     </div>
                 @empty
-                    <p class="text-sm text-gray-500">No brochures uploaded yet</p>
+                    <p class="text-sm text-slate-500">No brochures uploaded yet</p>
                 @endforelse
             </div>
         </div>

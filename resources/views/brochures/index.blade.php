@@ -4,24 +4,17 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-6">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-900">Brochures</h1>
-                <p class="mt-1 text-sm text-gray-600">Project: <strong>{{ $project->name }}</strong></p>
-            </div>
-            <a href="{{ route('brochures.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-                Upload Brochure
-            </a>
+    <div class="mb-6 md:mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900">Brochures</h1>
+            <p class="mt-1 text-sm text-slate-600">Project: <strong>{{ $project->name }}</strong></p>
+            <a href="{{ route('dashboard') }}" class="mt-2 inline-block text-sm font-medium text-primary-600 hover:text-primary-700">← Back to Dashboard</a>
         </div>
-        <a href="{{ route('dashboard') }}" class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-800">
-            ← Back to Dashboard
-        </a>
-        <button onclick="testModal()" class="mt-2 ml-4 inline-block text-sm bg-red-600 text-white px-3 py-1 rounded">Test Modal</button>
+        <a href="{{ route('brochures.create') }}" class="btn-primary shrink-0">Upload Brochure</a>
     </div>
 
-    <div class="bg-white shadow overflow-hidden sm:rounded-md">
-        <ul class="divide-y divide-gray-200">
+    <div class="card overflow-hidden">
+        <ul class="divide-y divide-slate-200">
             @forelse($brochures as $brochure)
                 <li>
                     <div class="px-4 py-4 sm:px-6">
@@ -36,7 +29,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-4">
-                                <a href="{{ route('public.brochure.download', $brochure) }}" class="text-indigo-600 hover:text-indigo-900">Download</a>
+                                <a href="{{ route('public.brochure.download', $brochure) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">Download</a>
                                 <button type="button"
                                         onclick="console.log('Delete button clicked'); showConfirmationModal('Delete Brochure', 'Are you sure you want to delete this brochure? This action cannot be undone.', function() { console.log('Callback executed'); document.getElementById('delete-form-{{ $brochure->id }}').submit(); })"
                                         class="text-red-600 hover:text-red-900">Delete</button>
@@ -60,7 +53,7 @@
                     </div>
                 </li>
             @empty
-                <li class="px-4 py-4 text-center text-gray-500">No brochures uploaded yet. <a href="{{ route('brochures.create') }}" class="text-indigo-600">Upload one</a></li>
+                <li class="px-4 py-12 text-center text-slate-500">No brochures uploaded yet. <a href="{{ route('brochures.create') }}" class="font-semibold text-primary-600 hover:text-primary-700">Upload one</a></li>
             @endforelse
         </ul>
     </div>

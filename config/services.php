@@ -40,4 +40,20 @@ return [
         'secret' => env('RAZORPAY_SECRET'),
     ],
 
+    'social' => [
+        'facebook' => [
+            'page_id' => env('FACEBOOK_PAGE_ID'),
+            'access_token' => env('FACEBOOK_ACCESS_TOKEN'),
+        ],
+        'instagram' => [
+            'business_account_id' => env('INSTAGRAM_BUSINESS_ACCOUNT_ID', env('INSTAGRAM_PAGE_ID')),
+            'access_token' => env('INSTAGRAM_ACCESS_TOKEN'),
+        ],
+        'whatsapp' => [
+            'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID'),
+            'access_token' => env('WHATSAPP_ACCESS_TOKEN'),
+            'to_number' => env('WHATSAPP_TO_NUMBER'),
+        ],
+    ],
+
 ];

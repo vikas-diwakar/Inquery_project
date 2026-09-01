@@ -17,6 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'project' => \App\Http\Middleware\EnsureProjectSelected::class,
             'subscription' => \App\Http\Middleware\CheckSubscription::class,
         ]);
+        $middleware->validateCsrfTokens(except: [
+            '/api/*',
+            '/webhook/*',
+            'webhook/facebook',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

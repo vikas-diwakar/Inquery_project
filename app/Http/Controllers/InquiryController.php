@@ -142,7 +142,7 @@ class InquiryController extends Controller
         ]);
 
         $followUpDate = null;
-        if ($validated['next_follow_up_date']) {
+        if (isset($validated['next_follow_up_date']) && $validated['next_follow_up_date']) {
             $followUpDate = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['next_follow_up_date']);
         }
 

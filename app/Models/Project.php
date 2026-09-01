@@ -22,11 +22,21 @@ class Project extends Model
         'status',
         'logo',
         'inquiry_qr_code',
+        'lead_token',
     ];
 
     protected $casts = [
         'start_date' => 'date',
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($project) {
+            if (empty($project->lead_token)) {
+                $project->lead_token = \Illuminate\Support\Str::random(32);
+            }
+        });
+    }
 
     /**
      * Get the company that owns this project

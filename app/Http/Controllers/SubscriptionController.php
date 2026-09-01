@@ -17,6 +17,8 @@ class SubscriptionController extends Controller
      */
     public function required()
     {
+        SubscriptionPlan::ensureDefaultPlansExist();
+
         $company = auth()->user()->company;
         $activeSubscription = $company->activeSubscription();
 
@@ -56,6 +58,8 @@ class SubscriptionController extends Controller
      */
     public function choosePlan()
     {
+        SubscriptionPlan::ensureDefaultPlansExist();
+
         $company = auth()->user()->company;
 
         // If company already has active subscription, redirect to dashboard
@@ -83,6 +87,8 @@ class SubscriptionController extends Controller
      */
     public function activatePlan(Request $request)
     {
+        SubscriptionPlan::ensureDefaultPlansExist();
+
         $request->validate([
             'plan_id' => 'required|exists:subscription_plans,id',
         ]);

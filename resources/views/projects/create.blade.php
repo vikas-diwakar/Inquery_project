@@ -1,59 +1,82 @@
 @extends('layouts.app')
 
-@section('title', 'Create Project')
+@section('title', 'Create Project - Property Inquiry SaaS')
 
 @section('content')
-<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6">Create New Project</h2>
-        
-        <form action="{{ route('projects.store') }}" method="POST" enctype="multipart/form-data">
+<div class="max-w-3xl mx-auto py-4">
+    <!-- Back Link -->
+    <div class="mb-6">
+        <a href="{{ route('projects.index') }}" class="inline-flex items-center space-x-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Back to Projects</span>
+        </a>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl border border-slate-200/80 overflow-hidden">
+        <!-- Banner Header -->
+        <div class="bg-slate-900 p-6 sm:p-8 text-white flex items-center justify-between relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="space-y-1 relative z-10">
+                <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Create New Property Project</h1>
+                <p class="text-xs sm:text-sm text-slate-300">Set up project details, unit types, and automatic QR inquiry forms.</p>
+            </div>
+            <div class="h-12 w-12 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 flex items-center justify-center text-indigo-300 relative z-10 shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+        </div>
+
+        <form action="{{ route('projects.store') }}" method="POST" enctype="multipart/form-data" class="p-6 sm:p-8 space-y-6">
             @csrf
             
-            <div class="space-y-6">
-                <div>
-                    <label for="name" class="block text-sm font-medium text-gray-700">Project Name *</label>
-                    <input type="text" name="name" id="name" required value="{{ old('name') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+            <div class="space-y-5">
+                <!-- Project Name -->
+                <div class="space-y-1.5">
+                    <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Name <span class="text-rose-500">*</span></label>
+                    <input type="text" name="name" id="name" required value="{{ old('name') }}" class="input-field" placeholder="e.g. Skyline Towers Phase 1">
                 </div>
                 
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
-                    <input type="text" name="location" id="location" value="{{ old('location') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <!-- Location -->
+                <div class="space-y-1.5">
+                    <label for="location" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Location / City</label>
+                    <input type="text" name="location" id="location" value="{{ old('location') }}" class="input-field" placeholder="e.g. Downtown Business District, New York">
                 </div>
                 
-                <div>
-                    <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
-                    <textarea name="description" id="description" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">{{ old('description') }}</textarea>
+                <!-- Description -->
+                <div class="space-y-1.5">
+                    <label for="description" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Description</label>
+                    <textarea name="description" id="description" rows="3" class="input-field" placeholder="Brief overview of luxury residential units, amenities, etc.">{{ old('description') }}</textarea>
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="start_date" class="block text-sm font-medium text-gray-700">Start Date</label>
-                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="start_date" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ old('start_date') }}" class="input-field">
                     </div>
                     
-                    <div>
-                        <label for="status" class="block text-sm font-medium text-gray-700">Status *</label>
-                        <select name="status" id="status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                    <div class="space-y-1.5">
+                        <label for="status" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Status <span class="text-rose-500">*</span></label>
+                        <select name="status" id="status" required class="input-field cursor-pointer">
                             <option value="planning" {{ old('status') === 'planning' ? 'selected' : '' }}>Planning</option>
-                            <option value="ongoing" {{ old('status') === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
+                            <option value="ongoing" {{ old('status', 'ongoing') === 'ongoing' ? 'selected' : '' }}>Ongoing</option>
                             <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Completed</option>
                             <option value="on_hold" {{ old('status') === 'on_hold' ? 'selected' : '' }}>On Hold</option>
                         </select>
                     </div>
                 </div>
                 
-                <div>
-                    <label for="logo" class="block text-sm font-medium text-gray-700">Project Logo</label>
-                    <input type="file" name="logo" id="logo" accept="image/*" class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                <div class="space-y-1.5">
+                    <label for="logo" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Logo / Image</label>
+                    <input type="file" name="logo" id="logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
                 </div>
 
-                <!-- Unit/Property Type Options -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Unit/Property Type Options</label>
-                    <p class="text-sm text-gray-500 mb-4">Select the available unit/property types for this project. These will be shown in the inquiry form.</p>
+                <!-- Property Unit Options -->
+                <div class="space-y-2 pt-2">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit / Property Type Configurations</label>
+                    <p class="text-xs text-slate-500">Select property configurations available in this project for customer inquiries.</p>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 border border-slate-200 rounded-2xl p-4 bg-slate-50/80">
                         @php
                             $predefinedOptions = [
                                 '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
@@ -62,26 +85,26 @@
                         @endphp
 
                         @foreach($predefinedOptions as $option)
-                            <label class="flex items-center">
-                                <input type="checkbox" name="selected_unit_options[]" value="{{ $option }}" {{ in_array($option, old('selected_unit_options', [])) ? 'checked' : '' }} class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-sm text-gray-700">{{ $option }}</span>
+                            <label class="flex items-center p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 cursor-pointer space-x-2.5 transition-all">
+                                <input type="checkbox" name="selected_unit_options[]" value="{{ $option }}" {{ in_array($option, old('selected_unit_options', [])) ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-semibold text-slate-800">{{ $option }}</span>
                             </label>
                         @endforeach
                     </div>
-
-                    <p class="mt-2 text-xs text-gray-500">Select all unit/property types available in this project.</p>
                 </div>
             </div>
             
-            <div class="mt-6 flex justify-end space-x-3">
-                <a href="{{ route('projects.index') }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            <div class="pt-6 border-t border-slate-200 flex items-center justify-between">
+                <a href="{{ route('projects.index') }}" class="btn-secondary">
                     Cancel
                 </a>
-                <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700">
-                    Create Project
+                <button type="submit" class="btn-primary space-x-2">
+                    <span>Create Project</span>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
             </div>
         </form>
     </div>
 </div>
 @endsection
+

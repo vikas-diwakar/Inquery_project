@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BrochureController;
 use App\Http\Controllers\CompanyRegistrationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FacebookWebhookController;
 use App\Http\Controllers\FormQRController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\FollowUpController;
@@ -14,6 +15,8 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
+    $hashed = Hash::make('12345678');
+    // dd($hashed);
     return redirect()->route('login');
 });
 
@@ -26,6 +29,17 @@ Route::post('/inquiry/{project}', [InquiryController::class, 'storePublic'])
 // Public brochure download (no auth required)
 Route::get('/brochure/{brochure}/download', [BrochureController::class, 'download'])
     ->name('public.brochure.download');
+
+// Public integrations (accessible via lead_token)
+Route::get('/inquiry/widget/{token}', [\App\Http\Controllers\IntegrationController::class, 'showWidget'])
+    ->name('public.inquiry.widget');
+Route::post('/inquiry/widget/{token}', [\App\Http\Controllers\IntegrationController::class, 'storeWidget'])
+    ->name('public.inquiry.widget.store');
+Route::post('/api/v1/leads/{token}', [\App\Http\Controllers\IntegrationController::class, 'handleWebhook'])
+    ->name('api.leads.webhook');
+
+Route::get('/webhook/facebook', [FacebookWebhookController::class, 'verify']);
+Route::post('/webhook/facebook', [FacebookWebhookController::class, 'handle']);
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -94,6 +108,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/forms-qr/inquiry-qr/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
         Route::get('/forms-qr/brochure-qr', [FormQRController::class, 'brochureQR'])->name('forms-qr.brochure-qr');
         Route::get('/forms-qr/brochure-qr/{brochure}', [FormQRController::class, 'showBrochureQR'])->name('forms-qr.show-brochure-qr');
+
+        // Integrations panel
+        Route::get('/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('integrations.index');
+        Route::post('/projects/{project}/regenerate-token', [\App\Http\Controllers\IntegrationController::class, 'regenerateToken'])->name('projects.regenerate-token');
     });
 
         // Users (Admin only)

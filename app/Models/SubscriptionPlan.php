@@ -50,6 +50,67 @@ class SubscriptionPlan extends Model
         return $this->type === 'paid';
     }
 
+    public static function ensureDefaultPlansExist(): void
+    {
+        if (self::query()->exists()) {
+            return;
+        }
+
+        self::create([
+            'name' => 'Free Trial',
+            'type' => 'trial',
+            'duration_months' => 3,
+            'price' => null,
+            'currency' => 'INR',
+            'features' => [
+                'projects' => true,
+                'inquiries' => true,
+                'qr_codes' => true,
+                'brochures' => true,
+                'users' => true,
+                'support' => 'basic',
+            ],
+            'is_active' => true,
+        ]);
+
+        self::create([
+            'name' => '6-Month Plan',
+            'type' => 'paid',
+            'duration_months' => 6,
+            'price' => 2999.00,
+            'currency' => 'INR',
+            'features' => [
+                'projects' => true,
+                'inquiries' => true,
+                'qr_codes' => true,
+                'brochures' => true,
+                'users' => true,
+                'support' => 'priority',
+                'analytics' => true,
+            ],
+            'is_active' => true,
+        ]);
+
+        self::create([
+            'name' => '1-Year Plan',
+            'type' => 'paid',
+            'duration_months' => 12,
+            'price' => 4999.00,
+            'currency' => 'INR',
+            'features' => [
+                'projects' => true,
+                'inquiries' => true,
+                'qr_codes' => true,
+                'brochures' => true,
+                'users' => true,
+                'support' => 'premium',
+                'analytics' => true,
+                'api_access' => true,
+            ],
+            'is_active' => true,
+        ]);
+    }
+
     /**
      * Get active plans only
      */

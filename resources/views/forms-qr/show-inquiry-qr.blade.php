@@ -3,83 +3,124 @@
 @section('title', 'Inquiry Form QR - ' . $project->name)
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-6">
-        <a href="{{ route('forms-qr.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm mb-2 inline-block">
-            ← Back to Forms & QR Codes
+<div class="max-w-4xl mx-auto py-4 space-y-6">
+    <!-- Back Link & Header -->
+    <div class="space-y-1">
+        <a href="{{ route('forms-qr.index') }}" class="inline-flex items-center space-x-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors mb-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            <span>Back to Forms & QR Codes</span>
         </a>
-        <h1 class="text-3xl font-bold text-gray-900">Inquiry Form QR Code</h1>
-        <p class="mt-2 text-sm text-gray-600">Project: <strong>{{ $project->name }}</strong></p>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Inquiry Form QR Code</h1>
+        <p class="text-xs sm:text-sm text-slate-500">Project: <span class="font-bold text-slate-800">{{ $project->name }}</span></p>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 class="text-lg font-semibold mb-4">QR Code Details</h2>
+    <!-- QR Code & Details Container Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8">
+        <h2 class="text-lg font-bold text-slate-900 mb-6">QR Code Details</h2>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div class="space-y-4">
                 @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
-                    <div class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center">
-                        <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}" alt="QR Code" class="w-64 h-64 object-contain">
+                    <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex justify-center shadow-inner">
+                        <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}" alt="Inquiry QR Code" class="w-64 h-64 object-contain">
                     </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button id="downloadPngBtn" class="block w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-center">Download PNG</button>
-                        <button id="downloadJpegBtn" class="block w-full bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 text-center">Download JPEG</button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="downloadPngBtn" type="button" class="btn-primary space-x-2 w-full">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Download PNG</span>
+                        </button>
+                        <button id="downloadJpegBtn" type="button" class="btn-secondary space-x-2 w-full">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>Download JPEG</span>
+                        </button>
                     </div>
                 @else
-                    <div class="border-2 border-gray-200 p-4 rounded-lg bg-white mb-4 flex justify-center items-center" style="min-height: 256px;">
-                        <p class="text-gray-500 text-sm">QR code not generated yet</p>
+                    <div class="p-8 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-center items-center text-center space-y-3 min-h-[256px]">
+                        <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        <p class="text-xs text-slate-500 font-medium">QR code not generated yet</p>
                     </div>
-                    <a href="{{ route('forms-qr.create-inquiry-form') }}?project={{ $project->id }}" class="block w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 text-center">
+                    <a href="{{ route('forms-qr.create-inquiry-form') }}?project={{ $project->id }}" class="btn-primary w-full text-center">
                         Generate QR Code
                     </a>
                 @endif
             </div>
             
-            <div>
-                <h3 class="text-md font-semibold mb-3">Information</h3>
-                <dl class="space-y-2 text-sm">
-                    <div>
-                        <dt class="font-medium text-gray-500">Project Name:</dt>
-                        <dd class="text-gray-900">{{ $project->name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">QR Code ID:</dt>
-                        <dd class="text-gray-900">{{ $project->getQrCodeIdentifier() }}</dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-gray-500">Inquiry Form URL:</dt>
-                        <dd class="text-gray-900 break-all">
-                            <a href="{{ route('public.inquiry.form', $project) }}" target="_blank" class="text-indigo-600 hover:text-indigo-800">
-                                {{ route('public.inquiry.form', $project) }}
-                            </a>
-                        </dd>
-                    </div>
-                </dl>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Project Metadata</h3>
+                    <dl class="space-y-3 text-sm">
+                        <div class="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-slate-100">
+                            <dt class="font-semibold text-slate-500">Project Name:</dt>
+                            <dd class="font-bold text-slate-900 sm:text-right">{{ $project->name }}</dd>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:justify-between py-2 border-b border-slate-100">
+                            <dt class="font-semibold text-slate-500">QR Code Identifier:</dt>
+                            <dd class="font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-700 sm:text-right">{{ $project->getQrCodeIdentifier() }}</dd>
+                        </div>
+                        <div class="flex flex-col py-2 border-b border-slate-100">
+                            <dt class="font-semibold text-slate-500 mb-1">Inquiry Form Link:</dt>
+                            <dd class="text-indigo-600 font-medium break-all text-xs bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
+                                <a href="{{ route('public.inquiry.form', $project) }}" target="_blank" class="hover:underline">
+                                    {{ route('public.inquiry.form', $project) }}
+                                </a>
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
                 
-                <div class="mt-4 pt-4 border-t">
-                    <button onclick="copyToClipboard('{{ route('public.inquiry.form', $project) }}')" class="text-sm text-indigo-600 hover:text-indigo-800 underline">
-                        Copy Link to Clipboard
+                <div class="pt-2">
+                    <button type="button" onclick="copyToClipboard('{{ route('public.inquiry.form', $project) }}')" class="btn-secondary text-xs space-x-2 w-full justify-center">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                        <span>Copy Link to Clipboard</span>
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-semibold mb-4">Inquiry Form Fields</h2>
-        <p class="text-sm text-gray-600 mb-4">
-            When users scan this QR code, they will see a form with the following fields:
-        </p>
-        <div class="bg-gray-50 rounded-lg p-4">
-            <ul class="space-y-2 text-sm text-gray-700">
-                <li><strong>Customer Name</strong> <span class="text-red-600">*</span></li>
-                <li><strong>Phone</strong> <span class="text-red-600">*</span></li>
-                <li><strong>Email</strong> (Optional)</li>
-                <li><strong>Budget</strong> (Optional)</li>
-                <li><strong>Flat Type</strong> (Optional)</li>
-                <li><strong>Message</strong> (Optional)</li>
-            </ul>
-            <p class="mt-3 text-xs text-gray-500"><span class="text-red-600">*</span> Required fields</p>
+    <!-- Inquiry Form Fields Card -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8 space-y-4">
+        <div>
+            <h2 class="text-lg font-bold text-slate-900">Inquiry Form Field Structure</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                When prospective buyers scan this QR code, they will see an inquiry form with the following fields:
+            </p>
+        </div>
+
+        <div class="bg-slate-50/80 border border-slate-200/60 rounded-2xl p-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+                    <span class="font-bold text-slate-800">Customer Name</span>
+                    <span class="text-rose-500 font-bold">*</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-indigo-600"></span>
+                    <span class="font-bold text-slate-800">Phone Number</span>
+                    <span class="text-rose-500 font-bold">*</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                    <span class="font-medium text-slate-700">Email Address</span>
+                    <span class="text-xs text-slate-400">(Optional)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                    <span class="font-medium text-slate-700">Budget ($)</span>
+                    <span class="text-xs text-slate-400">(Optional)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                    <span class="font-medium text-slate-700">Flat / Unit Type</span>
+                    <span class="text-xs text-slate-400">(Optional)</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="h-2 w-2 rounded-full bg-slate-400"></span>
+                    <span class="font-medium text-slate-700">Message / Requirement</span>
+                    <span class="text-xs text-slate-400">(Optional)</span>
+                </div>
+            </div>
+            <p class="mt-4 pt-3 border-t border-slate-200/60 text-xs text-slate-400"><span class="text-rose-500 font-bold">*</span> Required fields for lead submission</p>
         </div>
     </div>
 </div>

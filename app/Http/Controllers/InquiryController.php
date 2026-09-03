@@ -96,7 +96,7 @@ class InquiryController extends Controller
             'selected_unit_option_id' => 'nullable|exists:project_unit_options,id',
         ]);
 
-        Inquiry::create([
+        $inquiry = Inquiry::create([
             'company_id' => $project->company_id,
             'project_id' => $project->id,
             'customer_name' => $validated['customer_name'],
@@ -110,8 +110,16 @@ class InquiryController extends Controller
             'status' => 'new',
         ]);
 
+        // Calculate AI Intent Score, allocate via Round-Robin, send WhatsApp & enroll in drip
+        app(\App\Services\LeadScoringService::class)->evaluateAndUpdate($inquiry);
+        if (!$inquiry->assigned_to) {
+            app(\App\Services\LeadAllocationService::class)->allocateInquiry($inquiry);
+        }
+        app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
+        app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
+
         return redirect()->back()
-            ->with('success', 'Thank you for your inquiry! We will contact you soon.');
+            ->with('success', 'Thank you for your inquiry! Check your WhatsApp for project details & brochure.');
     }
 
     /**
@@ -146,7 +154,7 @@ class InquiryController extends Controller
             $followUpDate = \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $validated['next_follow_up_date']);
         }
 
-        Inquiry::create([
+        $inquiry = Inquiry::create([
             'company_id' => $project->company_id,
             'project_id' => $project->id,
             'customer_name' => $validated['customer_name'],
@@ -162,8 +170,32 @@ class InquiryController extends Controller
             'status' => 'new',
         ]);
 
+        // Calculate AI Intent Score, allocate via Round-Robin, send WhatsApp & enroll in drip
+        app(\App\Services\LeadScoringService::class)->evaluateAndUpdate($inquiry);
+        if (!$inquiry->assigned_to) {
+            app(\App\Services\LeadAllocationService::class)->allocateInquiry($inquiry);
+        }
+        app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
+        app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
+
         return redirect()->route('inquiries.index')
-            ->with('success', 'Inquiry created successfully!');
+            ->with('success', 'Inquiry created, auto-allocated, brochure sent & drip sequence active!');
+    }
+
+    /**
+     * Resend WhatsApp Brochure manually for an inquiry
+     */
+    public function resendWhatsApp(Inquiry $inquiry)
+    {
+        $this->authorize('update', $inquiry);
+
+        $result = app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry, true);
+
+        if ($result['success']) {
+            return redirect()->back()->with('success', 'WhatsApp brochure resent successfully!');
+        }
+
+        return redirect()->back()->with('error', 'Failed to resend WhatsApp: ' . $result['message']);
     }
 
     /**
@@ -188,13 +220,31 @@ class InquiryController extends Controller
         $validated = $request->validate([
             'status' => 'required|in:new,contacted,interested,site_visit,booked,lost',
             'assigned_to' => 'nullable|exists:users,id',
+            'project_unit_id' => 'nullable|exists:project_units,id',
             'description' => 'nullable|string',
         ]);
 
         $inquiry->update($validated);
 
+        // Re-evaluate AI Lead Intent Score & Grade
+        app(\App\Services\LeadScoringService::class)->evaluateAndUpdate($inquiry);
+
+        // Auto-sync physical unit status if assigned
+        if ($inquiry->project_unit_id) {
+            $unit = \App\Models\ProjectUnit::find($inquiry->project_unit_id);
+            if ($unit) {
+                if ($inquiry->status === 'booked') {
+                    $unit->update(['status' => 'sold']);
+                } elseif (in_array($inquiry->status, ['interested', 'site_visit'])) {
+                    $unit->update(['status' => 'on_hold']);
+                } elseif ($inquiry->status === 'lost') {
+                    $unit->update(['status' => 'available']);
+                }
+            }
+        }
+
         return redirect()->route('inquiries.show', $inquiry)
-            ->with('success', 'Inquiry updated successfully!');
+            ->with('success', 'Inquiry & unit availability updated successfully!');
     }
 
     /**

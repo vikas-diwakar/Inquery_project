@@ -60,6 +60,12 @@
                                 <a href="{{ route('integrations.index') }}" class="{{ request()->routeIs('integrations.index') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80' }} px-3 py-2 rounded-lg text-sm font-medium transition-all">
                                     Integrations
                                 </a>
+                                <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80' }} px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                                    WhatsApp API
+                                </a>
+                                <a href="{{ route('settings.drip') }}" class="{{ request()->routeIs('settings.drip*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80' }} px-3 py-2 rounded-lg text-sm font-medium transition-all">
+                                    Lead Drips ⚡
+                                </a>
                             @endif
 
                             @if(auth()->user()->isAdmin())
@@ -74,22 +80,24 @@
                     <div class="hidden sm:flex items-center space-x-3">
                         @if(session('selected_project_id') && isset($selectedProject))
                             <div class="flex items-center bg-indigo-50/80 border border-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse mr-2"></span>
+                                <span class="h-2 w-2 rounded-full bg-indigo-600 mr-2"></span>
                                 <span class="max-w-[120px] truncate">{{ $selectedProject->name }}</span>
                             </div>
                         @endif
 
-                        <div class="flex items-center bg-slate-100/80 border border-slate-200 rounded-full px-3 py-1.5 space-x-2">
-                            <div class="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold uppercase">
-                                {{ substr(auth()->user()->name, 0, 1) }}
+                        <!-- User Profile Badge -->
+                        <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-full text-xs font-medium text-slate-700">
+                            <div class="h-6 w-6 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </div>
-                            <div class="flex flex-col text-left">
-                                <span class="text-xs font-semibold text-slate-800 leading-tight">{{ auth()->user()->name }}</span>
-                                <span class="text-[10px] text-slate-500 leading-none">{{ auth()->user()->company->name ?? 'Company' }}</span>
+                            <div class="flex flex-col text-left leading-tight">
+                                <span class="font-bold text-slate-900 truncate max-w-[100px]">{{ auth()->user()->name }}</span>
+                                <span class="text-[9px] text-slate-500 font-semibold">{{ auth()->user()->role->name ?? 'User' }}</span>
                             </div>
                         </div>
 
-                        <form method="POST" action="{{ route('logout') }}">
+                        <!-- Logout Button -->
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit" title="Sign out" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,8 +107,8 @@
                         </form>
                     </div>
 
-                    <!-- Mobile Hamburger Menu Button -->
-                    <div class="flex md:hidden items-center">
+                    <!-- Mobile Menu Button -->
+                    <div class="flex items-center sm:hidden">
                         <button type="button" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" class="p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -122,6 +130,7 @@
                     <a href="{{ route('brochures.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Brochures</a>
                     <a href="{{ route('forms-qr.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Form & QR</a>
                     <a href="{{ route('integrations.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Integrations</a>
+                    <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
                 @endif
                 @if(auth()->user()->isAdmin())
                     <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>

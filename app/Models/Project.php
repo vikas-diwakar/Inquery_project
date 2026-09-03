@@ -18,6 +18,8 @@ class Project extends Model
         'name',
         'location',
         'description',
+        'virtual_tour_url',
+        'master_plan_image',
         'start_date',
         'status',
         'logo',
@@ -60,6 +62,14 @@ class Project extends Model
     public function brochures(): HasMany
     {
         return $this->hasMany(Brochure::class);
+    }
+
+    /**
+     * Get all stacking chart units for this project
+     */
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProjectUnit::class)->orderBy('tower_name')->orderBy('floor_number', 'desc')->orderBy('unit_number');
     }
 
     /**

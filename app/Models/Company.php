@@ -21,6 +21,14 @@ class Company extends Model
         'trial_ends_at',
         'subscription_ends_at',
         'trial_used',
+        'whatsapp_provider',
+        'whatsapp_api_key',
+        'whatsapp_phone_number_id',
+        'whatsapp_instance_id',
+        'whatsapp_auto_send',
+        'whatsapp_welcome_template',
+        'lead_allocation_method',
+        'last_allocated_user_id',
     ];
 
     protected $casts = [
@@ -28,7 +36,20 @@ class Company extends Model
         'trial_ends_at' => 'datetime',
         'subscription_ends_at' => 'datetime',
         'trial_used' => 'boolean',
+        'whatsapp_auto_send' => 'boolean',
     ];
+
+    /**
+     * Get default WhatsApp welcome template
+     */
+    public function getDefaultWhatsAppTemplate(): string
+    {
+        if (!empty($this->whatsapp_welcome_template)) {
+            return $this->whatsapp_welcome_template;
+        }
+
+        return "Hello {customer_name}! 👋\n\nThank you for inquiring about *{project_name}* at {company_name}.\n\n📄 *Download Official Project Brochure:*\n{brochure_url}\n\nOur team representative *{executive_name}* will be in touch with you shortly!\n\nBest regards,\n*{company_name}*";
+    }
 
     /**
      * Get all users for this company

@@ -51,9 +51,11 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
+            'virtual_tour_url' => 'nullable|url|max:500',
             'start_date' => 'nullable|date',
             'status' => 'required|in:planning,ongoing,completed,on_hold',
             'logo' => 'nullable|image|max:2048',
+            'master_plan_image' => 'nullable|image|max:5120',
             'selected_unit_options' => 'nullable|array',
             'selected_unit_options.*' => 'string|max:255',
         ]);
@@ -63,9 +65,17 @@ class ProjectController extends Controller
             'name' => $validated['name'],
             'location' => $validated['location'] ?? null,
             'description' => $validated['description'] ?? null,
+            'virtual_tour_url' => $validated['virtual_tour_url'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'status' => $validated['status'],
         ]);
+
+        // Handle master plan image upload
+        if ($request->hasFile('master_plan_image')) {
+            $masterPath = $request->file('master_plan_image')->store('master_plans', 'public');
+            $project->master_plan_image = $masterPath;
+            $project->save();
+        }
 
         // Handle logo upload
         if ($request->hasFile('logo')) {
@@ -169,9 +179,11 @@ class ProjectController extends Controller
             'name' => 'required|string|max:255',
             'location' => 'nullable|string',
             'description' => 'nullable|string',
+            'virtual_tour_url' => 'nullable|url|max:500',
             'start_date' => 'nullable|date',
             'status' => 'required|in:planning,ongoing,completed,on_hold',
             'logo' => 'nullable|image|max:2048',
+            'master_plan_image' => 'nullable|image|max:5120',
             'selected_unit_options' => 'nullable|array',
             'selected_unit_options.*' => 'required|string|max:255',
         ]);
@@ -180,9 +192,20 @@ class ProjectController extends Controller
             'name' => $validated['name'],
             'location' => $validated['location'] ?? null,
             'description' => $validated['description'] ?? null,
+            'virtual_tour_url' => $validated['virtual_tour_url'] ?? null,
             'start_date' => $validated['start_date'] ?? null,
             'status' => $validated['status'],
         ]);
+
+        // Handle master plan image upload
+        if ($request->hasFile('master_plan_image')) {
+            if ($project->master_plan_image) {
+                Storage::disk('public')->delete($project->master_plan_image);
+            }
+            $masterPath = $request->file('master_plan_image')->store('master_plans', 'public');
+            $project->master_plan_image = $masterPath;
+            $project->save();
+        }
 
         // Handle unit options - delete all existing and create new ones based on selection
         $project->unitOptions()->delete(); // Remove all existing unit options

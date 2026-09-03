@@ -14,6 +14,7 @@ class Inquiry extends Model
     protected $fillable = [
         'company_id',
         'project_id',
+        'project_unit_id',
         'customer_name',
         'phone',
         'email',
@@ -29,13 +30,57 @@ class Inquiry extends Model
         'follow_up_notes',
         'source',
         'type',
+        'whatsapp_sent_at',
+        'whatsapp_status',
+        'whatsapp_last_message',
+        'lead_score',
+        'lead_grade',
+        'score_breakdown',
+        'allocated_at',
     ];
 
     protected $casts = [
         'budget' => 'decimal:2',
         'next_follow_up_date' => 'datetime',
         'last_follow_up_date' => 'datetime',
+        'whatsapp_sent_at' => 'datetime',
+        'allocated_at' => 'datetime',
+        'lead_score' => 'integer',
+        'score_breakdown' => 'array',
     ];
+
+    /**
+     * Get badge CSS classes and icon for lead intent grade
+     */
+    public function getGradeBadgeAttribute(): array
+    {
+        return match ($this->lead_grade) {
+            'hot' => [
+                'label' => '🔥 HOT',
+                'class' => 'bg-rose-50 text-rose-700 border-rose-200 shadow-2xs font-extrabold',
+            ],
+            'warm' => [
+                'label' => '☀️ WARM',
+                'class' => 'bg-amber-50 text-amber-700 border-amber-200 font-bold',
+            ],
+            'cold' => [
+                'label' => '❄️ COLD',
+                'class' => 'bg-slate-100 text-slate-600 border-slate-200 font-medium',
+            ],
+            default => [
+                'label' => '❄️ COLD',
+                'class' => 'bg-slate-100 text-slate-600 border-slate-200',
+            ],
+        };
+    }
+
+    /**
+     * Check if WhatsApp brochure was sent
+     */
+    public function hasWhatsAppBeenSent(): bool
+    {
+        return !is_null($this->whatsapp_sent_at) && $this->whatsapp_status === 'sent';
+    }
 
     /**
      * Get the company that owns this inquiry
@@ -67,6 +112,22 @@ class Inquiry extends Model
     public function selectedUnitOption(): BelongsTo
     {
         return $this->belongsTo(ProjectUnitOption::class, 'selected_unit_option_id');
+    }
+
+    /**
+     * Get the assigned specific physical unit for this inquiry
+     */
+    public function projectUnit(): BelongsTo
+    {
+        return $this->belongsTo(ProjectUnit::class, 'project_unit_id');
+    }
+
+    /**
+     * Get scheduled & sent lead drip logs for this inquiry
+     */
+    public function dripLogs(): HasMany
+    {
+        return $this->hasMany(InquiryDripLog::class)->orderBy('scheduled_for');
     }
 
     /**

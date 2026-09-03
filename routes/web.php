@@ -73,6 +73,13 @@ Route::middleware('auth')->group(function () {
         Route::resource('projects', ProjectController::class);
         Route::get('/projects/{project}/select', [ProjectController::class, 'select'])->name('projects.select');
         Route::post('/projects/clear-selection', [ProjectController::class, 'clearSelection'])->name('projects.clear-selection');
+
+        // Unit Inventory & Stacking Chart
+        Route::get('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'index'])->name('projects.units.index');
+        Route::post('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'store'])->name('projects.units.store');
+        Route::post('/projects/{project}/units/batch', [\App\Http\Controllers\ProjectUnitController::class, 'generateBatch'])->name('projects.units.batch');
+        Route::patch('/units/{unit}/status', [\App\Http\Controllers\ProjectUnitController::class, 'updateStatus'])->name('units.update-status');
+        Route::delete('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'destroy'])->name('units.destroy');
     });
 
     // Project-specific routes (require project selection and active subscription)
@@ -85,7 +92,20 @@ Route::middleware('auth')->group(function () {
         Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
         Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
         Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
+        Route::post('/inquiries/{inquiry}/resend-whatsapp', [InquiryController::class, 'resendWhatsApp'])->name('inquiries.resend-whatsapp');
         Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
+
+        // WhatsApp Integration Settings
+        Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
+        Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
+        Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'sendTestMessage'])->name('settings.whatsapp.test');
+
+        // Lead Drip Automation Sequences
+        Route::get('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'index'])->name('settings.drip');
+        Route::post('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'store'])->name('settings.drip.store');
+        Route::delete('/settings/drip/{step}', [\App\Http\Controllers\LeadDripController::class, 'destroy'])->name('settings.drip.destroy');
+        Route::post('/settings/drip/process-now', [\App\Http\Controllers\LeadDripController::class, 'processNow'])->name('settings.drip.process-now');
+        Route::post('/settings/drip/enroll-past', [\App\Http\Controllers\LeadDripController::class, 'enrollPastLeads'])->name('settings.drip.enroll-past');
 
         // Follow-up routes
         Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');

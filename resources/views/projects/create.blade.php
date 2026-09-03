@@ -49,6 +49,13 @@
                     <textarea name="description" id="description" rows="3" class="input-field" placeholder="Brief overview of luxury residential units, amenities, etc.">{{ old('description') }}</textarea>
                 </div>
                 
+                <!-- 360 Virtual Tour URL -->
+                <div class="space-y-1.5">
+                    <label for="virtual_tour_url" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">360° Virtual Walkthrough Tour Link (Matterport / Kuula / YouTube 360)</label>
+                    <input type="url" name="virtual_tour_url" id="virtual_tour_url" value="{{ old('virtual_tour_url') }}" class="input-field" placeholder="https://my.matterport.com/show/?m=example or https://kuula.co/share/...">
+                    <p class="text-xs text-slate-400">Embed URL for interactive 360 degree virtual tour.</p>
+                </div>
+                
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div class="space-y-1.5">
                         <label for="start_date" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Start Date</label>
@@ -66,9 +73,16 @@
                     </div>
                 </div>
                 
-                <div class="space-y-1.5">
-                    <label for="logo" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Logo / Image</label>
-                    <input type="file" name="logo" id="logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="logo" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Project Logo / Image</label>
+                        <input type="file" name="logo" id="logo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label for="master_plan_image" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Master Layout Plan Image</label>
+                        <input type="file" name="master_plan_image" id="master_plan_image" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                    </div>
                 </div>
 
                 <!-- Property Unit Options -->

@@ -119,7 +119,8 @@ Route::middleware('auth')->group(function () {
 
         // WhatsApp Integration Settings
         Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
-        Route::match(['post', 'put'], '/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
+        Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
+        Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
         Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
 
         // Lead Drip Automation Sequences

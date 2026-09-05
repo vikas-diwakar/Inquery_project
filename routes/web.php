@@ -118,14 +118,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
 
         // WhatsApp Integration Settings
-        //Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
-        //Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
-        //Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'sendTestMessage'])->name('settings.whatsapp.test');
-        
-          Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
+        Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
+        Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
         Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
         Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
-
 
         // Lead Drip Automation Sequences
         Route::get('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'index'])->name('settings.drip');

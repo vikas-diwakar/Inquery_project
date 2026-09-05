@@ -144,13 +144,15 @@ class WhatsAppService
     protected function sendViaMetaCloud($company, string $phone, string $message): bool
     {
         if (empty($company->whatsapp_api_key) || empty($company->whatsapp_phone_number_id)) {
+            Log::warning('Meta Cloud API Error: Missing API key or Phone Number ID');
             return false;
         }
 
-        $phoneId = $company->whatsapp_phone_number_id;
-        $token = $company->whatsapp_api_key;
+        $phoneId = trim($company->whatsapp_phone_number_id);
+        $token = trim($company->whatsapp_api_key);
         $toNumber = preg_replace('/[^0-9]/', '', $phone);
 
+        // 1. Try sending freeform text message
         $response = Http::withToken($token)
             ->post("https://graph.facebook.com/v18.0/{$phoneId}/messages", [
                 'messaging_product' => 'whatsapp',
@@ -159,6 +161,32 @@ class WhatsAppService
                 'text' => ['body' => $message],
             ]);
 
-        return $response->successful();
+        if ($response->successful()) {
+            Log::info("Meta WhatsApp Cloud API text message sent successfully to {$toNumber}");
+            return true;
+        }
+
+        Log::error("Meta WhatsApp Cloud API Error ({$response->status()}): " . $response->body());
+
+        // 2. If freeform text fails (Meta 24-hour window restriction), fallback to approved template
+        $templateResponse = Http::withToken($token)
+            ->post("https://graph.facebook.com/v18.0/{$phoneId}/messages", [
+                'messaging_product' => 'whatsapp',
+                'to' => $toNumber,
+                'type' => 'template',
+                'template' => [
+                    'name' => 'hello_world',
+                    'language' => ['code' => 'en_US']
+                ]
+            ]);
+
+        if ($templateResponse->successful()) {
+            Log::info("Meta WhatsApp sent via hello_world template fallback to {$toNumber}");
+            return true;
+        }
+
+        Log::error("Meta WhatsApp Template Fallback Error ({$templateResponse->status()}): " . $templateResponse->body());
+
+        return false;
     }
 }

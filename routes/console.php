@@ -13,3 +13,9 @@ Schedule::command('queue:work --stop-when-empty --tries=3')
     ->everyMinute()
     ->withoutOverlapping();
 
+// Automatically dispatch due drip nurtures to queue every 5 minutes
+Schedule::job(new \App\Jobs\ProcessPendingDripsJob())
+    ->everyFiveMinutes()
+    ->withoutOverlapping();
+
+

@@ -88,15 +88,17 @@ class LeadDripController extends Controller
     }
 
     /**
-     * Manual trigger to process due drips now (with option for immediate test dispatch)
+     * Manual trigger to process due drips now via background Queue Job
      */
     public function processNow(Request $request, DripNurtureService $service)
     {
         $company = auth()->user()->company;
         $forceNow = $request->has('force') || $request->input('mode') === 'test';
-        $result = $service->processPendingDrips($company->id, $forceNow);
 
-        return redirect()->back()->with('success', "Processed {$result['total_processed']} pending drip logs ({$result['sent']} sent successfully).");
+        // Dispatch background Queue Job
+        \App\Jobs\ProcessPendingDripsJob::dispatch($company->id, $forceNow);
+
+        return redirect()->back()->with('success', "Dispatched pending drip workflow processing job to queue! Your queue worker will send messages in background.");
     }
 
     /**

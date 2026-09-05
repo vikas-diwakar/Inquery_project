@@ -37,7 +37,7 @@ class WhatsAppService
         $template = $company->getDefaultWhatsAppTemplate();
         $message = str_replace(
             ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}'],
-            [$inquiry->customer_name, $inquiry->project->name ?? 'Project', $company->name ?? 'PropInquiry', $brochureUrl, $executiveName],
+            [$inquiry->customer_name, $inquiry->project->name ?? 'Project', $company->name ?? 'PropDrip', $brochureUrl, $executiveName],
             $template
         );
 

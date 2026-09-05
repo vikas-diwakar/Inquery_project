@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sign In - Property Inquiry SaaS')
+@section('title', 'Sign In - PropDrip')
 
 @section('content')
 <div class="min-h-[85vh] flex items-center justify-center py-6">
@@ -14,12 +14,7 @@
 
             <!-- Top Brand -->
             <div class="relative z-10 flex items-center space-x-3">
-                <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/40">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                </div>
-                <span class="text-xl font-bold tracking-tight text-white">PropInquiry SaaS</span>
+                <img src="{{ asset('images/propdrip-logo.png') }}" alt="PropDrip Logo" class="h-10 w-auto rounded-xl object-contain bg-white/90 p-1 shadow-lg">
             </div>
 
             <!-- Center Headline & Highlights -->
@@ -74,6 +69,45 @@
                     </p>
                 </div>
 
+                <!-- Session Status / Alert Banners -->
+                @if (session('status'))
+                <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-medium text-emerald-800 flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ session('status') }}</span>
+                </div>
+                @endif
+
+                @if (session('error'))
+                <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-800 space-y-2">
+                    <div class="flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>{{ session('error') }}</span>
+                    </div>
+
+                    @if(session('unverified_email'))
+                    <form action="{{ route('verification.resend') }}" method="POST" class="pt-1">
+                        @csrf
+                        <input type="hidden" name="email" value="{{ session('unverified_email') }}">
+                        <button type="submit" class="w-full py-2 px-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-xs transition text-center">
+                            Resend Email Verification Link →
+                        </button>
+                    </form>
+                    @endif
+                </div>
+                @endif
+
+                @if ($errors->any())
+                <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-xs font-medium text-red-800 space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <p>• {{ $error }}</p>
+                    @endforeach
+                </div>
+                @endif
+
                 <!-- Login Form -->
                 <form class="space-y-5" action="{{ route('login') }}" method="POST">
                     @csrf
@@ -98,6 +132,7 @@
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
                             <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Password</label>
+                            <a href="{{ route('password.request') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition">Forgot Password?</a>
                         </div>
                         <div class="relative rounded-xl shadow-sm">
                             <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

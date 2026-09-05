@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -103,5 +103,21 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role && $this->role->name === 'Admin';
+    }
+
+    /**
+     * Send email verification notification via queued job
+     */
+    public function sendEmailVerificationNotification()
+    {
+        \App\Jobs\SendEmailVerificationJob::dispatch($this);
+    }
+
+    /**
+     * Send password reset notification via queued job
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        \App\Jobs\SendPasswordResetEmailJob::dispatch($this, $token);
     }
 }

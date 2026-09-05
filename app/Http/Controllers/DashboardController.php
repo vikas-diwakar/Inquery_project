@@ -42,7 +42,12 @@ class DashboardController extends Controller
         // If project is selected, show project-specific dashboard
         $project = Project::where('id', $selectedProjectId)
             ->where('company_id', $companyId)
-            ->firstOrFail();
+            ->first();
+
+        if (!$project) {
+            session()->forget('selected_project_id');
+            return redirect()->route('dashboard');
+        }
 
         // Get project-specific statistics
         $totalInquiries = Inquiry::where('company_id', $companyId)

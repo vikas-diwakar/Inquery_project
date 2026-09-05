@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit User - Property Inquiry SaaS')
+@section('title', 'Edit User - PropDrip')
 
 @section('content')
 <div class="max-w-3xl mx-auto py-4">

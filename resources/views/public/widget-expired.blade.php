@@ -18,9 +18,8 @@
             <p class="mt-2 text-xs text-slate-500">The external inquiry widget for <strong>{{ $project->name }}</strong> has been temporarily paused. Please contact the company administrator to verify their subscription status.</p>
         </div>
         
-        <!-- Footer Branding -->
-        <div class="pt-4 text-[9px] font-semibold text-slate-400 uppercase tracking-widest">
-            Powered by Property Inquiry SaaS
+        <div class="pt-4 text-[9px] font-semibold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-1">
+            <img src="{{ asset('images/propdrip-logo.png') }}" class="h-3 w-auto inline" alt="PropDrip"> Powered by PropDrip
         </div>
     </div>
 </body>

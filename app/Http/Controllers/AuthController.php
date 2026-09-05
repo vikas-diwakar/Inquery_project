@@ -29,16 +29,29 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            $user = Auth::user();
+
+            // Prevent login for unverified emails
+            if (!$user->hasVerifiedEmail()) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->withInput($request->only('email'))
+                    ->with('error', 'Your email address is not verified. Please verify your email before signing in.')
+                    ->with('unverified_email', $user->email);
+            }
+
             $request->session()->regenerate();
 
-            $user = Auth::user();
             $company = $user->company;
 
             // Check subscription status and redirect accordingly
-            if ($company->isFirstLogin()) {
+            if ($company && $company->isFirstLogin()) {
                 // First login - redirect to plan selection
                 return redirect()->route('subscription.choose-plan');
-            } elseif (!$company->hasActiveSubscription()) {
+            } elseif ($company && !$company->hasActiveSubscription()) {
                 // No active subscription - redirect to subscription required
                 return redirect()->route('subscription.required');
             }

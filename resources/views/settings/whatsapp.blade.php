@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'WhatsApp Integration Settings - Property Inquiry SaaS')
+@section('title', 'WhatsApp Integration Settings - PropDrip')
 
 @section('content')
 <div class="max-w-4xl mx-auto py-4 space-y-6">

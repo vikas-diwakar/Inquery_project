@@ -135,7 +135,7 @@
             
             <!-- Footer Branding -->
             <div class="bg-slate-50 border-t border-slate-100 px-6 py-2.5 text-center">
-                <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Powered by Property Inquiry SaaS</span>
+                <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-center gap-1.5"><img src="{{ asset('images/propdrip-logo.png') }}" class="h-3.5 w-auto inline" alt="PropDrip"> Powered by PropDrip</span>
             </div>
         @endif
     </div>

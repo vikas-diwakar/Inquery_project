@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Property Inquiry SaaS')</title>
+    <x-seo-meta :title="View::yieldContent('title')" />
 
     <!-- Google Fonts: Plus Jakarta Sans & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,15 +21,7 @@
                     <!-- Left Section: Logo & Nav Links -->
                     <div class="flex items-center space-x-8">
                         <a href="{{ route('dashboard') }}" class="flex items-center space-x-2.5 group">
-                            <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/30 group-hover:scale-105 transition-transform duration-200">
-                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                                </svg>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-lg font-bold text-slate-900 tracking-tight leading-none group-hover:text-indigo-600 transition-colors">PropInquiry</span>
-                                <span class="text-[10px] font-semibold tracking-wider text-indigo-600 uppercase">SaaS Portal</span>
-                            </div>
+                            <img src="{{ asset('images/propdrip-logo.png') }}" alt="PropDrip Logo" class="h-9 w-auto rounded-lg object-contain group-hover:scale-105 transition-transform duration-200">
                         </a>
 
                         <!-- Desktop Navigation -->
@@ -193,7 +185,7 @@
     </main>
 
     <footer class="mt-auto py-6 border-t border-slate-200/60 bg-white/50 text-center text-xs text-slate-500">
-        <p>&copy; {{ date('Y') }} Property Inquiry SaaS Portal. Built for Real Estate Builders & Agencies.</p>
+        <p>&copy; {{ date('Y') }} PropDrip Portal. Built for Real Estate Builders & Agencies.</p>
     </footer>
 
     @include('components.confirmation-modal')

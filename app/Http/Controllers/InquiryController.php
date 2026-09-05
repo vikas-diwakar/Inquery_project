@@ -118,6 +118,10 @@ class InquiryController extends Controller
         app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
         app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
 
+        // Dispatch email sending queued jobs asynchronously (does not block HTTP response)
+        \App\Jobs\SendInquiryConfirmationEmailJob::dispatch($inquiry);
+        \App\Jobs\SendNewLeadNotificationEmailJob::dispatch($inquiry);
+
         return redirect()->back()
             ->with('success', 'Thank you for your inquiry! Check your WhatsApp for project details & brochure.');
     }
@@ -177,6 +181,10 @@ class InquiryController extends Controller
         }
         app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
         app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
+
+        // Dispatch email sending queued jobs asynchronously
+        \App\Jobs\SendInquiryConfirmationEmailJob::dispatch($inquiry);
+        \App\Jobs\SendNewLeadNotificationEmailJob::dispatch($inquiry);
 
         return redirect()->route('inquiries.index')
             ->with('success', 'Inquiry created, auto-allocated, brochure sent & drip sequence active!');

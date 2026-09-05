@@ -25,10 +25,12 @@ class Project extends Model
         'logo',
         'inquiry_qr_code',
         'lead_token',
+        'show_stacking_chart',
     ];
 
     protected $casts = [
         'start_date' => 'date',
+        'show_stacking_chart' => 'boolean',
     ];
 
     protected static function booted()

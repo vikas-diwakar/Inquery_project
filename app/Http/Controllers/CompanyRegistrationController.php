@@ -100,10 +100,13 @@ class CompanyRegistrationController extends Controller
             'role_id' => $adminRole->id,
         ]);
 
-        // Auto login
-        Auth::login($user);
+        // Send email verification notification via queued job
+        $user->sendEmailVerificationNotification();
 
-        return redirect()->route('dashboard')
-            ->with('success', 'Company registered successfully!');
+        // Dispatch welcome email queued job
+        \App\Jobs\SendWelcomeEmailJob::dispatch($user);
+
+        return redirect()->route('login')
+            ->with('status', 'Registration successful! A verification email has been sent to ' . $user->email . '. Please verify your email address before signing in.');
     }
 }

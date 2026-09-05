@@ -112,7 +112,23 @@ class Company extends Model
      */
     public function hasActiveSubscription(): bool
     {
-        return $this->subscription_status === 'active' || $this->subscription_status === 'trial';
+        if ($this->subscription_status === 'trial') {
+            if ($this->trial_ends_at && $this->trial_ends_at->isPast()) {
+                $this->expireSubscription();
+                return false;
+            }
+            return true;
+        }
+
+        if ($this->subscription_status === 'active') {
+            if ($this->subscription_ends_at && $this->subscription_ends_at->isPast()) {
+                $this->expireSubscription();
+                return false;
+            }
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -130,8 +146,7 @@ class Company extends Model
      */
     public function subscriptionExpired(): bool
     {
-        return $this->subscription_status === 'expired' ||
-               ($this->subscription_ends_at && $this->subscription_ends_at->isPast());
+        return !$this->hasActiveSubscription();
     }
 
     /**

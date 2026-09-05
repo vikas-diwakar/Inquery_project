@@ -50,6 +50,10 @@ class FormQRController extends Controller
             abort(403, 'Unauthorized access');
         }
 
+        // Save stacking chart toggle preference
+        $project->show_stacking_chart = $request->boolean('show_stacking_chart');
+        $project->save();
+
         // Generate inquiry form URL (unique per company and project)
         $inquiryUrl = route('public.inquiry.form', ['project' => $project->id]);
         

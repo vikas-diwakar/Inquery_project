@@ -11,7 +11,15 @@ use App\Http\Controllers\FollowUpController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Support\Facades\Route;
+
+// SEO & Search Engine Indexing routes
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 
 // Public routes
 Route::get('/', function () {
@@ -47,7 +55,21 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::get('/register', [CompanyRegistrationController::class, 'showRegistrationForm'])->name('company.register');
     Route::post('/register', [CompanyRegistrationController::class, 'register']);
+
+    // Password Reset Routes
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
+
+// Email Verification Routes
+Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+Route::post('/email/resend', [EmailVerificationController::class, 'resend'])
+    ->middleware('throttle:6,1')
+    ->name('verification.resend');
 
 // Authenticated routes
 Route::middleware('auth')->group(function () {

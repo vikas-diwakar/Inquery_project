@@ -101,8 +101,8 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Trial plan is not available for your account.');
         }
 
-        if ($plan->type === 'paid' && $company->isFirstLogin() && $company->canUseTrial()) {
-            // First-time user choosing paid plan - process payment
+        // Paid plans redirect to checkout
+        if ($plan->type === 'paid') {
             return redirect()->route('subscription.checkout', $plan);
         }
 
@@ -124,7 +124,6 @@ class SubscriptionController extends Controller
                 ->with('success', 'Free trial activated successfully! You now have full access to all features.');
         }
 
-        // This shouldn't happen, but handle it
         return redirect()->back()->with('error', 'Invalid plan selection.');
     }
 
@@ -205,8 +204,11 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Payment was not successful. Please try again.');
         }
 
-        // Calculate end date
-        $startDate = now();
+        // Calculate dates (stack upon current active subscription end date if not expired)
+        $currentSub = $company->activeSubscription();
+        $startDate = ($currentSub && $currentSub->end_date && $currentSub->end_date->isFuture()) 
+            ? $currentSub->end_date->copy() 
+            : now();
         $endDate = $startDate->copy()->addMonths($plan->duration_months);
 
         // Create subscription record
@@ -223,9 +225,9 @@ class SubscriptionController extends Controller
                 'razorpay_payment_id' => $request->razorpay_payment_id,
                 'razorpay_order_id' => $request->razorpay_order_id,
                 'razorpay_signature' => $request->razorpay_signature,
-                'payment_method' => $paymentDetails['method'],
-                'email' => $paymentDetails['email'],
-                'contact' => $paymentDetails['contact'],
+                'payment_method' => $paymentDetails['method'] ?? 'card',
+                'email' => $paymentDetails['email'] ?? auth()->user()->email,
+                'contact' => $paymentDetails['contact'] ?? '',
                 'processed_at' => now(),
             ],
         ]);
@@ -247,40 +249,16 @@ class SubscriptionController extends Controller
         $company = auth()->user()->company;
         $currentSubscription = $company->activeSubscription();
 
-        if (!$currentSubscription) {
+        if ($request->has('plan_id')) {
+            $plan = SubscriptionPlan::findOrFail($request->plan_id);
+        } elseif ($currentSubscription && $currentSubscription->plan) {
+            $plan = $currentSubscription->plan;
+        } else {
             return redirect()->route('subscription.index')
-                ->with('error', 'No active subscription found to renew.');
+                ->with('error', 'Please choose a plan to continue.');
         }
 
-        $plan = $currentSubscription->plan;
-
-        // In a real application, process payment here
-
-        // Extend subscription
-        $newEndDate = $currentSubscription->end_date->copy()->addMonths($plan->duration_months);
-
-        // Create new subscription record for renewal
-        Subscription::create([
-            'company_id' => $company->id,
-            'subscription_plan_id' => $plan->id,
-            'start_date' => $currentSubscription->end_date,
-            'end_date' => $newEndDate,
-            'status' => 'active',
-            'amount_paid' => $plan->price,
-            'currency' => $plan->currency,
-            'payment_reference' => $request->payment_reference ?? 'renewal',
-            'payment_details' => [
-                'type' => 'renewal',
-                'previous_end_date' => $currentSubscription->end_date,
-                'processed_at' => now(),
-            ],
-        ]);
-
-        // Update company status
-        $company->activateSubscription($newEndDate);
-
-        return redirect()->route('subscription.show')
-            ->with('success', 'Subscription renewed successfully!');
+        return redirect()->route('subscription.checkout', $plan);
     }
 
     /**

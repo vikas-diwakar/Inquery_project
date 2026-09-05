@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inquiry Form - {{ $project->name }}</title>
+    <x-seo-meta 
+        :title="$project->name . ' - Official Property Inquiry & Digital Brochure'"
+        :description="$project->description ? $project->description : 'Inquire about ' . $project->name . ' located at ' . ($project->location ?? 'prime location') . '. Download official brochure and get instant pricing on WhatsApp.'"
+        :image="$project->logo ? Storage::url($project->logo) : null"
+        schemaType="RealEstateListing"
+        :schemaData="[
+            'name' => $project->name,
+            'description' => $project->description ?? ($project->name . ' real estate project'),
+            'location' => $project->location ?? 'India'
+        ]"
+    />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-mesh-light min-h-screen py-8 px-4 sm:px-6 lg:px-8 text-slate-800 font-sans antialiased">
@@ -49,7 +59,7 @@
                 $projectUnits = $project->units;
             @endphp
 
-            @if($projectUnits->isNotEmpty())
+            @if(($project->show_stacking_chart ?? true) && $projectUnits->isNotEmpty())
                 <div class="p-6 sm:p-8 bg-slate-50/70 border-b border-slate-200/80 space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>

@@ -135,7 +135,10 @@
                         <!-- Phone -->
                         <div class="space-y-1.5">
                             <label for="phone" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">WhatsApp Phone Number <span class="text-rose-500">*</span></label>
-                            <input id="phone" name="phone" type="tel" required value="{{ old('phone') }}" class="input-field" placeholder="e.g. +1 234 567 8900">
+                            <input id="phone" name="phone" type="tel" required value="{{ old('phone') }}" class="input-field @error('phone') border-rose-500 focus:ring-rose-500/20 focus:border-rose-500 @enderror" placeholder="e.g. +1 234 567 8900">
+                            @error('phone')
+                                <p class="text-xs text-rose-600 font-semibold mt-1">{{ $message }}</p>
+                            @enderror
                         </div>
 
                         <!-- Email -->

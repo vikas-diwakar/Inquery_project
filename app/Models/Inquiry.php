@@ -176,4 +176,55 @@ class Inquiry extends Model
             ->where('next_follow_up_date', '<=', now()->endOfDay())
             ->whereNotIn('status', ['booked', 'rejected']);
     }
+
+    /**
+     * Check if a phone number has already submitted an inquiry for a given project.
+     */
+    public static function isPhoneDuplicateForProject(int $projectId, ?string $phone): bool
+    {
+        if (empty($phone)) {
+            return false;
+        }
+
+        $rawPhone = trim($phone);
+        if ($rawPhone === '') {
+            return false;
+        }
+
+        // 1. Direct exact string match check
+        if (static::where('project_id', $projectId)->where('phone', $rawPhone)->exists()) {
+            return true;
+        }
+
+        // 2. Normalized clean digits match check
+        $cleanPhone = preg_replace('/[^0-9]/', '', $rawPhone);
+        if (empty($cleanPhone)) {
+            return false;
+        }
+
+        $last10 = strlen($cleanPhone) >= 10 ? substr($cleanPhone, -10) : $cleanPhone;
+
+        $existingPhones = static::where('project_id', $projectId)
+            ->whereNotNull('phone')
+            ->where('phone', '!=', '')
+            ->pluck('phone');
+
+        foreach ($existingPhones as $existingPhone) {
+            $existingClean = preg_replace('/[^0-9]/', '', $existingPhone);
+            if (empty($existingClean)) {
+                continue;
+            }
+
+            if ($existingClean === $cleanPhone) {
+                return true;
+            }
+
+            $existingLast10 = strlen($existingClean) >= 10 ? substr($existingClean, -10) : $existingClean;
+            if (strlen($last10) >= 10 && strlen($existingLast10) >= 10 && $last10 === $existingLast10) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

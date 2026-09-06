@@ -1,2 +1,10 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /inquiries
+Disallow: /projects
+Disallow: /settings
+Disallow: /subscription
+Disallow: /users
+
+Sitemap: /sitemap.xml

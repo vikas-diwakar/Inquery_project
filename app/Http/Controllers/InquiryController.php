@@ -87,7 +87,16 @@ class InquiryController extends Controller
     {
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                function ($attribute, $value, $fail) use ($project) {
+                    if (Inquiry::isPhoneDuplicateForProject($project->id, $value)) {
+                        $fail('An inquiry with this mobile number has already been submitted for this project.');
+                    }
+                },
+            ],
             'email' => 'nullable|email|max:255',
             'budget' => 'nullable|numeric|min:0',
             'flat_type' => 'nullable|string|max:50',

@@ -88,7 +88,7 @@ class FormQRController extends Controller
     public function showInquiryQR(Request $request)
     {
         $selectedProjectId = session('selected_project_id');
-        $project = Project::findOrFail($selectedProjectId);
+        $project = Project::with('company')->findOrFail($selectedProjectId);
         
         // Ensure user owns this project
         if ($project->company_id !== auth()->user()->company_id) {
@@ -128,7 +128,7 @@ class FormQRController extends Controller
     public function downloadInquiryQR(Request $request)
     {
         $selectedProjectId = session('selected_project_id');
-        $project = Project::findOrFail($selectedProjectId);
+        $project = Project::with('company')->findOrFail($selectedProjectId);
         
         // Ensure user owns this project
         if ($project->company_id !== auth()->user()->company_id) {
@@ -140,10 +140,12 @@ class FormQRController extends Controller
             abort(404, 'QR code not found');
         }
 
-        $fileName = 'inquiry-qr-' . $project->getQrCodeIdentifier() . '.png';
-        // derive extension from stored path (supports .svg fallback)
+        $companyName = $project->company->name ?? auth()->user()->company->name ?? 'Company';
+        $companySlug = \Illuminate\Support\Str::slug($companyName);
+        $projectSlug = \Illuminate\Support\Str::slug($project->name);
+
         $ext = pathinfo($project->inquiry_qr_code, PATHINFO_EXTENSION) ?: 'svg';
-        $fileName = 'inquiry-qr-' . $project->getQrCodeIdentifier() . '.' . $ext;
+        $fileName = "{$companySlug}-{$projectSlug}-inquiry-qr.{$ext}";
 
         return Storage::disk('public')->download($project->inquiry_qr_code, $fileName);
     }

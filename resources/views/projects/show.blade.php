@@ -141,13 +141,94 @@
             return;
         }
 
-        // Convert canvas to blob and download
-        qrCodeCanvas.toBlob(function(blob) {
+        const companyName = @json($project->company->name ?? auth()->user()->company->name ?? 'Company');
+        const projectName = @json($project->name);
+
+        function slugify(text) {
+            return text.toString().toLowerCase().trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^\w\-]+/g, '')
+                .replace(/\-\-+/g, '-')
+                .replace(/^-+/, '')
+                .replace(/-+$/, '');
+        }
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas dimensions (high resolution printable card)
+        const width = 600;
+        const height = 750;
+        canvas.width = width;
+        canvas.height = height;
+
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+
+        // Outer border card frame
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(16, 16, width - 32, height - 32);
+
+        // Header Top Brand Accent Line
+        ctx.fillStyle = '#4f46e5';
+        ctx.fillRect(16, 16, width - 32, 10);
+
+        // Render Company Name
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 26px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(companyName.toUpperCase(), width / 2, 48);
+
+        // Render Project Name
+        ctx.fillStyle = '#4f46e5';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText(projectName + ' - Inquiry Form', width / 2, 92);
+
+        // Divider line
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(80, 135);
+        ctx.lineTo(width - 80, 135);
+        ctx.stroke();
+
+        // Draw QR Code frame
+        const qrSize = 360;
+        const qrX = (width - qrSize) / 2;
+        const qrY = 165;
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(qrX - 15, qrY - 15, qrSize + 30, qrSize + 30);
+
+        // Draw actual QR Canvas
+        ctx.drawImage(qrCodeCanvas, qrX, qrY, qrSize, qrSize);
+
+        // Footer Text
+        ctx.fillStyle = '#334155';
+        ctx.font = '600 16px sans-serif';
+        ctx.fillText('Scan QR Code with your mobile camera', width / 2, 595);
+        ctx.fillText('to view & submit property inquiry form', width / 2, 622);
+
+        // Sub-footer Tag
+        ctx.fillStyle = '#64748b';
+        ctx.font = '500 13px sans-serif';
+        ctx.fillText(companyName + ' • ' + projectName, width / 2, 685);
+
+        const companySlug = slugify(companyName) || 'company';
+        const projectSlug = slugify(projectName) || 'project';
+        const filename = `${companySlug}-${projectSlug}-inquiry-qr.png`;
+
+        canvas.toBlob(function(blob) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            const projectName = '{{ addslashes($project->name) }}'.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-            a.download = 'inquiry-qr-{{ $project->company_id }}-{{ $project->id }}-' + projectName + '.png';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);

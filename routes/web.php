@@ -21,12 +21,29 @@ use Illuminate\Support\Facades\Route;
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 
-// Public routes
+// Public Marketing Pages
 Route::get('/', function () {
-    $hashed = Hash::make('12345678');
-    // dd($hashed);
-    return redirect()->route('login');
-});
+    return view('welcome');
+})->name('home');
+
+Route::get('/about', function () {
+    return view('pages.about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('pages.contact');
+})->name('contact');
+
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|max:255',
+        'subject' => 'required|string|max:255',
+        'message' => 'required|string',
+    ]);
+
+    return redirect()->back()->with('success', 'Thank you! Your message has been received. Our support team will get back to you shortly.');
+})->name('contact.store');
 
 // Public inquiry form (no auth required)
 Route::get('/inquiry/{project}', [InquiryController::class, 'showPublicForm'])

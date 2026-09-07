@@ -8,4 +8,5 @@ Disallow: /settings
 Disallow: /subscription
 Disallow: /users
 
-Sitemap: https://propdrip.in/sitemap.xml
+Sitemap: /sitemap.xml
+

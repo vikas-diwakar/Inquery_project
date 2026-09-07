@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+
 Disallow: /dashboard
 Disallow: /inquiries
 Disallow: /projects
@@ -7,4 +8,4 @@ Disallow: /settings
 Disallow: /subscription
 Disallow: /users
 
-Sitemap: /sitemap.xml
+Sitemap: https://propdrip.in/sitemap.xml

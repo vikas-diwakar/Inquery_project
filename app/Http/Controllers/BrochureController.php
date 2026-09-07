@@ -19,13 +19,13 @@ class BrochureController extends Controller
     public function index()
     {
         $selectedProjectId = session('selected_project_id');
+        $project = Project::with('company')->findOrFail($selectedProjectId);
         
         $brochures = Brochure::where('company_id', auth()->user()->company_id)
             ->where('project_id', $selectedProjectId)
+            ->with(['project', 'company'])
             ->latest()
             ->paginate(15);
-
-        $project = Project::findOrFail($selectedProjectId);
 
         return view('brochures.index', compact('brochures', 'project'));
     }
@@ -98,7 +98,28 @@ class BrochureController extends Controller
         if (!Storage::disk('public')->exists($brochure->file_path)) {
             abort(404, 'Brochure not found.');
         }
-        return Storage::disk('public')->download($brochure->file_path, $brochure->file_name);
+
+        $brochure->loadMissing(['company', 'project']);
+
+        $companyName = $brochure->company->name ?? $brochure->project->company->name ?? 'Company';
+        $projectName = $brochure->project->name ?? 'Project';
+
+        $companySlug = \Illuminate\Support\Str::slug($companyName);
+        $projectSlug = \Illuminate\Support\Str::slug($projectName);
+
+        $ext = pathinfo($brochure->file_path, PATHINFO_EXTENSION) ?: pathinfo($brochure->file_name, PATHINFO_EXTENSION) ?: 'pdf';
+
+        // Extract original base filename (without extension)
+        $baseOriginal = pathinfo($brochure->file_name, PATHINFO_FILENAME);
+        $baseSlug = \Illuminate\Support\Str::slug($baseOriginal);
+
+        if (!empty($baseSlug) && !in_array($baseSlug, ['brochure', 'file', 'document'])) {
+            $downloadFileName = "{$companySlug}-{$projectSlug}-{$baseSlug}.{$ext}";
+        } else {
+            $downloadFileName = "{$companySlug}-{$projectSlug}-brochure.{$ext}";
+        }
+
+        return Storage::disk('public')->download($brochure->file_path, $downloadFileName);
     }
 
     /**

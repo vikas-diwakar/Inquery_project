@@ -7,9 +7,22 @@
     <div class="mb-6 flex justify-between items-center">
         <h1 class="text-3xl font-bold text-slate-900">{{ $project->name }}</h1>
         <div class="flex space-x-2">
-            <a href="{{ route('projects.edit', $project) }}" class="btn-primary px-4 py-2">
-                Edit
-            </a>
+            @can('update', $project)
+                <a href="{{ route('projects.edit', $project) }}" class="btn-primary px-4 py-2">
+                    Edit
+                </a>
+            @endcan
+            @can('delete', $project)
+                <button type="button" 
+                    onclick="showConfirmationModal('Delete Project', 'Are you sure you want to delete \'{{ addslashes($project->name) }}\'? All existing records will be archived safely in the database.', function() { document.getElementById('delete-project-form-{{ $project->id }}').submit(); })"
+                    class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all">
+                    Delete Project
+                </button>
+                <form id="delete-project-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            @endcan
             <a href="{{ route('projects.index') }}" class="btn-secondary px-4 py-2">
                 Back
             </a>

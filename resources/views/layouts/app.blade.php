@@ -198,13 +198,28 @@
     <script>
     let confirmationCallback = null;
 
-    function showConfirmationModal(title, message, callback) {
+    function showConfirmationModal(title, message, callback, options = {}) {
         const modal = document.getElementById('confirmationModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalMessage = document.getElementById('modalMessage');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
 
         if (modalTitle) modalTitle.textContent = title;
         if (modalMessage) modalMessage.textContent = message;
+
+        if (cancelBtn) {
+            cancelBtn.textContent = options.cancelText || 'Cancel';
+            cancelBtn.style.display = options.hideCancel ? 'none' : 'inline-flex';
+        }
+        if (confirmBtn) {
+            confirmBtn.textContent = options.confirmText || 'Confirm';
+            if (options.btnClass) {
+                confirmBtn.className = options.btnClass;
+            } else {
+                confirmBtn.className = 'btn-danger';
+            }
+        }
 
         confirmationCallback = callback;
 

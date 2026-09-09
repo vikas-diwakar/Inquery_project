@@ -11,12 +11,14 @@
             <p class="mt-2 text-sm text-slate-600">Connect external forms, social media platforms, or embed a widget to capture inquiries automatically.</p>
         </div>
         <div class="mt-4 md:mt-0 flex gap-3">
-            <form action="{{ route('projects.regenerate-token', $project) }}" method="POST" onsubmit="return confirm('Warning: Regenerating the token will break all current external forms and webhook integrations using the old token. Are you sure you want to proceed?');">
+            <button type="button" 
+                onclick="showConfirmationModal('Regenerate Lead Token', 'Warning: Regenerating the token will break all current external forms and webhook integrations using the old token. Are you sure you want to proceed?', function() { document.getElementById('regenerate-token-form-{{ $project->id }}').submit(); })" 
+                class="inline-flex items-center px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 bg-white transition-all shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3m0 0l3 3m-3-3v8"/></svg>
+                Regenerate Token
+            </button>
+            <form id="regenerate-token-form-{{ $project->id }}" action="{{ route('projects.regenerate-token', $project) }}" method="POST" class="hidden">
                 @csrf
-                <button type="submit" class="inline-flex items-center px-4 py-2.5 border border-slate-300 rounded-lg text-sm font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 bg-white transition-all shadow-sm">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3m0 0l3 3m-3-3v8"/></svg>
-                    Regenerate Token
-                </button>
             </form>
         </div>
     </div>

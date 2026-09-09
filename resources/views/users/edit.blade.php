@@ -119,19 +119,25 @@
 
                 <!-- Projects Checkboxes Field -->
                 <div id="projects-field" class="md:col-span-2 space-y-2 pt-2" style="display: none;">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Assign Projects (Optional)</label>
-                    <p class="text-xs text-slate-500">Non-admin users can only access the projects you assign to them.</p>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 border border-slate-200 rounded-2xl p-4 bg-slate-50/80">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Assign Projects <span class="text-rose-500">*</span></label>
+                    <p class="text-xs text-slate-500">Compulsory for non-admin users (Sales Executive, Manager, etc.). Non-admin users can only access the projects you assign to them.</p>
+                    <div id="projects-container" class="grid grid-cols-1 sm:grid-cols-2 gap-3 border {{ $errors->has('project_ids') ? 'border-rose-300 bg-rose-50/50' : 'border-slate-200 bg-slate-50/80' }} rounded-2xl p-4 transition-all">
                         @forelse($projects as $project)
                             <label for="project_{{ $project->id }}" class="flex items-center p-3 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 transition-all cursor-pointer space-x-3">
                                 <input type="checkbox" name="project_ids[]" value="{{ $project->id }}" id="project_{{ $project->id }}" 
                                     {{ in_array($project->id, old('project_ids', $assignedProjectIds)) ? 'checked' : '' }} 
-                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 project-checkbox">
                                 <span class="text-sm font-medium text-slate-800">{{ $project->name }}</span>
                             </label>
                         @empty
                             <p class="col-span-2 text-xs text-slate-500 italic">No projects created yet.</p>
                         @endforelse
+                    </div>
+                    <div id="projects-error-msg" class="{{ $errors->has('project_ids') ? 'flex' : 'hidden' }} items-center space-x-1.5 mt-1.5 text-xs font-medium text-rose-600">
+                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span id="projects-error-text">{{ $errors->first('project_ids', 'Assigning at least one project is compulsory for non-admin users.') }}</span>
                     </div>
                 </div>
             </div>
@@ -165,12 +171,73 @@
                 projectsField.style.display = 'block';
             } else {
                 projectsField.style.display = 'none';
+                hideProjectsInlineError();
             }
+        }
+    }
+
+    function showProjectsInlineError(message) {
+        const errorMsg = document.getElementById('projects-error-msg');
+        const errorText = document.getElementById('projects-error-text');
+        const container = document.getElementById('projects-container');
+        
+        if (errorMsg && errorText) {
+            errorText.textContent = message || 'Assigning at least one project is compulsory for non-admin users.';
+            errorMsg.classList.remove('hidden');
+            errorMsg.classList.add('flex');
+        }
+        if (container) {
+            container.classList.remove('border-slate-200', 'bg-slate-50/80');
+            container.classList.add('border-rose-300', 'bg-rose-50/50');
+        }
+    }
+
+    function hideProjectsInlineError() {
+        const errorMsg = document.getElementById('projects-error-msg');
+        const container = document.getElementById('projects-container');
+        
+        if (errorMsg) {
+            errorMsg.classList.remove('flex');
+            errorMsg.classList.add('hidden');
+        }
+        if (container) {
+            container.classList.remove('border-rose-300', 'bg-rose-50/50');
+            container.classList.add('border-slate-200', 'bg-slate-50/80');
         }
     }
     
     document.addEventListener('DOMContentLoaded', function() {
         toggleProjectsField();
+
+        document.querySelectorAll('.project-checkbox').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                const checkedProjects = document.querySelectorAll('.project-checkbox:checked');
+                if (checkedProjects.length > 0) {
+                    hideProjectsInlineError();
+                }
+            });
+        });
+
+        const userForm = document.querySelector('form[action="{{ route('users.update', $user) }}"]');
+        if (userForm) {
+            userForm.addEventListener('submit', function(e) {
+                const roleSelect = document.getElementById('role_id');
+                if (!roleSelect) return;
+                const selectedOption = roleSelect.options[roleSelect.selectedIndex];
+                const roleName = selectedOption ? selectedOption.getAttribute('data-role-name') : null;
+
+                if (roleName && roleName !== 'Admin') {
+                    const checkedProjects = document.querySelectorAll('.project-checkbox:checked');
+                    if (checkedProjects.length === 0) {
+                        e.preventDefault();
+                        showProjectsInlineError('Assigning at least one project is compulsory for non-admin users.');
+                        document.getElementById('projects-field')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        hideProjectsInlineError();
+                    }
+                }
+            });
+        }
     });
 </script>
 @endsection

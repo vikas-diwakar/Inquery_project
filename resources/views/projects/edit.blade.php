@@ -83,9 +83,22 @@
                 </div>
             </div>
             
-            <div class="mt-6 flex flex-wrap gap-3">
-                <a href="{{ route('projects.index') }}" class="btn-secondary">Cancel</a>
-                <button type="submit" class="btn-primary">Update Project</button>
+            <div class="mt-6 flex items-center justify-between pt-4 border-t border-slate-200">
+                <div class="flex space-x-3">
+                    <button type="submit" class="btn-primary">Update Project</button>
+                    <a href="{{ route('projects.index') }}" class="btn-secondary">Cancel</a>
+                </div>
+                @can('delete', $project)
+                    <button type="button" 
+                        onclick="showConfirmationModal('Delete Project', 'Are you sure you want to delete \'{{ addslashes($project->name) }}\'? All existing records will be archived safely in the database.', function() { document.getElementById('delete-project-form-{{ $project->id }}').submit(); })"
+                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all">
+                        Delete Project
+                    </button>
+                    <form id="delete-project-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                @endcan
             </div>
         </form>
     </div>

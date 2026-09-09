@@ -10,10 +10,12 @@
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Real Estate Projects</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">Configure property developments, unit stacking inventory, and 360° virtual tours.</p>
         </div>
-        <a href="{{ route('projects.create') }}" class="btn-primary space-x-2 shrink-0">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>Add New Project</span>
-        </a>
+        @can('create', App\Models\Project::class)
+            <a href="{{ route('projects.create') }}" class="btn-primary space-x-2 shrink-0">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                <span>Add New Project</span>
+            </a>
+        @endcan
     </div>
 
     <!-- Projects Grid / Cards -->
@@ -69,15 +71,31 @@
                         <span>🏗️ Stacking Chart</span>
                     </a>
 
-                    <a href="{{ route('projects.edit', $project) }}" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Edit Project">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </a>
+                    @can('update', $project)
+                        <a href="{{ route('projects.edit', $project) }}" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors" title="Edit Project">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        </a>
+                    @endcan
+
+                    @can('delete', $project)
+                        <button type="button" 
+                            onclick="showConfirmationModal('Delete Project', 'Are you sure you want to delete \'{{ addslashes($project->name) }}\'? All existing records will be archived safely in the database.', function() { document.getElementById('delete-project-form-{{ $project->id }}').submit(); })" 
+                            class="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Delete Project">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        </button>
+                        <form id="delete-project-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
+                            @csrf
+                            @method('DELETE')
+                        </form>
+                    @endcan
                 </div>
             </div>
         @empty
             <div class="col-span-full bg-white rounded-3xl p-12 text-center border border-slate-200/80 space-y-4">
                 <p class="text-sm text-slate-500">No projects created yet in this workspace.</p>
-                <a href="{{ route('projects.create') }}" class="btn-primary text-xs">Create First Project</a>
+                @can('create', App\Models\Project::class)
+                    <a href="{{ route('projects.create') }}" class="btn-primary text-xs">Create First Project</a>
+                @endcan
             </div>
         @endforelse
     </div>

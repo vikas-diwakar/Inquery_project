@@ -25,9 +25,11 @@
                     Change Project
                 </button>
             </form>
-            <a href="{{ route('projects.edit', $project) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 text-sm">
-                Edit Project
-            </a>
+            @can('update', $project)
+                <a href="{{ route('projects.edit', $project) }}" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 text-sm">
+                    Edit Project
+                </a>
+            @endcan
         </div>
     </div>
 

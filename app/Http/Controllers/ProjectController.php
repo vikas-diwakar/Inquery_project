@@ -39,6 +39,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Project::class);
         return view('projects.create');
     }
 
@@ -47,6 +48,8 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Project::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'location' => 'nullable|string',
@@ -250,7 +253,7 @@ class ProjectController extends Controller
     }
 
     /**
-     * Remove the project
+     * Soft delete the project (Admin only)
      */
     public function destroy(Project $project)
     {
@@ -261,19 +264,10 @@ class ProjectController extends Controller
             session()->forget('selected_project_id');
         }
 
-        // Delete logo if exists
-        if ($project->logo) {
-            Storage::disk('public')->delete($project->logo);
-        }
-
-        // Delete QR code if exists
-        if ($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code)) {
-            Storage::disk('public')->delete($project->inquiry_qr_code);
-        }
-
+        // Soft delete project (preserves database records and files for history)
         $project->delete();
 
-        return redirect()->route('dashboard')
-            ->with('success', 'Project deleted successfully!');
+        return redirect()->route('projects.index')
+            ->with('success', "Project '{$project->name}' deleted successfully!");
     }
 }

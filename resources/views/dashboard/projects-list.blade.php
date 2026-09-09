@@ -9,9 +9,11 @@
             <h1 class="text-3xl font-bold text-gray-900">Select a Project</h1>
             <p class="mt-2 text-sm text-gray-600">Choose a project to access its dashboard and manage inquiries, brochures, and QR codes.</p>
         </div>
-        <a href="{{ route('projects.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
-            + Create New Project
-        </a>
+        @can('create', App\Models\Project::class)
+            <a href="{{ route('projects.create') }}" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">
+                + Create New Project
+            </a>
+        @endcan
     </div>
 
     @if($projects->count() > 0)
@@ -58,14 +60,16 @@
             </svg>
             <h3 class="mt-2 text-sm font-medium text-gray-900">No projects</h3>
             <p class="mt-1 text-sm text-gray-500">Get started by creating a new project.</p>
-            <div class="mt-6">
-                <a href="{{ route('projects.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                    <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Create Project
-                </a>
-            </div>
+            @can('create', App\Models\Project::class)
+                <div class="mt-6">
+                    <a href="{{ route('projects.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Create Project
+                    </a>
+                </div>
+            @endcan
         </div>
     @endif
 </div>

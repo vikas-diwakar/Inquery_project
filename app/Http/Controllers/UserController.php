@@ -40,13 +40,19 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
+        $selectedRole = $request->input('role_id') ? Role::find($request->input('role_id')) : null;
+        $isNonAdmin = $selectedRole && $selectedRole->name !== 'Admin';
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'project_ids' => 'nullable|array',
+            'project_ids' => $isNonAdmin ? 'required|array|min:1' : 'nullable|array',
             'project_ids.*' => 'exists:projects,id',
+        ], [
+            'project_ids.required' => 'Assigning at least one project is compulsory for non-admin users.',
+            'project_ids.min' => 'Assigning at least one project is compulsory for non-admin users.',
         ]);
 
         // Verify role belongs to company
@@ -106,13 +112,19 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
+        $selectedRole = $request->input('role_id') ? Role::find($request->input('role_id')) : null;
+        $isNonAdmin = $selectedRole && $selectedRole->name !== 'Admin';
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
             'role_id' => 'required|exists:roles,id',
-            'project_ids' => 'nullable|array',
+            'project_ids' => $isNonAdmin ? 'required|array|min:1' : 'nullable|array',
             'project_ids.*' => 'exists:projects,id',
+        ], [
+            'project_ids.required' => 'Assigning at least one project is compulsory for non-admin users.',
+            'project_ids.min' => 'Assigning at least one project is compulsory for non-admin users.',
         ]);
 
         // Verify role belongs to company

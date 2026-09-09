@@ -94,13 +94,16 @@
                         class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all">
                         Delete Project
                     </button>
-                    <form id="delete-project-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
-                        @csrf
-                        @method('DELETE')
-                    </form>
                 @endcan
             </div>
         </form>
+
+        @can('delete', $project)
+            <form id="delete-project-form-{{ $project->id }}" action="{{ route('projects.destroy', $project) }}" method="POST" class="hidden">
+                @csrf
+                @method('DELETE')
+            </form>
+        @endcan
     </div>
 </div>
 

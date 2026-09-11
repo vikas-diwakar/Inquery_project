@@ -80,7 +80,7 @@
                 <h3 class="text-lg font-bold text-slate-900">No Inventory Units Created Yet</h3>
                 <p class="text-xs text-slate-500 mt-1">Use the Batch Generator to quickly generate floors & unit numbers for your towers.</p>
             </div>
-            <button type="button" onclick="document.getElementById('batchGeneratorModal').classList.remove('hidden')" class="btn-primary text-xs space-x-2">
+            <button type="button" onclick="openModal('batchGeneratorModal')" class="btn-primary text-xs space-x-2">
                 <span>Generate Tower Inventory</span>
             </button>
         </div>
@@ -156,14 +156,43 @@
                                 </div>
 
                                 <!-- Unit Pills Grid -->
-                                <div class="flex flex-wrap gap-2.5 flex-1">
+                                <div class="flex flex-wrap gap-3 flex-1">
                                     @foreach($unitsOnFloor as $unit)
-                                        <div class="relative group">
-                                            <button type="button" onclick="openStatusModal({{ $unit->id }}, '{{ addslashes($unit->unit_number) }}', '{{ $unit->status }}')" 
-                                                class="px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center min-w-[70px] shadow-2xs {{ $unit->status_badge }}">
-                                                <span>{{ $unit->unit_number }}</span>
-                                                <span class="text-[9px] opacity-75 font-medium mt-0.5">{{ $unit->unit_type ?? 'Unit' }}</span>
+                                        @php
+                                            $unitData = [
+                                                'id' => $unit->id,
+                                                'unit_number' => $unit->unit_number,
+                                                'tower_name' => $unit->tower_name,
+                                                'floor_number' => $unit->floor_number,
+                                                'unit_type' => $unit->unit_type ?? '',
+                                                'status' => $unit->status,
+                                                'price' => $unit->price,
+                                                'notes' => $unit->notes ?? '',
+                                            ];
+                                        @endphp
+                                        <div class="relative group/unit">
+                                            <button type="button" onclick='openEditUnitModal(@json($unitData))' 
+                                                class="px-3.5 py-2.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex flex-col items-center min-w-[76px] shadow-2xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 {{ $unit->status_badge }}">
+                                                <span class="font-extrabold tracking-tight">{{ $unit->unit_number }}</span>
+                                                <span class="text-[9px] opacity-75 font-medium mt-0.5 truncate max-w-[72px]">{{ $unit->unit_type ?: 'Unit' }}</span>
+                                                @if($unit->price)
+                                                    <span class="text-[8px] opacity-85 font-semibold mt-0.5 text-slate-600">₹{{ number_format($unit->price) }}</span>
+                                                @endif
                                             </button>
+
+                                            <!-- Hover Action Buttons: Edit & Delete -->
+                                            <div class="absolute -top-2.5 -right-2 hidden group-hover/unit:flex items-center space-x-0.5 bg-white rounded-lg shadow-md border border-slate-200/90 p-0.5 z-20">
+                                                <button type="button" onclick='event.stopPropagation(); openEditUnitModal(@json($unitData))' 
+                                                    title="Edit Unit" 
+                                                    class="p-1 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 rounded transition-colors">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                </button>
+                                                <button type="button" onclick="event.stopPropagation(); confirmDeleteUnit({{ $unit->id }}, '{{ addslashes($unit->unit_number) }}')" 
+                                                    title="Delete Unit" 
+                                                    class="p-1 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -176,129 +205,218 @@
     @endif
 </div>
 
-<!-- Modal: Quick Unit Status Update -->
-<div id="unitStatusModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-sm w-full p-6 space-y-4 my-auto relative">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-base font-bold text-slate-900">Update Unit Status</h3>
-            <button type="button" onclick="closeModal('unitStatusModal')" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
-        </div>
-        <p class="text-xs text-slate-500">Unit Number: <strong id="modalUnitNumber" class="text-slate-900"></strong></p>
-
-        <form id="unitStatusForm" method="POST">
-            @csrf
-            @method('PATCH')
-            
-            <div class="space-y-2">
-                <button type="submit" name="status" value="available" class="w-full text-left p-3 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-between transition-colors">
-                    <span>🟩 Available (Ready to Sell)</span>
-                </button>
-                <button type="submit" name="status" value="on_hold" class="w-full text-left p-3 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-between transition-colors">
-                    <span>🟨 On Hold (Buyer Interested)</span>
-                </button>
-                <button type="submit" name="status" value="sold" class="w-full text-left p-3 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold flex items-center justify-between transition-colors">
-                    <span>🟥 Sold (Booked / Complete)</span>
+<!-- Modal: Edit Unit & Inventory Management -->
+<div id="editUnitModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden overflow-y-auto" style="display: none;">
+    <div class="min-h-full flex items-center justify-center p-4 text-center">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-md w-full p-6 sm:p-8 space-y-5 text-left relative m-auto transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                        <span>Edit Unit</span>
+                        <span id="edit_modal_title_unit" class="text-indigo-600 font-extrabold"></span>
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Modify unit specifications, pricing, or live status.</p>
+                </div>
+                <button type="button" onclick="closeModal('editUnitModal')" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-        </form>
+
+            <form id="editUnitForm" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                <!-- Live Status Selection -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Live Inventory Status</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" id="edit_status_available" value="available" class="sr-only peer">
+                            <div class="p-2.5 rounded-xl border text-center text-xs font-bold transition-all peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 peer-checked:shadow-sm bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100">
+                                🟩 Available
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" id="edit_status_on_hold" value="on_hold" class="sr-only peer">
+                            <div class="p-2.5 rounded-xl border text-center text-xs font-bold transition-all peer-checked:bg-amber-600 peer-checked:text-white peer-checked:border-amber-600 peer-checked:shadow-sm bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100">
+                                🟨 On Hold
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="status" id="edit_status_sold" value="sold" class="sr-only peer">
+                            <div class="p-2.5 rounded-xl border text-center text-xs font-bold transition-all peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 peer-checked:shadow-sm bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100">
+                                🟥 Sold
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="edit_tower_name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Tower / Block</label>
+                        <input type="text" name="tower_name" id="edit_tower_name" required class="input-field text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="edit_unit_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit Number</label>
+                        <input type="text" name="unit_number" id="edit_unit_number" required class="input-field text-sm font-bold">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="space-y-1">
+                        <label for="edit_floor_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Floor Number</label>
+                        <input type="number" name="floor_number" id="edit_floor_number" required min="0" class="input-field text-sm">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="edit_unit_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Configuration</label>
+                        <input type="text" name="unit_type" id="edit_unit_type" placeholder="e.g. 2 BHK, 3 BHK, Penthouse" class="input-field text-sm">
+                    </div>
+                </div>
+
+                <div class="space-y-1">
+                    <label for="edit_price" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Price (₹)</label>
+                    <input type="number" name="price" id="edit_price" step="0.01" min="0" placeholder="Optional unit price" class="input-field text-sm">
+                </div>
+
+                <div class="space-y-1">
+                    <label for="edit_notes" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Notes & Remarks</label>
+                    <textarea name="notes" id="edit_notes" rows="2" placeholder="Optional notes (e.g. corner unit, garden view, reserved by buyer)" class="input-field text-sm resize-none"></textarea>
+                </div>
+
+                <!-- Modal Action Footer -->
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
+                    <button type="button" onclick="deleteCurrentUnitFromModal()" class="btn-danger text-xs space-x-1.5 inline-flex items-center py-2 px-3">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                        <span>Delete Unit</span>
+                    </button>
+
+                    <div class="flex items-center space-x-2">
+                        <button type="button" onclick="closeModal('editUnitModal')" class="btn-secondary text-xs py-2 px-3">Cancel</button>
+                        <button type="submit" class="btn-primary text-xs py-2 px-4 font-bold">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
+<!-- Hidden Delete Unit Form -->
+<form id="deleteUnitForm" method="POST" class="hidden">
+    @csrf
+    @method('DELETE')
+</form>
+
 <!-- Modal: Batch Unit Generator -->
-<div id="batchGeneratorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-md w-full p-6 sm:p-8 space-y-5 my-auto relative">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-lg font-bold text-slate-900">Batch Inventory Generator</h3>
-            <button type="button" onclick="closeModal('batchGeneratorModal')" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+<div id="batchGeneratorModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden overflow-y-auto" style="display: none;">
+    <div class="min-h-full flex items-center justify-center p-4 text-center">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-md w-full p-6 sm:p-8 space-y-5 text-left relative m-auto transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900">Batch Inventory Generator</h3>
+                <button type="button" onclick="closeModal('batchGeneratorModal')" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+            </div>
+            <p class="text-xs text-slate-500">Quickly generate floor-by-floor unit numbers for a tower or block.</p>
+
+            <form action="{{ route('projects.units.batch', $project) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="space-y-1.5">
+                    <label for="batch_tower_name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Tower / Block Name</label>
+                    <input type="text" name="tower_name" id="batch_tower_name" required value="Tower A" class="input-field" placeholder="e.g. Tower A">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="floors_count" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Number of Floors</label>
+                        <input type="number" name="floors_count" id="floors_count" required value="5" min="1" max="50" class="input-field">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="units_per_floor" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Units Per Floor</label>
+                        <input type="number" name="units_per_floor" id="units_per_floor" required value="4" min="1" max="20" class="input-field">
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="batch_unit_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Default Unit Type</label>
+                    <input type="text" name="unit_type" id="batch_unit_type" value="2 BHK" class="input-field" placeholder="e.g. 2 BHK">
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('batchGeneratorModal')" class="btn-secondary text-xs">Cancel</button>
+                    <button type="submit" class="btn-primary text-xs">Generate Batch Units</button>
+                </div>
+            </form>
         </div>
-        <p class="text-xs text-slate-500">Quickly generate floor-by-floor unit numbers for a tower or block.</p>
-
-        <form action="{{ route('projects.units.batch', $project) }}" method="POST" class="space-y-4">
-            @csrf
-            <div class="space-y-1.5">
-                <label for="batch_tower_name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Tower / Block Name</label>
-                <input type="text" name="tower_name" id="batch_tower_name" required value="Tower A" class="input-field" placeholder="e.g. Tower A">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label for="floors_count" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Number of Floors</label>
-                    <input type="number" name="floors_count" id="floors_count" required value="5" min="1" max="50" class="input-field">
-                </div>
-                <div class="space-y-1.5">
-                    <label for="units_per_floor" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Units Per Floor</label>
-                    <input type="number" name="units_per_floor" id="units_per_floor" required value="4" min="1" max="20" class="input-field">
-                </div>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="batch_unit_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Default Unit Type</label>
-                <input type="text" name="unit_type" id="batch_unit_type" value="2 BHK" class="input-field" placeholder="e.g. 2 BHK">
-            </div>
-
-            <div class="pt-3 border-t border-slate-200 flex justify-end space-x-3">
-                <button type="button" onclick="closeModal('batchGeneratorModal')" class="btn-secondary text-xs">Cancel</button>
-                <button type="submit" class="btn-primary text-xs">Generate Batch Units</button>
-            </div>
-        </form>
     </div>
 </div>
 
 <!-- Modal: Add Single Unit -->
-<div id="addUnitModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-md w-full p-6 sm:p-8 space-y-5 my-auto relative">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-            <h3 class="text-lg font-bold text-slate-900">Add Inventory Unit</h3>
-            <button type="button" onclick="closeModal('addUnitModal')" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+<div id="addUnitModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden overflow-y-auto" style="display: none;">
+    <div class="min-h-full flex items-center justify-center p-4 text-center">
+        <div class="bg-white rounded-3xl shadow-2xl border border-slate-200/80 max-w-md w-full p-6 sm:p-8 space-y-5 text-left relative m-auto transform transition-all">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="text-lg font-bold text-slate-900">Add Inventory Unit</h3>
+                <button type="button" onclick="closeModal('addUnitModal')" class="text-slate-400 hover:text-slate-600 p-1">✕</button>
+            </div>
+
+            <form action="{{ route('projects.units.store', $project) }}" method="POST" class="space-y-4">
+                @csrf
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="tower_name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Tower Name</label>
+                        <input type="text" name="tower_name" id="tower_name" required value="Tower A" class="input-field">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="unit_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit Number</label>
+                        <input type="text" name="unit_number" id="unit_number" required placeholder="e.g. A-101" class="input-field">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="floor_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Floor Number</label>
+                        <input type="number" name="floor_number" id="floor_number" required value="1" min="0" class="input-field">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="status" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Initial Status</label>
+                        <select name="status" id="status" class="input-field cursor-pointer">
+                            <option value="available">Available 🟩</option>
+                            <option value="on_hold">On Hold 🟨</option>
+                            <option value="sold">Sold 🟥</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="unit_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit Configuration</label>
+                    <input type="text" name="unit_type" id="unit_type" placeholder="e.g. 3 BHK Luxury" class="input-field">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="price" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Price (₹)</label>
+                    <input type="number" name="price" id="price" step="0.01" min="0" placeholder="Optional unit pricing" class="input-field">
+                </div>
+
+                <div class="space-y-1.5">
+                    <label for="notes" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Notes & Remarks</label>
+                    <textarea name="notes" id="notes" rows="2" placeholder="Optional notes" class="input-field resize-none"></textarea>
+                </div>
+
+                <div class="pt-3 border-t border-slate-200 flex justify-end space-x-3">
+                    <button type="button" onclick="closeModal('addUnitModal')" class="btn-secondary text-xs">Cancel</button>
+                    <button type="submit" class="btn-primary text-xs">Create Unit</button>
+                </div>
+            </form>
         </div>
-
-        <form action="{{ route('projects.units.store', $project) }}" method="POST" class="space-y-4">
-            @csrf
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label for="tower_name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Tower Name</label>
-                    <input type="text" name="tower_name" id="tower_name" required value="Tower A" class="input-field">
-                </div>
-                <div class="space-y-1.5">
-                    <label for="unit_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit Number</label>
-                    <input type="text" name="unit_number" id="unit_number" required placeholder="e.g. A-101" class="input-field">
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label for="floor_number" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Floor Number</label>
-                    <input type="number" name="floor_number" id="floor_number" required value="1" min="0" class="input-field">
-                </div>
-                <div class="space-y-1.5">
-                    <label for="status" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Initial Status</label>
-                    <select name="status" id="status" class="input-field cursor-pointer">
-                        <option value="available">Available 🟩</option>
-                        <option value="on_hold">On Hold 🟨</option>
-                        <option value="sold">Sold 🟥</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="space-y-1.5">
-                <label for="unit_type" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit Configuration</label>
-                <input type="text" name="unit_type" id="unit_type" placeholder="e.g. 3 BHK Luxury" class="input-field">
-            </div>
-
-            <div class="pt-3 border-t border-slate-200 flex justify-end space-x-3">
-                <button type="button" onclick="closeModal('addUnitModal')" class="btn-secondary text-xs">Cancel</button>
-                <button type="submit" class="btn-primary text-xs">Create Unit</button>
-            </div>
-        </form>
     </div>
 </div>
 
 <script>
+    let currentEditingUnit = null;
+
     function openModal(id) {
         const modal = document.getElementById(id);
         if (modal) {
             modal.classList.remove('hidden');
-            modal.classList.add('flex');
+            modal.style.display = 'block';
         }
     }
 
@@ -306,15 +424,88 @@
         const modal = document.getElementById(id);
         if (modal) {
             modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            modal.style.display = 'none';
         }
     }
 
-    function openStatusModal(unitId, unitNum, currentStatus) {
-        document.getElementById('modalUnitNumber').innerText = unitNum;
-        document.getElementById('unitStatusForm').action = '/units/' + unitId + '/status';
-        openModal('unitStatusModal');
+    function openEditUnitModal(unit) {
+        currentEditingUnit = unit;
+        document.getElementById('edit_modal_title_unit').textContent = unit.unit_number;
+        document.getElementById('editUnitForm').action = '/units/' + unit.id;
+        document.getElementById('edit_tower_name').value = unit.tower_name || '';
+        document.getElementById('edit_unit_number').value = unit.unit_number || '';
+        document.getElementById('edit_floor_number').value = unit.floor_number ?? 1;
+        document.getElementById('edit_unit_type').value = unit.unit_type || '';
+        document.getElementById('edit_price').value = unit.price ?? '';
+        document.getElementById('edit_notes').value = unit.notes || '';
+
+        // Check the matching status radio button
+        const statusRadio = document.getElementById('edit_status_' + unit.status);
+        if (statusRadio) {
+            statusRadio.checked = true;
+        }
+
+        openModal('editUnitModal');
     }
+
+    // Backward compatibility for any external triggers
+    function openStatusModal(unitId, unitNum, currentStatus) {
+        openEditUnitModal({
+            id: unitId,
+            unit_number: unitNum,
+            status: currentStatus,
+            tower_name: '',
+            floor_number: 1,
+            unit_type: '',
+            price: '',
+            notes: ''
+        });
+    }
+
+    function deleteCurrentUnitFromModal() {
+        if (!currentEditingUnit) return;
+        const unitId = currentEditingUnit.id;
+        const unitNumber = currentEditingUnit.unit_number;
+        closeModal('editUnitModal');
+        confirmDeleteUnit(unitId, unitNumber);
+    }
+
+    function confirmDeleteUnit(unitId, unitNumber) {
+        showConfirmationModal(
+            'Delete Inventory Unit',
+            'Are you sure you want to delete unit "' + unitNumber + '"? This will permanently remove it from the tower stacking chart.',
+            function() {
+                const form = document.getElementById('deleteUnitForm');
+                form.action = '/units/' + unitId;
+                form.submit();
+            },
+            {
+                confirmText: 'Yes, Delete Unit',
+                btnClass: 'btn-danger'
+            }
+        );
+    }
+
+    // Close modal on click outside (backdrop)
+    ['editUnitModal', 'batchGeneratorModal', 'addUnitModal'].forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this || e.target.classList.contains('min-h-full')) {
+                    closeModal(modalId);
+                }
+            });
+        }
+    });
+
+    // Close on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal('editUnitModal');
+            closeModal('batchGeneratorModal');
+            closeModal('addUnitModal');
+        }
+    });
 
     function filterTower(slug) {
         // Toggle tab styles

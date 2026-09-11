@@ -132,13 +132,58 @@ class ProjectUnitController extends Controller
     }
 
     /**
-     * Delete a unit
+     * Update an existing unit's details and status
      */
-    public function destroy(ProjectUnit $unit)
+    public function update(Request $request, ProjectUnit $unit)
     {
-        $unit->delete();
+        $validated = $request->validate([
+            'tower_name' => 'required|string|max:100',
+            'unit_number' => 'required|string|max:50',
+            'floor_number' => 'required|integer|min:0',
+            'unit_type' => 'nullable|string|max:50',
+            'status' => 'required|in:available,on_hold,sold',
+            'price' => 'nullable|numeric|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $unit->update([
+            'tower_name' => $validated['tower_name'],
+            'unit_number' => $validated['unit_number'],
+            'floor_number' => $validated['floor_number'],
+            'unit_type' => $validated['unit_type'] ?? null,
+            'status' => $validated['status'],
+            'price' => $validated['price'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Unit {$unit->unit_number} updated successfully!",
+                'unit' => $unit,
+            ]);
+        }
 
         return redirect()->back()
-            ->with('success', 'Unit deleted successfully!');
+            ->with('success', "Unit {$unit->unit_number} updated successfully!");
+    }
+
+    /**
+     * Delete a unit
+     */
+    public function destroy(Request $request, ProjectUnit $unit)
+    {
+        $unitNumber = $unit->unit_number;
+        $unit->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Unit {$unitNumber} deleted successfully!",
+            ]);
+        }
+
+        return redirect()->back()
+            ->with('success', "Unit {$unitNumber} deleted successfully!");
     }
 }

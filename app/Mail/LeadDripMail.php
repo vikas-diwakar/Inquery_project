@@ -22,21 +22,30 @@ class LeadDripMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
-        $subject = $this->step->subject ?? ('Information regarding ' . ($this->inquiry->project->name ?? 'Project'));
+        $companyName = $this->inquiry->company->name ?? 'Real Estate';
+        $projectName = $this->inquiry->project->name ?? 'Project';
+        $subject = $this->step->subject ?? ("Information regarding {$projectName} - {$companyName}");
+        $fromEmail = config('mail.from.address');
+
         return new Envelope(
-            subject: $subject,
+            from: new \Illuminate\Mail\Mailables\Address($fromEmail, $companyName),
+            subject: "{$subject} | {$companyName}",
         );
     }
 
     public function content(): Content
     {
+        $company = $this->inquiry->company;
+        $companyName = $company->name ?? 'Real Estate';
+
         return new Content(
             view: 'emails.lead-drip',
             with: [
                 'subjectTitle' => $this->step->subject ?? 'Project Information',
                 'customerName' => $this->inquiry->customer_name,
                 'projectName' => $this->inquiry->project->name ?? 'Project',
-                'companyName' => $this->inquiry->company->name ?? 'PropDrip',
+                'companyName' => $companyName,
+                'companyLogo' => $company?->logo ? asset('storage/' . $company->logo) : null,
                 'bodyMessage' => $this->step->message_template ?? '',
             ],
         );

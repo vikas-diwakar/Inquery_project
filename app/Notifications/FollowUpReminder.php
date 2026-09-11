@@ -29,19 +29,23 @@ class FollowUpReminder extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $companyName = $this->inquiry->company->name ?? 'Real Estate';
+        $fromEmail = config('mail.from.address');
+
         return (new MailMessage)
-            ->subject('Follow-up Reminder: ' . $this->inquiry->customer_name)
+            ->from($fromEmail, "{$companyName} CRM")
+            ->subject("[{$companyName}] Follow-up Reminder: {$this->inquiry->customer_name}")
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('You have a scheduled follow-up for the following inquiry:')
+            ->line("You have a scheduled follow-up for {$companyName}:")
             ->line('**Customer Name:** ' . $this->inquiry->customer_name)
             ->line('**Phone:** ' . $this->inquiry->phone)
             ->line('**Email:** ' . $this->inquiry->email)
             ->line('**Project:** ' . $this->inquiry->project->name)
             ->line('**Status:** ' . ucfirst($this->inquiry->status))
             ->line('**Scheduled Follow-up Date:** ' . $this->inquiry->next_follow_up_date->format('M d, Y H:i A'))
-            ->action('View Inquiry', route('inquiries.show', $this->inquiry->id))
+            ->action('View Inquiry in CRM', route('inquiries.show', $this->inquiry->id))
             ->line('Please ensure to follow up with the customer as scheduled.')
-            ->line('Thank you for your diligence in customer follow-ups!');
+            ->line("Thank you for your diligence, Team {$companyName}!");
     }
 
     /**

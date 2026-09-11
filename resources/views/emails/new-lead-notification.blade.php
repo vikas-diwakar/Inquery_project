@@ -18,12 +18,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <span class="badge">🔥 New Lead</span>
+            @if(!empty($companyLogo))
+                <img src="{{ $companyLogo }}" alt="{{ $companyName }}" style="max-height: 40px; max-width: 180px; margin-bottom: 10px; background: #ffffff; padding: 4px 8px; border-radius: 8px;">
+            @endif
+            <div style="margin-bottom: 8px;"><span class="badge">🔥 New Lead &bull; {{ $companyName }}</span></div>
             <h1>New Lead Received for {{ $projectName }}</h1>
         </div>
         <div class="content">
             <p>Hello Team,</p>
-            <p>A new lead has just been submitted via QR / Web form for <strong>{{ $projectName }}</strong>.</p>
+            <p>A new lead has just been submitted for <strong>{{ $projectName }}</strong> ({{ $companyName }}).</p>
             
             <div class="lead-card">
                 <p style="margin: 4px 0;"><strong>Name:</strong> {{ $customerName }}</p>
@@ -47,7 +50,7 @@
             </p>
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} PropDrip Lead Automation System.</p>
+            <p>&copy; {{ date('Y') }} {{ $companyName }}. All rights reserved.</p>
         </div>
     </div>
 </body>

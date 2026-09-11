@@ -27,8 +27,25 @@ class CompanyRegistrationController extends Controller
      */
     public function register(Request $request)
     {
+        // Clean and prepare subdomain
+        $subdomainInput = $request->input('subdomain') ?: \Illuminate\Support\Str::slug($request->input('company_name'));
+        $request->merge(['subdomain' => strtolower(trim($subdomainInput))]);
+
         $validated = $request->validate([
             'company_name' => 'required|string|max:255',
+            'subdomain' => [
+                'required',
+                'string',
+                'alpha_dash',
+                'min:3',
+                'max:50',
+                'unique:companies,subdomain',
+                function ($attribute, $value, $fail) {
+                    if (Company::isReservedSubdomain($value)) {
+                        $fail('The workspace subdomain "' . $value . '" is reserved. Please choose another name.');
+                    }
+                },
+            ],
             'company_email' => 'required|email|unique:companies,email',
             'company_phone' => 'nullable|string|max:20',
             'company_address' => 'nullable|string',
@@ -41,6 +58,7 @@ class CompanyRegistrationController extends Controller
         // Create company
         $company = Company::create([
             'name' => $validated['company_name'],
+            'subdomain' => strtolower($validated['subdomain']),
             'email' => $validated['company_email'],
             'phone' => $validated['company_phone'] ?? null,
             'address' => $validated['company_address'] ?? null,

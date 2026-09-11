@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -15,6 +16,14 @@ class ResetPasswordController extends Controller
      */
     public function showResetForm(Request $request, $token = null)
     {
+        // If user is currently authenticated in this browser, log them out
+        // so that they can cleanly set their new password without automatic redirection
+        if (Auth::check()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+
         return view('auth.reset-password')->with([
             'token' => $token,
             'email' => $request->email,
@@ -44,8 +53,15 @@ class ResetPasswordController extends Controller
             }
         );
 
-        return $status === Password::PASSWORD_RESET
-            ? redirect()->route('login')->with('status', __($status))
-            : redirect()->back()->withErrors(['email' => __($status)]);
+        if ($status === Password::PASSWORD_RESET) {
+            $user = \App\Models\User::where('email', $request->email)->first();
+            $loginUrl = ($user && $user->company && $user->company->subdomain) 
+                ? ($user->company->workspace_url . '/login') 
+                : route('login');
+
+            return redirect($loginUrl)->with('status', 'Your password has been reset successfully! Please sign in with your new password.');
+        }
+
+        return redirect()->back()->withErrors(['email' => __($status)]);
     }
 }

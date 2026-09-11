@@ -70,15 +70,19 @@ Route::post('/webhook/facebook', [FacebookWebhookController::class, 'handle']);
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/workspace/find', [AuthController::class, 'findWorkspace'])->name('workspace.find');
+    Route::post('/api/v1/check-subdomain', [\App\Http\Controllers\CompanyDomainController::class, 'checkAvailability'])->name('api.subdomain.check');
     Route::get('/register', [CompanyRegistrationController::class, 'showRegistrationForm'])->name('company.register');
     Route::post('/register', [CompanyRegistrationController::class, 'register']);
 
-    // Password Reset Routes
+    // Password Reset Request Routes
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
-    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
+
+// Password Reset Action Routes (accessible even if session active to allow resetting)
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 
 // Email Verification Routes
 Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
@@ -118,6 +122,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'store'])->name('projects.units.store');
         Route::post('/projects/{project}/units/batch', [\App\Http\Controllers\ProjectUnitController::class, 'generateBatch'])->name('projects.units.batch');
         Route::patch('/units/{unit}/status', [\App\Http\Controllers\ProjectUnitController::class, 'updateStatus'])->name('units.update-status');
+        Route::put('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'update'])->name('units.update');
         Route::delete('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'destroy'])->name('units.destroy');
     });
 
@@ -174,8 +179,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/projects/{project}/regenerate-token', [\App\Http\Controllers\IntegrationController::class, 'regenerateToken'])->name('projects.regenerate-token');
     });
 
-        // Users (Admin only)
+        // Users & Company Settings (Admin only)
         Route::middleware('role:Admin')->group(function () {
             Route::resource('users', UserController::class);
+            Route::get('/settings/domain', [\App\Http\Controllers\CompanyDomainController::class, 'index'])->name('settings.domain');
+            Route::put('/settings/domain', [\App\Http\Controllers\CompanyDomainController::class, 'update'])->name('settings.domain.update');
         });
 });

@@ -15,7 +15,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>{{ $projectName }}</h1>
+            @if(!empty($companyLogo))
+                <img src="{{ $companyLogo }}" alt="{{ $companyName }}" style="max-height: 40px; max-width: 180px; margin-bottom: 10px; background: #ffffff; padding: 4px 8px; border-radius: 8px;">
+            @endif
+            <h1>{{ $companyName }}</h1>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #94a3b8;">{{ $projectName }}</p>
         </div>
         <div class="content">
             <p>Hi {{ $customerName }},</p>

@@ -21,6 +21,6 @@ class SendPasswordResetEmailJob implements ShouldQueue
 
     public function handle(): void
     {
-        $this->user->notify(new ResetPassword($this->token));
+        $this->user->notify(new \App\Notifications\CompanyResetPasswordNotification($this->token));
     }
 }

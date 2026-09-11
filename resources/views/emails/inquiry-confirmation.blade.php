@@ -17,12 +17,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Thank You for Your Inquiry!</h1>
+            @if(!empty($companyLogo))
+                <img src="{{ $companyLogo }}" alt="{{ $companyName }}" style="max-height: 44px; max-width: 180px; margin-bottom: 12px; background: #ffffff; padding: 4px 8px; border-radius: 8px;">
+            @endif
+            <h1>{{ $companyName }}</h1>
+            <p style="margin: 4px 0 0; font-size: 14px; opacity: 0.9;">Thank you for your inquiry!</p>
         </div>
         <div class="content">
             <h2>Dear {{ $customerName }},</h2>
-            <p>Thank you for expressing interest in <strong>{{ $projectName }}</strong> by {{ $companyName }}.</p>
-            <p>We have received your inquiry and our sales team will reach out to you shortly on WhatsApp / Phone with full pricing and floor plan details.</p>
+            <p>Thank you for expressing interest in <strong>{{ $projectName }}</strong> by <strong>{{ $companyName }}</strong>.</p>
+            <p>We have received your inquiry and our team at <strong>{{ $companyName }}</strong> will reach out to you shortly on WhatsApp / Phone with full pricing and brochure details.</p>
             
             <div class="info-box">
                 <p style="margin: 0 0 8px 0;"><strong>Inquiry Summary:</strong></p>

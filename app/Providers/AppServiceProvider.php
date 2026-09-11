@@ -46,5 +46,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->registerPolicies();
+
+        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
+            if (session()->has('selected_project_id') && !isset($view->selectedProject)) {
+                $selectedProject = Project::find(session('selected_project_id'));
+                if ($selectedProject) {
+                    $view->with('selectedProject', $selectedProject);
+                }
+            }
+        });
     }
 }

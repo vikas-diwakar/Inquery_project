@@ -12,6 +12,7 @@ class Company extends Model
 
     protected $fillable = [
         'name',
+        'subdomain',
         'email',
         'phone',
         'address',
@@ -225,10 +226,95 @@ class Company extends Model
     /**
      * Expire subscription
      */
-    public function expireSubscription(): void
+     public function expireSubscription(): void
+     {
+         $this->update([
+             'subscription_status' => 'expired',
+         ]);
+     }
+
+    /**
+     * List of reserved subdomains that cannot be claimed by tenants
+     */
+    public static function reservedSubdomains(): array
     {
-        $this->update([
-            'subscription_status' => 'expired',
-        ]);
+        return [
+            'www', 'admin', 'administrator', 'api', 'app', 'apps', 'auth', 'login', 'signin', 'signup',
+            'register', 'dashboard', 'billing', 'subscription', 'subscriptions', 'mail', 'email', 'smtp',
+            'help', 'support', 'docs', 'portal', 'status', 'dev', 'developer', 'developers', 'staging',
+            'test', 'demo', 'webhook', 'webhooks', 'static', 'assets', 'cdn', 'root', 'superadmin',
+        ];
+    }
+
+    /**
+     * Check if a subdomain is reserved
+     */
+    public static function isReservedSubdomain(string $subdomain): bool
+    {
+        return in_array(strtolower(trim($subdomain)), self::reservedSubdomains(), true);
+    }
+
+    /**
+     * Get the formatted workspace domain name (e.g. acme.propdrip.com or acme.localhost:8000)
+     */
+    public function getWorkspaceDomainAttribute(): string
+    {
+        $host = request()->getHost();
+        $port = request()->getPort();
+        $portSuffix = ($port && !in_array($port, [80, 443])) ? ":{$port}" : '';
+
+        // If current host is an existing tenant subdomain (e.g. foo.localhost or foo.propdrip.com),
+        // strip the current subdomain to find the base host.
+        $baseHost = self::getBaseHost($host);
+
+        return "{$this->subdomain}.{$baseHost}{$portSuffix}";
+    }
+
+    /**
+     * Get the full workspace URL (e.g. http://acme.localhost:8000 or https://acme.propdrip.com)
+     */
+    public function getWorkspaceUrlAttribute(): string
+    {
+        $scheme = request()->getScheme() ?: (app()->isProduction() ? 'https' : 'http');
+        return "{$scheme}://{$this->workspace_domain}";
+    }
+
+    /**
+     * Helper to detect base host from request host
+     */
+    public static function getBaseHost(string $host): string
+    {
+        // Handle IP addresses or localhost
+        if ($host === 'localhost' || str_ends_with($host, '.localhost') || filter_var($host, FILTER_VALIDATE_IP)) {
+            return 'localhost';
+        }
+
+        // Check if config has an explicit APP_DOMAIN
+        $appDomain = config('app.domain');
+        if (!empty($appDomain)) {
+            return ltrim($appDomain, '.');
+        }
+
+        // Check APP_URL host
+        $appUrlHost = parse_url(config('app.url'), PHP_URL_HOST);
+        if (!empty($appUrlHost) && $appUrlHost !== 'localhost' && !filter_var($appUrlHost, FILTER_VALIDATE_IP)) {
+            return $appUrlHost;
+        }
+
+        // Fallback: extract root domain (last two segments)
+        $parts = explode('.', $host);
+        if (count($parts) >= 2) {
+            return implode('.', array_slice($parts, -2));
+        }
+
+        return $host;
+    }
+
+    /**
+     * Scope to find company by subdomain
+     */
+    public function scopeBySubdomain($query, string $subdomain)
+    {
+        return $query->where('subdomain', strtolower(trim($subdomain)));
     }
 }

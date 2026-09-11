@@ -18,6 +18,6 @@ class SendEmailVerificationJob implements ShouldQueue
 
     public function handle(): void
     {
-        $this->user->notify(new VerifyEmail);
+        $this->user->notify(new \App\Notifications\CompanyVerifyEmailNotification);
     }
 }

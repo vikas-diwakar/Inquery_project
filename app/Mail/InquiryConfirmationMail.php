@@ -18,19 +18,27 @@ class InquiryConfirmationMail extends Mailable
     public function envelope(): Envelope
     {
         $projectName = $this->inquiry->project->name ?? 'Property Inquiry';
+        $companyName = $this->inquiry->company->name ?? 'Real Estate';
+        $fromEmail = config('mail.from.address');
+
         return new Envelope(
-            subject: "Inquiry Confirmation: {$projectName}",
+            from: new \Illuminate\Mail\Mailables\Address($fromEmail, $companyName),
+            subject: "Inquiry Confirmation: {$projectName} - {$companyName}",
         );
     }
 
     public function content(): Content
     {
+        $company = $this->inquiry->company;
+        $companyName = $company->name ?? 'Real Estate';
+
         return new Content(
             view: 'emails.inquiry-confirmation',
             with: [
                 'customerName' => $this->inquiry->customer_name,
                 'projectName' => $this->inquiry->project->name ?? 'Property',
-                'companyName' => $this->inquiry->company->name ?? 'PropDrip Partner',
+                'companyName' => $companyName,
+                'companyLogo' => $company?->logo ? asset('storage/' . $company->logo) : null,
                 'location' => $this->inquiry->project->location ?? null,
                 'phone' => $this->inquiry->phone,
             ],

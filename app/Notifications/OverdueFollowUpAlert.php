@@ -29,21 +29,24 @@ class OverdueFollowUpAlert extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $companyName = $this->inquiry->company->name ?? 'Real Estate';
+        $fromEmail = config('mail.from.address');
         $daysOverdue = now()->diffInDays($this->inquiry->next_follow_up_date);
 
         return (new MailMessage)
-            ->subject('URGENT: Overdue Follow-up - ' . $this->inquiry->customer_name)
+            ->from($fromEmail, "{$companyName} Alerts")
+            ->subject("[{$companyName}] URGENT: Overdue Follow-up - {$this->inquiry->customer_name}")
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('⚠️ **URGENT:** You have an overdue follow-up that requires immediate attention!')
+            ->line("⚠️ **URGENT:** You have an overdue follow-up for {$companyName} that requires immediate attention!")
             ->line('**Customer Name:** ' . $this->inquiry->customer_name)
             ->line('**Phone:** ' . $this->inquiry->phone)
             ->line('**Email:** ' . $this->inquiry->email)
             ->line('**Project:** ' . $this->inquiry->project->name)
             ->line('**Due Date:** ' . $this->inquiry->next_follow_up_date->format('M d, Y H:i A'))
             ->line('**Overdue by:** ' . $daysOverdue . ' day(s)')
-            ->action('Update Follow-up', route('inquiries.show', $this->inquiry->id))
+            ->action('Update Follow-up in CRM', route('inquiries.show', $this->inquiry->id))
             ->line('Please prioritize this follow-up to prevent losing the inquiry.')
-            ->line('Thank you!');
+            ->line("Team {$companyName}");
     }
 
     /**

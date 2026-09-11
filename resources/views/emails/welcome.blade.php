@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Welcome to PropDrip</title>
+    <title>Welcome to {{ $companyName }}</title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 20px; }
         .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
@@ -16,18 +16,22 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>PropDrip Real Estate CRM</h1>
+            @if(!empty($companyLogo))
+                <img src="{{ $companyLogo }}" alt="{{ $companyName }}" style="max-height: 48px; max-width: 200px; margin-bottom: 12px; background: #ffffff; padding: 4px 8px; border-radius: 8px;">
+            @endif
+            <h1>{{ $companyName }}</h1>
+            <p style="margin: 4px 0 0; font-size: 13px; color: #94a3b8;">Real Estate & Sales Portal</p>
         </div>
         <div class="content">
-            <h2>Welcome to PropDrip, {{ $userName }}!</h2>
-            <p>Thank you for registering <strong>{{ $companyName }}</strong> with PropDrip. We're excited to help you manage inquiries, automate lead drips, and capture property leads effortlessly.</p>
-            <p>To get started, verify your email address and set up your first project QR code!</p>
+            <h2>Welcome, {{ $userName }}!</h2>
+            <p>Your workspace account for <strong>{{ $companyName }}</strong> is now ready. You can sign in to your dedicated portal to manage project inventory, capture customer inquiries, and coordinate sales follow-ups.</p>
+            
             <p style="text-align: center;">
-                <a href="{{ $loginUrl }}" class="btn">Go to Dashboard &rarr;</a>
+                <a href="{{ $loginUrl }}" class="btn">Sign In to {{ $companyName }} &rarr;</a>
             </p>
         </div>
         <div class="footer">
-            <p>&copy; {{ date('Y') }} PropDrip. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} {{ $companyName }}. All rights reserved.</p>
         </div>
     </div>
 </body>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Set New Password - PropDrip')
+@section('title', isset($currentTenant) ? 'Set New Password - ' . $currentTenant->name : 'Set New Password')
 
 @section('content')
 <div class="min-h-[85vh] flex items-center justify-center py-6">
@@ -8,11 +8,25 @@
         
         <!-- Header -->
         <div class="text-center space-y-2">
-            <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                </svg>
-            </div>
+            @if(isset($currentTenant))
+                <div class="flex justify-center mb-2">
+                    @if($currentTenant->logo)
+                        <img src="{{ asset('storage/' . $currentTenant->logo) }}" alt="{{ $currentTenant->name }}" 
+                            style="max-height: 44px; max-width: 180px; width: auto; height: auto; object-fit: contain;" 
+                            class="rounded-xl object-contain bg-white p-1 border border-slate-200/80 shadow-xs">
+                    @else
+                        <div class="h-11 px-4 rounded-xl bg-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                            {{ $currentTenant->name }}
+                        </div>
+                    @endif
+                </div>
+            @else
+                <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                </div>
+            @endif
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Create New Password</h1>
             <p class="text-xs text-slate-500">
                 Please enter your registered email address and choose a strong new password.

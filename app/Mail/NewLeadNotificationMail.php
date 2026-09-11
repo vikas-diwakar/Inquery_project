@@ -18,19 +18,28 @@ class NewLeadNotificationMail extends Mailable implements ShouldQueue
 
     public function envelope(): Envelope
     {
+        $companyName = $this->inquiry->company->name ?? 'Real Estate';
         $projectName = $this->inquiry->project->name ?? 'Project';
+        $fromEmail = config('mail.from.address');
+
         return new Envelope(
-            subject: "🔥 New Lead Captured: {$this->inquiry->customer_name} ({$projectName})",
+            from: new \Illuminate\Mail\Mailables\Address($fromEmail, "{$companyName} CRM"),
+            subject: "🔥 [{$companyName}] New Lead Captured: {$this->inquiry->customer_name} ({$projectName})",
         );
     }
 
     public function content(): Content
     {
+        $company = $this->inquiry->company;
+        $companyName = $company->name ?? 'Real Estate';
+
         return new Content(
             view: 'emails.new-lead-notification',
             with: [
                 'customerName' => $this->inquiry->customer_name,
                 'projectName' => $this->inquiry->project->name ?? 'Project',
+                'companyName' => $companyName,
+                'companyLogo' => $company?->logo ? asset('storage/' . $company->logo) : null,
                 'phone' => $this->inquiry->phone,
                 'email' => $this->inquiry->email,
                 'budget' => $this->inquiry->budget,

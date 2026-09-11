@@ -55,6 +55,31 @@
                                 placeholder="Apex Infrastructure Ltd">
                         </div>
                     </div>
+
+                    <!-- Workspace Subdomain (Keka style) -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label for="subdomain" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Workspace Subdomain <span class="text-rose-500">*</span></label>
+                            <span id="subdomain-status" class="text-[11px] font-medium hidden"></span>
+                        </div>
+                        <div class="flex rounded-xl shadow-sm overflow-hidden border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-600 transition-all bg-slate-50">
+                            <div class="inline-flex items-center pl-3.5 pr-1.5 text-slate-400 text-xs font-mono select-none">
+                                https://
+                            </div>
+                            <input type="text" name="subdomain" id="subdomain" required value="{{ old('subdomain') }}" 
+                                class="block w-full py-3 px-1 bg-transparent text-sm font-semibold text-indigo-700 placeholder-slate-400 focus:outline-none" 
+                                placeholder="apex-infra">
+                            <div class="inline-flex items-center px-3 text-slate-500 text-xs font-mono bg-slate-100/80 border-l border-slate-200 select-none">
+                                .{{ \App\Models\Company::getBaseHost(request()->getHost()) }}
+                            </div>
+                        </div>
+                        <p class="text-[11px] text-slate-500 flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Your team will log in at: <span id="subdomain-preview" class="font-mono text-indigo-600 font-semibold">https://apex-infra.{{ \App\Models\Company::getBaseHost(request()->getHost()) }}</span>
+                        </p>
+                    </div>
                     
                     <!-- Company Email -->
                     <div class="space-y-1.5">
@@ -188,5 +213,83 @@
         </form>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const companyInput = document.getElementById('company_name');
+    const subdomainInput = document.getElementById('subdomain');
+    const previewSpan = document.getElementById('subdomain-preview');
+    const statusSpan = document.getElementById('subdomain-status');
+    const baseHost = "{{ \App\Models\Company::getBaseHost(request()->getHost()) }}";
+
+    let hasManuallyEditedSubdomain = false;
+    let checkTimeout = null;
+
+    subdomainInput.addEventListener('input', function() {
+        hasManuallyEditedSubdomain = true;
+        formatAndCheckSubdomain();
+    });
+
+    companyInput.addEventListener('input', function() {
+        if (!hasManuallyEditedSubdomain) {
+            const slug = slugify(companyInput.value);
+            subdomainInput.value = slug;
+            formatAndCheckSubdomain();
+        }
+    });
+
+    function slugify(text) {
+        return text.toString().toLowerCase()
+            .replace(/\s+/g, '-')           // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+            .replace(/^-+/, '')             // Trim - from start of text
+            .replace(/-+$/, '');            // Trim - from end of text
+    }
+
+    function formatAndCheckSubdomain() {
+        let val = subdomainInput.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        subdomainInput.value = val;
+
+        const displaySlug = val || 'your-workspace';
+        previewSpan.textContent = `https://${displaySlug}.${baseHost}`;
+
+        if (val.length < 3) {
+            statusSpan.className = 'text-[11px] font-medium text-amber-600 block';
+            statusSpan.textContent = 'Min 3 chars';
+            return;
+        }
+
+        statusSpan.className = 'text-[11px] font-medium text-slate-400 block';
+        statusSpan.textContent = 'Checking availability...';
+
+        clearTimeout(checkTimeout);
+        checkTimeout = setTimeout(() => {
+            fetch("{{ route('api.subdomain.check') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': "{{ csrf_token() }}",
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ subdomain: val })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    statusSpan.className = 'text-[11px] font-semibold text-emerald-600 block flex items-center gap-1';
+                    statusSpan.innerHTML = '✓ Available';
+                } else {
+                    statusSpan.className = 'text-[11px] font-semibold text-rose-600 block flex items-center gap-1';
+                    statusSpan.innerHTML = `✗ ${data.message}`;
+                }
+            })
+            .catch(() => {
+                statusSpan.classList.add('hidden');
+            });
+        }, 350);
+    }
+});
+</script>
 @endsection
 

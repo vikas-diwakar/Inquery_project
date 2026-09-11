@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Forgot Password - PropDrip')
+@section('title', isset($currentTenant) ? 'Forgot Password - ' . $currentTenant->name : 'Forgot Password - PropDrip')
 
 @section('content')
 <div class="min-h-[85vh] flex items-center justify-center py-6">
@@ -8,11 +8,25 @@
         
         <!-- Header -->
         <div class="text-center space-y-2">
-            <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                </svg>
-            </div>
+            @if(isset($currentTenant))
+                <div class="flex justify-center mb-2">
+                    @if($currentTenant->logo)
+                        <img src="{{ asset('storage/' . $currentTenant->logo) }}" alt="{{ $currentTenant->name }}" 
+                            style="max-height: 44px; max-width: 180px; width: auto; height: auto; object-fit: contain;" 
+                            class="rounded-xl object-contain bg-white p-1 border border-slate-200/80 shadow-xs">
+                    @else
+                        <div class="h-11 px-4 rounded-xl bg-indigo-600 text-white font-black text-sm flex items-center justify-center shadow-xs">
+                            {{ $currentTenant->name }}
+                        </div>
+                    @endif
+                </div>
+            @else
+                <div class="h-12 w-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mx-auto text-indigo-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                </div>
+            @endif
             <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Reset Password</h1>
             <p class="text-xs text-slate-500">
                 Forgot your password? Enter your registered email address and we'll send you a password reset link.

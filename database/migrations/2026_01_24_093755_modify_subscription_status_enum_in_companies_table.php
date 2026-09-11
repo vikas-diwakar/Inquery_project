@@ -13,7 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         // Modify the enum to include 'pending'
-        DB::statement("ALTER TABLE companies MODIFY COLUMN subscription_status ENUM('pending', 'trial', 'active', 'expired', 'cancelled') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE companies MODIFY COLUMN subscription_status ENUM('pending', 'trial', 'active', 'expired', 'cancelled') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -22,6 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         // Revert back to original enum
-        DB::statement("ALTER TABLE companies MODIFY COLUMN subscription_status ENUM('trial', 'active', 'expired', 'cancelled') DEFAULT 'trial'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE companies MODIFY COLUMN subscription_status ENUM('trial', 'active', 'expired', 'cancelled') DEFAULT 'trial'");
+        }
     }
 };

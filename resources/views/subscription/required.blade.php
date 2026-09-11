@@ -77,10 +77,10 @@
                         FREE TRIAL
                     </span>
                     <div>
-                        <h4 class="text-lg font-bold text-slate-900 text-center">3 Months Free</h4>
+                        <h4 class="text-lg font-bold text-slate-900 text-center">1 Month Free</h4>
                         <div class="my-4 text-center">
                             <span class="text-3xl font-extrabold text-indigo-600">₹0</span>
-                            <span class="text-xs text-slate-500 block">3 months full trial</span>
+                            <span class="text-xs text-slate-500 block">1 month full trial</span>
                         </div>
                         <p class="text-xs text-slate-600 text-center mb-4">Try out all SaaS tools with zero upfront payment.</p>
                     </div>

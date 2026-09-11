@@ -61,7 +61,7 @@
 
                     <div class="my-6">
                         <span class="text-4xl sm:text-5xl font-black text-indigo-600">FREE</span>
-                        <span class="text-slate-600 font-bold text-sm block mt-1">3 Months Full SaaS Access</span>
+                        <span class="text-slate-600 font-bold text-sm block mt-1">1 Month Full SaaS Access</span>
                     </div>
 
                     <div class="border-t border-slate-100 pt-6 space-y-4">
@@ -105,7 +105,7 @@
                     @if(auth()->user()->isAdmin())
                     <button type="submit" name="plan_id" value="{{ $plans->where('type', 'trial')->first()->id ?? '' }}"
                             class="w-full py-4 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-extrabold rounded-2xl shadow-lg shadow-indigo-600/30 transition-all duration-200 text-center text-sm">
-                        Start 3-Month Free Trial →
+                        Start 1-Month Free Trial →
                     </button>
                     @else
                     <button type="button" disabled class="w-full py-4 px-4 bg-slate-100 text-slate-400 font-bold rounded-2xl cursor-not-allowed text-sm">

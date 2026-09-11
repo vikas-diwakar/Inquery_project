@@ -11,7 +11,9 @@ return new class extends Migration
     public function up(): void
     {
         // Update the enum values for inquiries.status to support lead workflow
-        DB::statement("ALTER TABLE `inquiries` MODIFY `status` ENUM('new','contacted','interested','site_visit','booked','lost') NOT NULL DEFAULT 'new'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `inquiries` MODIFY `status` ENUM('new','contacted','interested','site_visit','booked','lost') NOT NULL DEFAULT 'new'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
     public function down(): void
     {
         // Revert to previous enum values
-        DB::statement("ALTER TABLE `inquiries` MODIFY `status` ENUM('new','contacted','qualified','booked','rejected') NOT NULL DEFAULT 'new'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `inquiries` MODIFY `status` ENUM('new','contacted','qualified','booked','rejected') NOT NULL DEFAULT 'new'");
+        }
     }
 };

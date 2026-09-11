@@ -56,4 +56,24 @@ class PublicMarketingPagesTest extends TestCase
         $registerResponse->assertSee('About');
         $registerResponse->assertSee('Contact Us');
     }
+
+    public function test_nonexistent_workspace_subdomain_links_to_root_domain(): void
+    {
+        $response = $this->withServerVariables([
+            'HTTP_HOST' => 'vikas.localhost:8000',
+            'SERVER_NAME' => 'vikas.localhost',
+            'SERVER_PORT' => '8000',
+        ])->get('http://vikas.localhost:8000/');
+
+        $response->assertStatus(404);
+        $response->assertSee('No company workspace found for');
+        $response->assertSee('vikas');
+
+        // Verify "Go to PropDrip Home" links to the root localhost:8000 rather than vikas.localhost:8000
+        $response->assertSee('href="http://localhost:8000/"', false);
+        // Verify "Find Your Organization" links to root login
+        $response->assertSee('href="http://localhost:8000/login"', false);
+        // Verify "Register Company" links to root register
+        $response->assertSee('href="http://localhost:8000/register"', false);
+    }
 }

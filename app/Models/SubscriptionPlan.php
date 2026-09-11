@@ -59,7 +59,7 @@ class SubscriptionPlan extends Model
         self::create([
             'name' => 'Free Trial',
             'type' => 'trial',
-            'duration_months' => 3,
+            'duration_months' => 1,
             'price' => null,
             'currency' => 'INR',
             'features' => [
@@ -77,7 +77,7 @@ class SubscriptionPlan extends Model
             'name' => '6-Month Plan',
             'type' => 'paid',
             'duration_months' => 6,
-            'price' => 2999.00,
+            'price' => 6000.00,
             'currency' => 'INR',
             'features' => [
                 'projects' => true,
@@ -95,7 +95,7 @@ class SubscriptionPlan extends Model
             'name' => '1-Year Plan',
             'type' => 'paid',
             'duration_months' => 12,
-            'price' => 4999.00,
+            'price' => 10000.00,
             'currency' => 'INR',
             'features' => [
                 'projects' => true,

@@ -65,6 +65,7 @@ Route::post('/api/v1/leads/{token}', [\App\Http\Controllers\IntegrationControlle
 
 Route::get('/webhook/facebook', [FacebookWebhookController::class, 'verify']);
 Route::post('/webhook/facebook', [FacebookWebhookController::class, 'handle']);
+Route::post('/webhook/razorpay', [\App\Http\Controllers\RazorpayWebhookController::class, 'handle'])->name('webhook.razorpay');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
@@ -150,6 +151,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'store'])->name('settings.drip.store');
         Route::delete('/settings/drip/{step}', [\App\Http\Controllers\LeadDripController::class, 'destroy'])->name('settings.drip.destroy');
         Route::post('/settings/drip/process-now', [\App\Http\Controllers\LeadDripController::class, 'processNow'])->name('settings.drip.process-now');
+        Route::post('/settings/drip/process-selected', [\App\Http\Controllers\LeadDripController::class, 'processSelected'])->name('settings.drip.process-selected');
+        Route::post('/settings/drip/discard-selected', [\App\Http\Controllers\LeadDripController::class, 'discardSelected'])->name('settings.drip.discard-selected');
+        Route::post('/settings/drip/{log}/process-single', [\App\Http\Controllers\LeadDripController::class, 'processSingle'])->name('settings.drip.process-single');
+        Route::post('/settings/drip/{log}/discard', [\App\Http\Controllers\LeadDripController::class, 'discardSingle'])->name('settings.drip.discard-single');
         Route::post('/settings/drip/enroll-past', [\App\Http\Controllers\LeadDripController::class, 'enrollPastLeads'])->name('settings.drip.enroll-past');
 
         // Follow-up routes

@@ -52,7 +52,7 @@ A complete multi-tenant SaaS web application for Real Estate Builders to manage 
      - **Sales Executive**: Only inquiry management
 
 8. **Subscription Management System**
-   - **Free Trial**: 3-month free trial for new companies
+   - **Free Trial**: 1-month free trial for new companies
    - **Paid Plans**: 6-month and 1-year subscription plans
    - **Payment Integration**: Razorpay payment gateway
    - **Access Control**: Feature blocking for expired subscriptions

@@ -33,22 +33,49 @@ class SubscriptionController extends Controller
         $this->authorize('manageSubscription', auth()->user()->company);
 
         if (!$plan->isPaid() || !$plan->is_active) {
-            return response()->json(['success' => false, 'message' => 'Invalid plan'], 400);
+            return response()->json(['success' => false, 'message' => 'Invalid or inactive plan selected.'], 400);
+        }
+
+        if (!$razorpay->isConfigured()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Razorpay API credentials (RAZORPAY_KEY and RAZORPAY_SECRET) are not configured in .env. Please configure your Razorpay keys.'
+            ], 422);
         }
 
         try {
-            $order = $razorpay->createOrder($plan->price, $plan->currency, 'sub_' . $plan->id . '_' . time());
+            $company = auth()->user()->company;
+            $order = $razorpay->createOrder(
+                $plan->price,
+                $plan->currency ?? 'INR',
+                'sub_' . $plan->id . '_' . $company->id . '_' . time(),
+                [
+                    'company_id' => (string) $company->id,
+                    'company_name' => (string) $company->name,
+                    'plan_id' => (string) $plan->id,
+                    'plan_name' => (string) $plan->name,
+                    'user_id' => (string) auth()->id(),
+                    'user_email' => (string) auth()->user()->email,
+                ]
+            );
 
             return response()->json([
                 'success' => true,
                 'order_id' => $order['id'],
                 'amount' => $order['amount'],
                 'currency' => $order['currency'],
+                'key' => $razorpay->getKey(),
+                'is_test_mode' => $razorpay->isTestMode(),
             ]);
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Razorpay order creation failed: ' . $e->getMessage(), [
+                'plan_id' => $plan->id,
+                'company_id' => auth()->user()->company_id,
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to create payment order'
+                'message' => 'Unable to create payment order: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -118,7 +145,7 @@ class SubscriptionController extends Controller
             ]);
 
             // Update company with trial status
-            $company->startTrial();
+            $company->startTrial($plan->duration_months ?: 1);
 
             return redirect()->route('dashboard')
                 ->with('success', 'Free trial activated successfully! You now have full access to all features.');
@@ -158,7 +185,7 @@ class SubscriptionController extends Controller
     /**
      * Show checkout page for a plan
      */
-    public function checkout(SubscriptionPlan $plan)
+    public function checkout(SubscriptionPlan $plan, RazorpayService $razorpay)
     {
         $this->authorize('manageSubscription', auth()->user()->company);
 
@@ -167,8 +194,11 @@ class SubscriptionController extends Controller
         }
 
         $company = auth()->user()->company;
+        $isConfigured = $razorpay->isConfigured();
+        $isTestMode = $razorpay->isTestMode();
+        $razorpayKey = $razorpay->getKey();
 
-        return view('subscription.checkout', compact('plan', 'company'));
+        return view('subscription.checkout', compact('plan', 'company', 'isConfigured', 'isTestMode', 'razorpayKey'));
     }
 
     /**
@@ -194,49 +224,60 @@ class SubscriptionController extends Controller
         );
 
         if (!$isValid) {
-            return redirect()->back()->with('error', 'Payment verification failed. Please contact support if money was debited.');
+            \Illuminate\Support\Facades\Log::warning('Razorpay payment signature mismatch on purchase', [
+                'company_id' => $company->id,
+                'payment_id' => $request->razorpay_payment_id,
+                'order_id' => $request->razorpay_order_id,
+            ]);
+
+            return redirect()->route('subscription.checkout', $plan)
+                ->with('error', 'Payment signature verification failed. If money was debited from your account, please contact support with Payment ID: ' . $request->razorpay_payment_id);
         }
 
-        // Get payment details
+        // Get payment details from Razorpay API
         $paymentDetails = $razorpay->getPayment($request->razorpay_payment_id);
 
-        if (!$paymentDetails || $paymentDetails['status'] !== 'captured') {
-            return redirect()->back()->with('error', 'Payment was not successful. Please try again.');
+        if ($paymentDetails && isset($paymentDetails['status']) && !in_array($paymentDetails['status'], ['captured', 'authorized'])) {
+            return redirect()->route('subscription.checkout', $plan)
+                ->with('error', 'Payment was not captured (status: ' . $paymentDetails['status'] . '). Please try again.');
         }
 
-        // Calculate dates (stack upon current active subscription end date if not expired)
-        $currentSub = $company->activeSubscription();
-        $startDate = ($currentSub && $currentSub->end_date && $currentSub->end_date->isFuture()) 
-            ? $currentSub->end_date->copy() 
-            : now();
-        $endDate = $startDate->copy()->addMonths($plan->duration_months);
+        // Atomic update via DB transaction
+        \Illuminate\Support\Facades\DB::transaction(function () use ($company, $plan, $request, $paymentDetails) {
+            // Calculate dates (stack upon current active subscription end date if not expired)
+            $currentSub = $company->activeSubscription();
+            $startDate = ($currentSub && $currentSub->end_date && $currentSub->end_date->isFuture()) 
+                ? $currentSub->end_date->copy() 
+                : now();
+            $endDate = $startDate->copy()->addMonths($plan->duration_months);
 
-        // Create subscription record
-        $subscription = Subscription::create([
-            'company_id' => $company->id,
-            'subscription_plan_id' => $plan->id,
-            'start_date' => $startDate,
-            'end_date' => $endDate,
-            'status' => 'active',
-            'amount_paid' => $plan->price,
-            'currency' => $plan->currency,
-            'payment_reference' => $request->razorpay_payment_id,
-            'payment_details' => [
-                'razorpay_payment_id' => $request->razorpay_payment_id,
-                'razorpay_order_id' => $request->razorpay_order_id,
-                'razorpay_signature' => $request->razorpay_signature,
-                'payment_method' => $paymentDetails['method'] ?? 'card',
-                'email' => $paymentDetails['email'] ?? auth()->user()->email,
-                'contact' => $paymentDetails['contact'] ?? '',
-                'processed_at' => now(),
-            ],
-        ]);
+            // Create subscription record
+            Subscription::create([
+                'company_id' => $company->id,
+                'subscription_plan_id' => $plan->id,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'status' => 'active',
+                'amount_paid' => $plan->price,
+                'currency' => $plan->currency ?? 'INR',
+                'payment_reference' => $request->razorpay_payment_id,
+                'payment_details' => [
+                    'razorpay_payment_id' => $request->razorpay_payment_id,
+                    'razorpay_order_id' => $request->razorpay_order_id,
+                    'razorpay_signature' => $request->razorpay_signature,
+                    'payment_method' => $paymentDetails['method'] ?? 'online',
+                    'email' => $paymentDetails['email'] ?? auth()->user()->email,
+                    'contact' => $paymentDetails['contact'] ?? '',
+                    'processed_at' => now()->toIso8601String(),
+                ],
+            ]);
 
-        // Update company status
-        $company->activateSubscription($endDate);
+            // Update company status
+            $company->activateSubscription($endDate);
+        });
 
         return redirect()->route('subscription.show')
-            ->with('success', 'Subscription activated successfully! Welcome to ' . config('app.name') . '.');
+            ->with('success', '🎉 Payment successful! Your ' . $plan->name . ' (' . $plan->duration_months . ' months) subscription is now active.');
     }
 
     /**

@@ -199,7 +199,7 @@ class Company extends Model
     /**
      * Start trial period for the company
      */
-    public function startTrial(): void
+    public function startTrial(int $months = 1): void
     {
         // Only set trial_used to true if this is the first time using trial
         if (!$this->trial_used) {
@@ -208,7 +208,7 @@ class Company extends Model
 
         $this->update([
             'subscription_status' => 'trial',
-            'trial_ends_at' => now()->addMonths(3),
+            'trial_ends_at' => now()->addMonths($months),
         ]);
     }
 
@@ -308,6 +308,21 @@ class Company extends Model
         }
 
         return $host;
+    }
+
+    /**
+     * Helper to generate absolute root-domain URL (escaping any tenant subdomain)
+     */
+    public static function getRootUrl(string $path = ''): string
+    {
+        $request = request();
+        $scheme = $request->getScheme() ?: (app()->isProduction() ? 'https' : 'http');
+        $baseHost = self::getBaseHost($request->getHost());
+        $port = $request->getPort();
+        $portSuffix = ($port && !in_array($port, [80, 443])) ? ":{$port}" : '';
+        $cleanPath = '/' . ltrim($path, '/');
+
+        return "{$scheme}://{$baseHost}{$portSuffix}{$cleanPath}";
     }
 
     /**

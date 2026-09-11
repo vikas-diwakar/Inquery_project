@@ -47,7 +47,7 @@
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <a href="{{ route('company.register') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/30 text-center hover:scale-105">
-                        Start 3-Month Free Trial →
+                        Start 1-Month Free Trial →
                     </a>
                     <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-extrabold text-base transition-all shadow-md text-center">
                         Sign In to Portal

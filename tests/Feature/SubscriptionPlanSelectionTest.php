@@ -38,9 +38,9 @@ class SubscriptionPlanSelectionTest extends TestCase
         $response->assertSee('6-Month Plan');
         $response->assertSee('1-Year Plan');
 
-        $this->assertDatabaseHas('subscription_plans', ['type' => 'trial']);
-        $this->assertDatabaseHas('subscription_plans', ['type' => 'paid', 'duration_months' => 6]);
-        $this->assertDatabaseHas('subscription_plans', ['type' => 'paid', 'duration_months' => 12]);
+        $this->assertDatabaseHas('subscription_plans', ['type' => 'trial', 'duration_months' => 1]);
+        $this->assertDatabaseHas('subscription_plans', ['type' => 'paid', 'duration_months' => 6, 'price' => 6000]);
+        $this->assertDatabaseHas('subscription_plans', ['type' => 'paid', 'duration_months' => 12, 'price' => 10000]);
     }
 
     public function test_selecting_paid_plan_redirects_to_checkout(): void

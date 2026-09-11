@@ -31,18 +31,18 @@
         </div>
 
         <div class="relative z-10 space-y-3 pt-2">
-            <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all">
+            <a href="{{ \App\Models\Company::getRootUrl('/') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-lg shadow-indigo-600/20 transition-all">
                 Go to PropDrip Home
             </a>
             
-            <a href="{{ route('login') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-all">
+            <a href="{{ \App\Models\Company::getRootUrl('/login') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold transition-all">
                 Find Your Organization
             </a>
 
             <div class="pt-4 border-t border-slate-100">
                 <p class="text-xs text-slate-400">
                     Looking to launch your own real estate portal?
-                    <a href="{{ route('company.register') }}" class="text-indigo-600 font-medium hover:underline">Register Company</a>
+                    <a href="{{ \App\Models\Company::getRootUrl('/register') }}" class="text-indigo-600 font-medium hover:underline">Register Company</a>
                 </p>
             </div>
         </div>

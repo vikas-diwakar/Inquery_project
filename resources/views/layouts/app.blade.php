@@ -60,6 +60,12 @@
                                         </svg>
                                         <span>Workspace</span>
                                     </a>
+                                    <a href="{{ route('subscription.index') }}" class="{{ request()->routeIs('subscription.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        </svg>
+                                        <span>Subscription</span>
+                                    </a>
                                 @endif
                             @endif
 
@@ -145,9 +151,12 @@
                     <a href="{{ route('integrations.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Integrations</a>
                     <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
                 @endif
-                @if(!session('selected_project_id') && auth()->user()->isAdmin())
-                    <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>
-                    <a href="{{ route('settings.domain') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Workspace Domain</a>
+                @if(auth()->user()->isAdmin())
+                    @if(!session('selected_project_id'))
+                        <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>
+                        <a href="{{ route('settings.domain') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Workspace Domain</a>
+                    @endif
+                    <a href="{{ route('subscription.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Subscription & Plans</a>
                 @endif
                 <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
                     <span class="text-sm font-medium text-slate-700">{{ auth()->user()->name }}</span>
@@ -333,5 +342,6 @@
         }, { passive: true });
     });
     </script>
+    @stack('scripts')
 </body>
 </html>

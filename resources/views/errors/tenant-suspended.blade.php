@@ -27,7 +27,7 @@
         </div>
 
         <div class="relative z-10 pt-4 border-t border-slate-100">
-            <a href="{{ route('home') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-all">
+            <a href="{{ \App\Models\Company::getRootUrl('/') }}" class="w-full inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-all">
                 Return to PropDrip Home
             </a>
         </div>

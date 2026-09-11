@@ -123,15 +123,20 @@ class DripNurtureService
     }
 
     /**
-     * Process & dispatch due pending drip logs
+     * Process & dispatch due pending drip logs, or specific selected logs
      */
-    public function processPendingDrips(?int $companyId = null, bool $forceNow = false): array
+    public function processPendingDrips(?int $companyId = null, bool $forceNow = false, ?array $logIds = null): array
     {
-        $query = InquiryDripLog::with(['inquiry.project', 'inquiry.company', 'inquiry.assignedUser', 'step'])
-            ->where('status', 'pending');
+        $query = InquiryDripLog::with(['inquiry.project', 'inquiry.company', 'inquiry.assignedUser', 'step']);
 
-        if (!$forceNow) {
-            $query->where('scheduled_for', '<=', Carbon::now());
+        if (!empty($logIds)) {
+            $query->whereIn('id', $logIds)
+                  ->whereIn('status', ['pending', 'failed']);
+        } else {
+            $query->where('status', 'pending');
+            if (!$forceNow) {
+                $query->where('scheduled_for', '<=', Carbon::now());
+            }
         }
 
         if ($companyId) {
@@ -148,6 +153,10 @@ class DripNurtureService
             $inquiry = $log->inquiry;
             $step = $log->step;
 
+            if (!$inquiry || !$step) {
+                continue;
+            }
+
             // Skip if inquiry is already booked or lost
             if (in_array($inquiry->status, ['booked', 'lost'])) {
                 $log->update([
@@ -161,7 +170,7 @@ class DripNurtureService
             $company = $inquiry->company;
             $project = $inquiry->project;
             $executive = $inquiry->assignedUser ? $inquiry->assignedUser->name : ($company ? $company->name : 'Sales Team');
-            $brochure = $project->brochures()->latest()->first();
+            $brochure = $project ? $project->brochures()->latest()->first() : null;
             $brochureUrl = $brochure ? route('public.brochure.download', $brochure->id) : url('/');
 
             $message = str_replace(

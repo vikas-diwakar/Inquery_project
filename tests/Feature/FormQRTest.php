@@ -75,7 +75,7 @@ class FormQRTest extends TestCase
             'status' => 'available',
         ]);
 
-        $response = $this->get(route('public.inquiry.form', $project));
+        $response = $this->get(route('public.inquiry.form', ['project' => $project->getEncryptedKey()]));
 
         $response->assertOk();
         $response->assertDontSee('Live Unit Availability Map');
@@ -83,8 +83,33 @@ class FormQRTest extends TestCase
         // Turn ON
         $project->update(['show_stacking_chart' => true]);
 
-        $response2 = $this->get(route('public.inquiry.form', $project));
+        $response2 = $this->get(route('public.inquiry.form', ['project' => $project->getEncryptedKey()]));
         $response2->assertOk();
         $response2->assertSee('Live Unit Availability Map');
+    }
+
+    public function test_public_inquiry_form_via_raw_numeric_id_returns_404(): void
+    {
+        $company = Company::create([
+            'name' => 'QR Co 3',
+            'email' => 'qr3@co.com',
+            'subscription_status' => 'active',
+            'subscription_ends_at' => now()->addYear(),
+        ]);
+        $project = Project::create([
+            'company_id' => $company->id,
+            'name' => 'Raw ID Test Tower',
+        ]);
+
+        // Accessing using plain numeric ID must be strictly forbidden (404)
+        $response = $this->get("/inquiry/{$project->id}");
+        $response->assertNotFound();
+
+        // Submitting using plain numeric ID must also return 404
+        $postResponse = $this->post("/inquiry/{$project->id}", [
+            'customer_name' => 'Raw ID User',
+            'phone' => '9876543210',
+        ]);
+        $postResponse->assertNotFound();
     }
 }

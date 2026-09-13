@@ -86,10 +86,10 @@
                             QR Code ID: {{ $project->getQrCodeIdentifier() }} (Company-Project unique)
                         </p>
                         <div class="space-y-2">
-                            <a href="{{ route('public.inquiry.form', $project) }}" target="_blank" class="block text-sm text-primary-600 hover:text-primary-700 break-all">
-                                {{ route('public.inquiry.form', $project) }}
+                            <a href="{{ $project->getInquiryFormUrl() }}" target="_blank" class="block text-sm text-primary-600 hover:text-primary-700 break-all">
+                                {{ $project->getInquiryFormUrl() }}
                             </a>
-                            <button onclick="copyToClipboard('{{ route('public.inquiry.form', $project) }}')" class="text-xs text-slate-600 hover:text-slate-800 underline">
+                            <button onclick="copyToClipboard('{{ $project->getInquiryFormUrl() }}')" class="text-xs text-slate-600 hover:text-slate-800 underline">
                                 Copy Link
                             </button>
                         </div>
@@ -115,7 +115,7 @@
                 @forelse($project->brochures as $brochure)
                     <div class="mb-4 p-3 border rounded-lg">
                         <p class="text-sm font-medium text-slate-900">{{ $brochure->file_name }}</p>
-                        <a href="{{ route('public.brochure.download', $brochure) }}" class="text-sm text-primary-600 hover:text-primary-700">Download</a>
+                        <a href="{{ $brochure->getDownloadUrl() }}" class="text-sm text-primary-600 hover:text-primary-700">Download</a>
                     </div>
                 @empty
                     <p class="text-sm text-slate-500">No brochures uploaded yet</p>
@@ -127,7 +127,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
-    const inquiryUrl = '{{ route('public.inquiry.form', $project) }}';
+    const inquiryUrl = '{{ $project->getInquiryFormUrl() }}';
     const qrCodeElement = document.getElementById('qrcode');
     let qrCodeCanvas = null;
 

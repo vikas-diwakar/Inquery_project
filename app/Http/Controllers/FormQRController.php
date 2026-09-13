@@ -54,29 +54,8 @@ class FormQRController extends Controller
         $project->show_stacking_chart = $request->boolean('show_stacking_chart');
         $project->save();
 
-        // Generate inquiry form URL (unique per company and project)
-        $inquiryUrl = route('public.inquiry.form', ['project' => $project->id]);
-        
-        // Generate QR code (SVG) and save it - SVG backend does not require Imagick
-        $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.svg';
-        $qrCodeFullPath = storage_path('app/public/' . $qrCodePath);
-        
-        // Create directory if it doesn't exist
-        $directory = dirname($qrCodeFullPath);
-        if (!file_exists($directory)) {
-            mkdir($directory, 0755, true);
-        }
-        
-        // Generate QR code as SVG (avoids Imagick requirement)
-        QrCode::format('svg')
-            ->size(300)
-            ->margin(2)
-            ->generate($inquiryUrl, $qrCodeFullPath);
-
-        
-        // Save QR code path to project
-        $project->inquiry_qr_code = $qrCodePath;
-        $project->save();
+        // Generate and save QR code
+        $project->generateQrCode();
 
         return redirect()->route('forms-qr.show-inquiry-qr', $project)
             ->with('success', "QR code generated successfully for project: {$project->name}");
@@ -97,26 +76,7 @@ class FormQRController extends Controller
 
         // Generate QR code if it doesn't exist
         if (!$project->inquiry_qr_code || !Storage::disk('public')->exists($project->inquiry_qr_code)) {
-            $inquiryUrl = $project->getInquiryFormUrl();
-            
-            // Generate QR code (SVG) and save it
-            $qrCodePath = 'qrcodes/inquiry-' . $project->company_id . '-' . $project->id . '.svg';
-            $qrCodeFullPath = storage_path('app/public/' . $qrCodePath);
-            
-            // Create directory if it doesn't exist
-            $directory = dirname($qrCodeFullPath);
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true);
-            }
-            
-            // Generate QR code as SVG
-            QrCode::format('svg')
-                ->size(300)
-                ->margin(2)
-                ->generate($inquiryUrl, $qrCodeFullPath);
-            
-            $project->inquiry_qr_code = $qrCodePath;
-            $project->save();
+            $project->generateQrCode();
         }
 
         return view('forms-qr.show-inquiry-qr', compact('project'));
@@ -135,9 +95,9 @@ class FormQRController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        // Ensure QR code exists
+        // Ensure QR code exists (generate if missing)
         if (!$project->inquiry_qr_code || !Storage::disk('public')->exists($project->inquiry_qr_code)) {
-            abort(404, 'QR code not found');
+            $project->generateQrCode();
         }
 
         $companyName = $project->company->name ?? auth()->user()->company->name ?? 'Company';
@@ -176,7 +136,12 @@ class FormQRController extends Controller
             abort(403, 'Unauthorized access');
         }
 
-        $brochure->load('project');
+        // Ensure QR code exists
+        if (!$brochure->qr_code || !Storage::disk('public')->exists('qrcodes/brochure_' . $brochure->id . '.svg')) {
+            $brochure->generateQrCode();
+        }
+
+        $brochure->load(['project', 'company']);
 
         return view('forms-qr.show-brochure-qr', compact('brochure'));
     }

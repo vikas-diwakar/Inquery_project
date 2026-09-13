@@ -36,7 +36,7 @@ class PasswordResetTest extends TestCase
         ]);
 
         $response->assertSessionHas('status');
-        Notification::assertSentTo($user, ResetPassword::class);
+        Notification::assertSentTo($user, \App\Notifications\CompanyResetPasswordNotification::class);
     }
 
     public function test_password_can_be_reset_with_valid_token(): void

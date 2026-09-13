@@ -273,7 +273,7 @@
                     <div class="pt-4 border-t border-slate-100 text-center">
                         <p class="text-xs text-slate-500">
                             Not a member of {{ $currentTenant->name }}?
-                            <a href="{{ route('home') }}" class="text-indigo-600 font-bold hover:underline ml-1">
+                            <a href="{{ \App\Models\Company::getRootUrl('/') }}" class="text-indigo-600 font-bold hover:underline ml-1">
                                 Go to Main Portal &rarr;
                             </a>
                         </p>

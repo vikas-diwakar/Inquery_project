@@ -46,9 +46,11 @@
 
                 <!-- CTA Buttons -->
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                    <a href="{{ route('company.register') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/30 text-center hover:scale-105">
-                        Start 1-Month Free Trial →
-                    </a>
+                    @if(!isset($currentTenant))
+                        <a href="{{ route('company.register') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/30 text-center hover:scale-105">
+                            Start 1-Month Free Trial →
+                        </a>
+                    @endif
                     <a href="{{ route('login') }}" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-extrabold text-base transition-all shadow-md text-center">
                         Sign In to Portal
                     </a>
@@ -100,11 +102,11 @@
                     <!-- Feature 2 -->
                     <article class="p-8 rounded-3xl bg-slate-50 border border-slate-200/80 space-y-4 hover:border-indigo-500/40 hover:shadow-xl transition-all">
                         <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl font-bold">
-                            🤖
+                            💬
                         </div>
-                        <h3 class="text-xl font-bold text-slate-900">AI Lead Intent Scoring</h3>
+                        <h3 class="text-xl font-bold text-slate-900">Instant WhatsApp Brochure Drip</h3>
                         <p class="text-sm text-slate-600 leading-relaxed">
-                            Automatically evaluate buyer budgets, unit preferences, and contact details to grade leads as Hot, Warm, or Cold.
+                            Buyers receive official PDF brochures and customized welcome messages on WhatsApp within seconds of scanning.
                         </p>
                     </article>
 
@@ -129,9 +131,15 @@
                 <h2 class="text-3xl sm:text-4xl font-extrabold">Ready to Boost Your Project Conversions?</h2>
                 <p class="text-slate-300 text-lg max-w-2xl mx-auto">Join developers and real estate marketing agencies using PropDrip for automated lead response.</p>
                 <div class="pt-2">
-                    <a href="{{ route('company.register') }}" class="inline-flex items-center px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/40 hover:scale-105">
-                        Register Your Agency / Company →
-                    </a>
+                    @if(!isset($currentTenant))
+                        <a href="{{ route('company.register') }}" class="inline-flex items-center px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/40 hover:scale-105">
+                            Register Your Agency / Company →
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}" class="inline-flex items-center px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-base transition-all shadow-xl shadow-indigo-600/40 hover:scale-105">
+                            Sign In to {{ $currentTenant->name }} Portal →
+                        </a>
+                    @endif
                 </div>
             </div>
         </section>

@@ -25,7 +25,7 @@
                         $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::size(280)
                             ->margin(2)
                             ->format('svg')
-                            ->generate(route('public.brochure.download', $brochure));
+                            ->generate($brochure->getDownloadUrl());
                     @endphp
                     {!! $qrCode !!}
                 </div>
@@ -50,8 +50,8 @@
                         <div class="flex flex-col py-2 border-b border-slate-100">
                             <dt class="font-semibold text-slate-500 mb-1">Direct Download Link:</dt>
                             <dd class="text-indigo-600 font-medium break-all text-xs bg-indigo-50/60 p-2.5 rounded-xl border border-indigo-100">
-                                <a href="{{ route('public.brochure.download', $brochure) }}" target="_blank" class="hover:underline">
-                                    {{ route('public.brochure.download', $brochure) }}
+                                <a href="{{ $brochure->getDownloadUrl() }}" target="_blank" class="hover:underline">
+                                    {{ $brochure->getDownloadUrl() }}
                                 </a>
                             </dd>
                         </div>
@@ -59,7 +59,7 @@
                 </div>
                 
                 <div class="pt-2">
-                    <button type="button" onclick="copyToClipboard('{{ route('public.brochure.download', $brochure) }}')" class="btn-secondary text-xs space-x-2 w-full justify-center">
+                    <button type="button" onclick="copyToClipboard('{{ $brochure->getDownloadUrl() }}')" class="btn-secondary text-xs space-x-2 w-full justify-center">
                         <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
                         <span>Copy Direct Link to Clipboard</span>
                     </button>

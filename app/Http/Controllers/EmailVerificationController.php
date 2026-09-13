@@ -25,20 +25,23 @@ class EmailVerificationController extends Controller
     public function verify(Request $request, $id, $hash)
     {
         $user = User::findOrFail($id);
+        $loginUrl = ($user->company && $user->company->subdomain)
+            ? ($user->company->workspace_url . '/login')
+            : route('login');
 
         if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
-            return redirect()->route('login')->with('error', 'Invalid verification link.');
+            return redirect()->to($loginUrl)->with('error', 'Invalid verification link.');
         }
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('login')->with('status', 'Email is already verified. Please sign in.');
+            return redirect()->to($loginUrl)->with('status', 'Email is already verified. Please sign in.');
         }
 
         if ($user->markEmailAsVerified()) {
             event(new Verified($user));
         }
 
-        return redirect()->route('login')->with('status', 'Email verified successfully! You can now sign in.');
+        return redirect()->to($loginUrl)->with('status', 'Email verified successfully! You can now sign in.');
     }
 
     /**
@@ -53,7 +56,11 @@ class EmailVerificationController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if ($user->hasVerifiedEmail()) {
-            return redirect()->route('login')->with('status', 'Email is already verified. Please sign in.');
+            $loginUrl = ($user->company && $user->company->subdomain)
+                ? ($user->company->workspace_url . '/login')
+                : route('login');
+
+            return redirect()->to($loginUrl)->with('status', 'Email is already verified. Please sign in.');
         }
 
         $user->sendEmailVerificationNotification();

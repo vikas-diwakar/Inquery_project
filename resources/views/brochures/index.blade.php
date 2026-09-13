@@ -29,7 +29,7 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-4">
-                                <a href="{{ route('public.brochure.download', $brochure) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">Download</a>
+                                <a href="{{ $brochure->getDownloadUrl() }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">Download</a>
                                 <button type="button"
                                         onclick="console.log('Delete button clicked'); showConfirmationModal('Delete Brochure', 'Are you sure you want to delete this brochure? This action cannot be undone.', function() { console.log('Callback executed'); document.getElementById('delete-form-{{ $brochure->id }}').submit(); })"
                                         class="text-red-600 hover:text-red-900">Delete</button>
@@ -47,7 +47,7 @@
                                     </div>
                                     <div>
                                         <p class="text-xs font-semibold text-slate-700">Scan to download brochure</p>
-                                        <a href="{{ $brochure->qr_code }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 break-all font-mono">{{ $brochure->qr_code }}</a>
+                                        <a href="{{ $brochure->getDownloadUrl() }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 break-all font-mono">{{ $brochure->getDownloadUrl() }}</a>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-2 shrink-0">

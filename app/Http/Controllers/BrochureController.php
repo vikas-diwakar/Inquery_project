@@ -71,30 +71,25 @@ class BrochureController extends Controller
             'file_name' => $fileName,
         ]);
 
-        // Generate QR code URL
-        $qrUrl = route('public.brochure.download', ['brochure' => $brochure->id]);
-        $brochure->qr_code = $qrUrl;
-
-        $qrImage = QrCode::format('svg')
-            ->size(300)
-            ->generate($qrUrl);
-
-        // Save QR image in storage
-        $qrFileName = 'qrcodes/brochure_' . $brochure->id . '.svg';
-
-        Storage::disk('public')->put($qrFileName, $qrImage);
-        
-        $brochure->save();
+        // Generate and save QR code using Brochure model method
+        $brochure->generateQrCode();
 
         return redirect()->route('brochures.index')
             ->with('success', 'Brochure uploaded successfully!');
     }
 
     /**
-     * Download brochure (public)
+     * Download brochure (public - ONLY encrypted link allowed)
      */
-    public function download(Brochure $brochure)
+    public function download($brochure)
     {
+        $brochureId = \App\Services\UrlCryptService::decrypt($brochure);
+        if (!$brochureId) {
+            abort(404, 'Invalid or encrypted brochure link required.');
+        }
+
+        $brochure = Brochure::findOrFail($brochureId);
+
         if (!Storage::disk('public')->exists($brochure->file_path)) {
             abort(404, 'Brochure not found.');
         }

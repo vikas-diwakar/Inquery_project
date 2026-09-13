@@ -40,7 +40,7 @@ class BrochureDownloadTest extends TestCase
             'file_name' => 'brochure.pdf',
         ]);
 
-        $response = $this->get(route('public.brochure.download', $brochure));
+        $response = $this->get(route('public.brochure.download', $brochure->getEncryptedKey()));
 
         $response->assertOk();
         $response->assertHeader('content-disposition', 'attachment; filename=propdrip-realty-green-valley-phase-1-brochure.pdf');
@@ -72,9 +72,35 @@ class BrochureDownloadTest extends TestCase
             'file_name' => 'Floorplan_TowerA.pdf',
         ]);
 
-        $response = $this->get(route('public.brochure.download', $brochure));
+        $response = $this->get(route('public.brochure.download', $brochure->getEncryptedKey()));
 
         $response->assertOk();
         $response->assertHeader('content-disposition', 'attachment; filename=apex-towers-skyline-heights-floorplan-towera.pdf');
+    }
+
+    public function test_brochure_download_via_raw_numeric_id_returns_404(): void
+    {
+        $company = Company::create([
+            'name' => 'Apex Towers',
+            'email' => 'info2@apextowers.com',
+            'subscription_status' => 'active',
+            'subscription_ends_at' => now()->addYear(),
+        ]);
+
+        $project = Project::create([
+            'company_id' => $company->id,
+            'name' => 'Skyline Heights',
+        ]);
+
+        $brochure = Brochure::create([
+            'company_id' => $company->id,
+            'project_id' => $project->id,
+            'file_path' => 'brochures/test.pdf',
+            'file_name' => 'test.pdf',
+        ]);
+
+        // Attempting to access using raw numeric ID must be strictly disallowed (404)
+        $response = $this->get("/brochure/{$brochure->id}/download");
+        $response->assertNotFound();
     }
 }

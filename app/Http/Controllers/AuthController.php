@@ -60,18 +60,40 @@ class AuthController extends Controller
 
             $company = $user->company;
 
-            // Check subscription status and redirect accordingly
+            // Determine target path based on subscription status
+            $targetPath = '/dashboard';
             if ($company && $company->isFirstLogin()) {
-                // First login - redirect to plan selection
-                return redirect()->route('subscription.choose-plan');
+                $targetPath = '/subscription/choose-plan';
             } elseif ($company && !$company->hasActiveSubscription()) {
-                // No active subscription - redirect to subscription required
-                return redirect()->route('subscription.required');
+                $targetPath = '/subscription/required';
             }
 
-            // If user logged in from root domain and has a dedicated subdomain, redirect to their workspace dashboard
+            // If user logged in from root domain and has a dedicated workspace subdomain, seamlessly hand off to their subdomain
             if (!app()->bound('currentTenant') && $company && $company->subdomain) {
-                return redirect()->to($company->workspace_url . '/dashboard');
+                \Illuminate\Support\Facades\URL::forceRootUrl($company->workspace_url);
+                $handoffUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+                    'workspace.handoff',
+                    now()->addMinutes(2),
+                    [
+                        'user' => $user->id,
+                        'target' => $targetPath,
+                    ]
+                );
+                \Illuminate\Support\Facades\URL::forceRootUrl(null);
+
+                // Clean up root domain session so public marketing portal never retains tenant authentication
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->to($handoffUrl);
+            }
+
+            // Already on tenant subdomain or no dedicated subdomain:
+            if ($targetPath === '/subscription/choose-plan') {
+                return redirect()->route('subscription.choose-plan');
+            } elseif ($targetPath === '/subscription/required') {
+                return redirect()->route('subscription.required');
             }
 
             // Has active subscription - proceed to dashboard
@@ -81,6 +103,36 @@ class AuthController extends Controller
         throw ValidationException::withMessages([
             'email' => ['The provided credentials do not match our records.'],
         ]);
+    }
+
+    /**
+     * Handle seamless SSO handoff from root domain to workspace subdomain
+     */
+    public function ssoHandoff(Request $request)
+    {
+        if (!$request->hasValidSignature()) {
+            return redirect()->route('login')->with('error', 'The workspace sign-in link has expired or is invalid. Please sign in directly.');
+        }
+
+        $user = User::findOrFail($request->user);
+
+        // Security check: ensure user belongs to current tenant if on tenant subdomain
+        if (app()->bound('currentTenant') && ($currentTenant = app('currentTenant'))) {
+            if ((int) $user->company_id !== (int) $currentTenant->id) {
+                return redirect()->route('login')->with('error', 'Invalid workspace authentication.');
+            }
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+
+        $target = $request->input('target', '/dashboard');
+        // Prevent open redirect vulnerabilities
+        if (!str_starts_with($target, '/') || str_starts_with($target, '//')) {
+            $target = '/dashboard';
+        }
+
+        return redirect()->to($target);
     }
 
     /**

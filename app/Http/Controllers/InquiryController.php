@@ -53,10 +53,25 @@ class InquiryController extends Controller
     }
 
     /**
-     * Show the form for creating a new inquiry (public)
+     * Resolve project model from encrypted URL key.
+     * Enforces ONLY encrypted links! Raw numeric IDs are strictly blocked with 404.
      */
-    public function showPublicForm(Project $project)
+    protected function resolveProjectFromEncryptedKey($key): Project
     {
+        $projectId = \App\Services\UrlCryptService::decrypt($key);
+        if (!$projectId) {
+            abort(404, 'Invalid or encrypted inquiry link required.');
+        }
+
+        return Project::findOrFail($projectId);
+    }
+
+    /**
+     * Show the form for creating a new inquiry (public - ONLY encrypted link allowed)
+     */
+    public function showPublicForm($project)
+    {
+        $project = $this->resolveProjectFromEncryptedKey($project);
         return view('public.inquiry-form', compact('project'));
     }
 
@@ -81,10 +96,37 @@ class InquiryController extends Controller
     }
 
     /**
-     * Store a new inquiry (public)
+     * Store a new inquiry (public - ONLY encrypted link allowed)
      */
-    public function storePublic(Request $request, Project $project)
+    public function storePublic(Request $request, $project)
     {
+        $project = $this->resolveProjectFromEncryptedKey($project);
+
+        // Layer 1 Protection: Honeypot Check
+        // Automated spam bots fill every input field including hidden ones.
+        if (!empty($request->input('company_website'))) {
+            // Silently return success so bots do not learn how to bypass, while completely discarding fake data
+            return redirect()->back()
+                ->with('success', 'Thank you for your inquiry! Check your WhatsApp for project details & brochure.');
+        }
+
+        // Layer 1 Protection: Time-Trap Check
+        // Real humans take at least 3 seconds to complete the form. Automated bots submit in < 3s.
+        if ($request->filled('_rendered_at')) {
+            try {
+                $renderedAt = decrypt($request->input('_rendered_at'));
+                if (is_numeric($renderedAt) && (time() - $renderedAt < 3)) {
+                    // Silently discard instant bot submissions
+                    return redirect()->back()
+                        ->with('success', 'Thank you for your inquiry! Check your WhatsApp for project details & brochure.');
+                }
+            } catch (\Throwable $e) {
+                // Invalid or tampered token
+                return redirect()->back()
+                    ->with('success', 'Thank you for your inquiry! Check your WhatsApp for project details & brochure.');
+            }
+        }
+
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
             'phone' => [
@@ -92,6 +134,11 @@ class InquiryController extends Controller
                 'string',
                 'max:20',
                 function ($attribute, $value, $fail) use ($project) {
+                    $digits = preg_replace('/[^0-9]/', '', $value);
+                    if (strlen($digits) >= 7 && preg_match('/^(\d)\1+$/', $digits)) {
+                        $fail('Please enter a valid, active phone number.');
+                        return;
+                    }
                     if (Inquiry::isPhoneDuplicateForProject($project->id, $value)) {
                         $fail('An inquiry with this mobile number has already been submitted for this project.');
                     }

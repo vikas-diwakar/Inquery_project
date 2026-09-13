@@ -122,9 +122,18 @@
                     </div>
                 @endif
 
-                <form action="{{ route('public.inquiry.store', $project) }}" method="POST" class="space-y-5">
+                <form action="{{ route('public.inquiry.store', ['project' => $project->getEncryptedKey()]) }}" method="POST" class="space-y-5">
                     @csrf
                     
+                    {{-- Layer 1 Protection: Honeypot field (invisible to real humans, filled by spam bots) --}}
+                    <div style="display:none !important; visibility:hidden !important; position:absolute !important; left:-9999px !important;" aria-hidden="true">
+                        <label for="company_website">Do not fill this field</label>
+                        <input type="text" id="company_website" name="company_website" tabindex="-1" autocomplete="off" value="">
+                    </div>
+
+                    {{-- Layer 1 Protection: Time-Trap token (detects bot submissions faster than 3 seconds) --}}
+                    <input type="hidden" name="_rendered_at" value="{{ encrypt(time()) }}">
+
                     <div class="space-y-4">
                         <!-- Name -->
                         <div class="space-y-1.5">

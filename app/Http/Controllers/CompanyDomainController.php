@@ -38,6 +38,7 @@ class CompanyDomainController extends Controller
         $request->merge(['subdomain' => $subdomain]);
 
         $request->validate([
+            'name' => ['sometimes', 'nullable', 'string', 'max:255'],
             'subdomain' => [
                 'required',
                 'string',
@@ -54,17 +55,44 @@ class CompanyDomainController extends Controller
         ]);
 
         $oldSubdomain = $company->subdomain;
-        $company->update([
-            'subdomain' => $subdomain,
-        ]);
+        $oldName = $company->name;
 
-        // If the subdomain changed and we are currently on the old subdomain, redirect to the new workspace URL
-        if ($oldSubdomain !== $subdomain) {
-            $newUrl = $company->workspace_url . '/settings/domain';
-            return redirect($newUrl)->with('success', "Workspace domain updated successfully to {$company->workspace_domain}!");
+        $updateData = [
+            'subdomain' => $subdomain,
+        ];
+
+        if ($request->filled('name')) {
+            $updateData['name'] = trim($request->input('name'));
         }
 
-        return redirect()->back()->with('success', 'Workspace domain settings saved successfully!');
+        if ($oldSubdomain && $oldSubdomain !== $subdomain) {
+            $previous = $company->previous_subdomains ?: [];
+            if (!in_array($oldSubdomain, $previous)) {
+                $previous[] = $oldSubdomain;
+            }
+            $updateData['previous_subdomains'] = $previous;
+        }
+
+        $company->update($updateData);
+
+        // Regenerate all Form QR codes and Brochure QR codes if workspace subdomain or name changed
+        $qrResults = null;
+        if ($oldSubdomain !== $subdomain || ($request->filled('name') && $oldName !== $updateData['name'])) {
+            $qrResults = $company->regenerateAllQrCodes();
+        }
+
+        $successMsg = "Workspace updated successfully to {$company->workspace_domain}!";
+        if ($qrResults) {
+            $successMsg .= " All Form QR codes ({$qrResults['projects_count']}) and Brochure QR codes ({$qrResults['brochures_count']}) were regenerated automatically.";
+        }
+
+        // If the subdomain changed, redirect to the new workspace URL
+        if ($oldSubdomain !== $subdomain) {
+            $newUrl = $company->workspace_url . '/settings/domain';
+            return redirect($newUrl)->with('success', $successMsg);
+        }
+
+        return redirect()->back()->with('success', $successMsg);
     }
 
     /**

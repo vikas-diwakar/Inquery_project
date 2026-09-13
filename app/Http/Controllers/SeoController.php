@@ -43,7 +43,7 @@ class SeoController extends Controller
 
             foreach ($projects as $project) {
                 $urls[] = [
-                    'loc' => route('public.inquiry.form', ['project' => $project->id]),
+                    'loc' => $project->getInquiryFormUrl(),
                     'lastmod' => ($project->updated_at ?? now())->toIso8601String(),
                     'changefreq' => 'weekly',
                     'priority' => '0.9'

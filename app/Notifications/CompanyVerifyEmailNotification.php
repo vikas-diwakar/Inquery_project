@@ -28,4 +28,34 @@ class CompanyVerifyEmailNotification extends VerifyEmail
             ->line('If you did not create an account, no further action is required.')
             ->salutation("Best regards,\n{$companyName}");
     }
+
+    /**
+     * Get the verification URL for the given notifiable.
+     *
+     * @param  mixed  $notifiable
+     * @return string
+     */
+    protected function verificationUrl($notifiable)
+    {
+        $company = $notifiable->company;
+
+        if ($company && $company->subdomain) {
+            \Illuminate\Support\Facades\URL::forceRootUrl($company->workspace_url);
+        }
+
+        $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            \Illuminate\Support\Carbon::now()->addMinutes(config('auth.verification.expire', 60)),
+            [
+                'id' => $notifiable->getKey(),
+                'hash' => sha1($notifiable->getEmailForVerification()),
+            ]
+        );
+
+        if ($company && $company->subdomain) {
+            \Illuminate\Support\Facades\URL::forceRootUrl(null);
+        }
+
+        return $url;
+    }
 }

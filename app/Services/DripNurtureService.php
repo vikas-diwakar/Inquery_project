@@ -171,7 +171,7 @@ class DripNurtureService
             $project = $inquiry->project;
             $executive = $inquiry->assignedUser ? $inquiry->assignedUser->name : ($company ? $company->name : 'Sales Team');
             $brochure = $project ? $project->brochures()->latest()->first() : null;
-            $brochureUrl = $brochure ? route('public.brochure.download', $brochure->id) : url('/');
+            $brochureUrl = $brochure ? $brochure->getDownloadUrl() : ($project ? $project->getInquiryFormUrl() : url('/'));
 
             $message = str_replace(
                 ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}'],

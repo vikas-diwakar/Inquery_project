@@ -27,8 +27,8 @@ class WhatsAppService
         // Determine Brochure URL
         $brochure = Brochure::where('project_id', $inquiry->project_id)->latest()->first();
         $brochureUrl = $brochure 
-            ? route('public.brochure.download', $brochure)
-            : route('public.inquiry.form', $inquiry->project);
+            ? $brochure->getDownloadUrl()
+            : ($inquiry->project ? $inquiry->project->getInquiryFormUrl() : url('/'));
 
         // Assigned Executive Name
         $executiveName = $inquiry->assignedUser ? $inquiry->assignedUser->name : 'Sales Desk';

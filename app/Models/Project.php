@@ -101,12 +101,48 @@ class Project extends Model
     }
 
     /**
+     * Get the encrypted URL-safe key for this project
+     */
+    public function getEncryptedKey(): string
+    {
+        return \App\Services\UrlCryptService::encrypt($this->id);
+    }
+
+    /**
      * Get the unique inquiry form URL for this project
      * This URL is unique per company and per project (company_id + project_id)
+     * and uses an encrypted ID to guarantee privacy and prevent ID enumeration.
      */
     public function getInquiryFormUrl(): string
     {
-        return route('public.inquiry.form', ['project' => $this->id]);
+        $encryptedKey = $this->getEncryptedKey();
+        $company = $this->relationLoaded('company') ? $this->company : $this->company()->first();
+        if ($company && !empty($company->subdomain)) {
+            return rtrim($company->workspace_url, '/') . '/inquiry/' . $encryptedKey;
+        }
+
+        return route('public.inquiry.form', ['project' => $encryptedKey]);
+    }
+
+    /**
+     * Generate and save the inquiry QR code SVG image file
+     */
+    public function generateQrCode(): string
+    {
+        $inquiryUrl = $this->getInquiryFormUrl();
+        $qrCodePath = 'qrcodes/inquiry-' . $this->company_id . '-' . $this->id . '.svg';
+
+        $svg = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')
+            ->size(300)
+            ->margin(2)
+            ->generate($inquiryUrl);
+
+        \Illuminate\Support\Facades\Storage::disk('public')->put($qrCodePath, $svg);
+
+        $this->inquiry_qr_code = $qrCodePath;
+        $this->save();
+
+        return $qrCodePath;
     }
 
     /**

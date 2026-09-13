@@ -47,6 +47,17 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->registerPolicies();
 
+        // Layer 2: IP Rate limiting for public inquiry submissions (max 5 per minute per IP)
+        \Illuminate\Support\Facades\RateLimiter::for('public-inquiry', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute(5)
+                ->by($request->ip())
+                ->response(function (\Illuminate\Http\Request $request, array $headers) {
+                    return redirect()->back()
+                        ->withErrors(['phone' => 'Too many submission attempts from your network. Please wait a moment before trying again.'])
+                        ->withInput();
+                });
+        });
+
         \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
             if (session()->has('selected_project_id') && !isset($view->selectedProject)) {
                 $selectedProject = Project::find(session('selected_project_id'));

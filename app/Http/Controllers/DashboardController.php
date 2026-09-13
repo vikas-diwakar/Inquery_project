@@ -13,7 +13,15 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $companyId = auth()->user()->company_id;
+        $user = auth()->user();
+        $company = $user->company;
+
+        // If user accesses dashboard from root domain and has a dedicated workspace subdomain, redirect to workspace login
+        if (!app()->bound('currentTenant') && $company && $company->subdomain) {
+            return redirect()->to($company->workspace_url . '/login');
+        }
+
+        $companyId = $user->company_id;
         $selectedProjectId = session('selected_project_id');
 
         // If no project is selected, show only projects list

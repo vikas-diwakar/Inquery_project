@@ -20,7 +20,7 @@ class UniqueInquiryMobileTest extends TestCase
         $company = Company::create(['name' => 'Unique Test Co', 'email' => 'unique@co.com']);
         $project = Project::create(['company_id' => $company->id, 'name' => 'Project Alpha']);
 
-        $response = $this->post(route('public.inquiry.store', $project), [
+        $response = $this->post(route('public.inquiry.store', ['project' => $project->getEncryptedKey()]), [
             'customer_name' => 'John Doe',
             'phone' => '9876543210',
             'email' => 'john@example.com',
@@ -50,15 +50,17 @@ class UniqueInquiryMobileTest extends TestCase
             'status' => 'new',
         ]);
 
+        $formUrl = route('public.inquiry.form', ['project' => $project->getEncryptedKey()]);
+
         // Second submission with exact same phone number must fail validation
-        $response = $this->from(route('public.inquiry.form', $project))
-            ->post(route('public.inquiry.store', $project), [
+        $response = $this->from($formUrl)
+            ->post(route('public.inquiry.store', ['project' => $project->getEncryptedKey()]), [
                 'customer_name' => 'Jane Doe',
                 'phone' => '9876543210',
                 'email' => 'jane@example.com',
             ]);
 
-        $response->assertRedirect(route('public.inquiry.form', $project));
+        $response->assertRedirect($formUrl);
         $response->assertSessionHasErrors(['phone']);
         
         $this->assertEquals(1, Inquiry::where('project_id', $project->id)->count());
@@ -81,8 +83,8 @@ class UniqueInquiryMobileTest extends TestCase
         ]);
 
         // Submission with raw number (9876543210)
-        $response = $this->from(route('public.inquiry.form', $project))
-            ->post(route('public.inquiry.store', $project), [
+        $response = $this->from(route('public.inquiry.form', ['project' => $project->getEncryptedKey()]))
+            ->post(route('public.inquiry.store', ['project' => $project->getEncryptedKey()]), [
                 'customer_name' => 'Duplicate Attempt',
                 'phone' => '9876543210',
             ]);
@@ -109,7 +111,7 @@ class UniqueInquiryMobileTest extends TestCase
         ]);
 
         // Same phone submitted for Project 2 should succeed
-        $response = $this->post(route('public.inquiry.store', $project2), [
+        $response = $this->post(route('public.inquiry.store', ['project' => $project2->getEncryptedKey()]), [
             'customer_name' => 'John Doe',
             'phone' => '9876543210',
         ]);

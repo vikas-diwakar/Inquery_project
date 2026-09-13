@@ -132,9 +132,9 @@
     <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80 space-y-6">
         <div class="pb-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-                <h2 class="text-lg font-bold text-slate-900">Change Workspace Subdomain</h2>
+                <h2 class="text-lg font-bold text-slate-900">Change Workspace Details</h2>
                 <p class="text-xs text-slate-500 mt-0.5">
-                    Update your company slug. Note: Previous links will need to be updated.
+                    Update your workspace name and subdomain. All Form & Brochure QR codes will automatically regenerate, and previous links will redirect seamlessly.
                 </p>
             </div>
         </div>
@@ -143,37 +143,73 @@
             @csrf
             @method('PUT')
 
-            <div class="max-w-xl space-y-2">
-                <div class="flex items-center justify-between">
-                    <label for="subdomain" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                        Workspace Subdomain <span class="text-rose-500">*</span>
+            <div class="max-w-xl space-y-4">
+                <!-- Workspace / Company Name -->
+                <div class="space-y-2">
+                    <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                        Workspace Name <span class="text-slate-400 font-normal">(Company / Brand Name)</span>
                     </label>
-                    <span id="subdomain-status" class="text-[11px] font-medium hidden"></span>
+                    <input type="text" name="name" id="name" value="{{ old('name', $company->name) }}" required
+                        class="block w-full py-2.5 px-3.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all" 
+                        placeholder="Your Company Name">
                 </div>
 
-                <div class="flex rounded-xl shadow-sm overflow-hidden border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-600 transition-all bg-slate-50">
-                    <div class="inline-flex items-center pl-3.5 pr-1.5 text-slate-400 text-xs font-mono select-none">
-                        https://
+                <!-- Workspace Subdomain -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="subdomain" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                            Workspace Subdomain <span class="text-rose-500">*</span>
+                        </label>
+                        <span id="subdomain-status" class="text-[11px] font-medium hidden"></span>
                     </div>
-                    <input type="text" name="subdomain" id="subdomain" required value="{{ old('subdomain', $company->subdomain) }}" 
-                        class="block w-full py-3 px-1 bg-transparent text-sm font-bold text-indigo-700 placeholder-slate-400 focus:outline-none" 
-                        placeholder="your-company">
-                    <div class="inline-flex items-center px-3 text-slate-500 text-xs font-mono bg-slate-100/80 border-l border-slate-200 select-none">
-                        .{{ \App\Models\Company::getBaseHost(request()->getHost()) }}
+
+                    <div class="flex rounded-xl shadow-sm overflow-hidden border border-slate-200 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-600 transition-all bg-slate-50">
+                        <div class="inline-flex items-center pl-3.5 pr-1.5 text-slate-400 text-xs font-mono select-none">
+                            https://
+                        </div>
+                        <input type="text" name="subdomain" id="subdomain" required value="{{ old('subdomain', $company->subdomain) }}" 
+                            class="block w-full py-3 px-1 bg-transparent text-sm font-bold text-indigo-700 placeholder-slate-400 focus:outline-none" 
+                            placeholder="your-company">
+                        <div class="inline-flex items-center px-3 text-slate-500 text-xs font-mono bg-slate-100/80 border-l border-slate-200 select-none">
+                            .{{ \App\Models\Company::getBaseHost(request()->getHost()) }}
+                        </div>
                     </div>
+
+                    <p class="text-xs text-slate-500 flex items-center gap-1.5 pt-1">
+                        <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Live preview: <span id="subdomain-preview" class="font-mono text-indigo-600 font-bold">https://{{ $company->subdomain }}.{{ \App\Models\Company::getBaseHost(request()->getHost()) }}</span>
+                    </p>
                 </div>
 
-                <p class="text-xs text-slate-500 flex items-center gap-1.5 pt-1">
-                    <svg class="w-4 h-4 text-indigo-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <!-- Info Alert about QR code auto-regeneration -->
+                <div class="p-3.5 bg-indigo-50/70 border border-indigo-100 rounded-2xl text-xs text-indigo-900 flex items-start gap-2.5">
+                    <svg class="w-4 h-4 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
-                    Live preview: <span id="subdomain-preview" class="font-mono text-indigo-600 font-bold">https://{{ $company->subdomain }}.{{ \App\Models\Company::getBaseHost(request()->getHost()) }}</span>
-                </p>
+                    <div class="space-y-1">
+                        <p class="font-bold">Automatic QR Code Synchronization</p>
+                        <p class="text-indigo-800/80 leading-relaxed">
+                            When you update your workspace, all project Inquiry QR codes and Brochure QR codes are automatically regenerated with the new URL. Any previous QR codes printed or shared will permanently redirect (301) to your new workspace.
+                        </p>
+                        @if(!empty($company->previous_subdomains))
+                            <div class="pt-1.5 flex flex-wrap items-center gap-1.5">
+                                <span class="text-[11px] font-semibold text-slate-500">Active Redirect Aliases:</span>
+                                @foreach($company->previous_subdomains as $prev)
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-white text-slate-700 border border-indigo-200">
+                                        {{ $prev }} &rarr; {{ $company->subdomain }}
+                                    </span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
             </div>
 
             <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
                 <button type="submit" class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all">
-                    Save Workspace Subdomain
+                    Save Workspace Details
                 </button>
             </div>
         </form>

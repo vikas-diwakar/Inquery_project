@@ -19,6 +19,10 @@ class CompanyRegistrationController extends Controller
      */
     public function showRegistrationForm()
     {
+        if (app()->bound('currentTenant') && ($currentTenant = app('currentTenant'))) {
+            return redirect()->to(Company::getRootUrl('/register'));
+        }
+
         return view('company.register');
     }
 
@@ -124,7 +128,11 @@ class CompanyRegistrationController extends Controller
         // Dispatch welcome email queued job
         \App\Jobs\SendWelcomeEmailJob::dispatch($user);
 
-        return redirect()->route('login')
+        $loginUrl = ($company && $company->subdomain)
+            ? ($company->workspace_url . '/login')
+            : route('login');
+
+        return redirect()->to($loginUrl)
             ->with('status', 'Registration successful! A verification email has been sent to ' . $user->email . '. Please verify your email address before signing in.');
     }
 }

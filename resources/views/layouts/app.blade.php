@@ -82,9 +82,11 @@
                                 <a href="{{ route('forms-qr.index') }}" class="{{ request()->routeIs('forms-qr.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                     Form & QR
                                 </a>
+                                {{-- Hidden for now
                                 <a href="{{ route('integrations.index') }}" class="{{ request()->routeIs('integrations.index') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                     Integrations
                                 </a>
+                                --}}
                                 <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                     WhatsApp API
                                 </a>
@@ -148,7 +150,7 @@
                     <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Follow-ups</a>
                     <a href="{{ route('brochures.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Brochures</a>
                     <a href="{{ route('forms-qr.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Form & QR</a>
-                    <a href="{{ route('integrations.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Integrations</a>
+                    {{-- <a href="{{ route('integrations.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Integrations</a> --}}
                     <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
                 @endif
                 @if(auth()->user()->isAdmin())

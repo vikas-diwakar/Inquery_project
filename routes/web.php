@@ -22,15 +22,44 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 
 // Public Marketing Pages
-Route::get('/', function () {
+Route::get('/', function (\Illuminate\Http\Request $request) {
+    if (app()->bound('currentTenant') && ($currentTenant = app('currentTenant'))) {
+        return auth()->check() ? redirect()->route('dashboard') : redirect()->route('login');
+    }
+
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user && $user->company && $user->company->subdomain) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+    }
+
     return view('welcome');
 })->name('home');
 
-Route::get('/about', function () {
+Route::get('/about', function (\Illuminate\Http\Request $request) {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user && $user->company && $user->company->subdomain) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+    }
     return view('pages.about');
 })->name('about');
 
-Route::get('/contact', function () {
+Route::get('/contact', function (\Illuminate\Http\Request $request) {
+    if (auth()->check()) {
+        $user = auth()->user();
+        if ($user && $user->company && $user->company->subdomain) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+    }
     return view('pages.contact');
 })->name('contact');
 
@@ -49,7 +78,8 @@ Route::post('/contact', function (\Illuminate\Http\Request $request) {
 Route::get('/inquiry/{project}', [InquiryController::class, 'showPublicForm'])
     ->name('public.inquiry.form');
 Route::post('/inquiry/{project}', [InquiryController::class, 'storePublic'])
-    ->name('public.inquiry.store');
+    ->name('public.inquiry.store')
+    ->middleware('throttle:public-inquiry');
 
 // Public brochure download (no auth required)
 Route::get('/brochure/{brochure}/download', [BrochureController::class, 'download'])
@@ -80,6 +110,9 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 });
+
+// Workspace SSO Handoff (signed transfer between root domain and workspace subdomain)
+Route::get('/workspace/sso-handoff', [AuthController::class, 'ssoHandoff'])->name('workspace.handoff');
 
 // Password Reset Action Routes (accessible even if session active to allow resetting)
 Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');

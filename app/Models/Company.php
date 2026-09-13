@@ -13,6 +13,7 @@ class Company extends Model
     protected $fillable = [
         'name',
         'subdomain',
+        'previous_subdomains',
         'email',
         'phone',
         'address',
@@ -38,6 +39,7 @@ class Company extends Model
         'subscription_ends_at' => 'datetime',
         'trial_used' => 'boolean',
         'whatsapp_auto_send' => 'boolean',
+        'previous_subdomains' => 'array',
     ];
 
     /**
@@ -331,5 +333,33 @@ class Company extends Model
     public function scopeBySubdomain($query, string $subdomain)
     {
         return $query->where('subdomain', strtolower(trim($subdomain)));
+    }
+
+    /**
+     * Regenerate all Form QR codes and Brochure QR codes for this company
+     */
+    public function regenerateAllQrCodes(): array
+    {
+        $projectCount = 0;
+        $brochureCount = 0;
+
+        // Regenerate Form QR codes for all projects
+        $projects = $this->projects()->get();
+        foreach ($projects as $project) {
+            $project->generateQrCode();
+            $projectCount++;
+        }
+
+        // Regenerate Brochure QR codes for all brochures
+        $brochures = $this->brochures()->get();
+        foreach ($brochures as $brochure) {
+            $brochure->generateQrCode();
+            $brochureCount++;
+        }
+
+        return [
+            'projects_count' => $projectCount,
+            'brochures_count' => $brochureCount,
+        ];
     }
 }

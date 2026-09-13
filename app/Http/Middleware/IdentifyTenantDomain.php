@@ -34,6 +34,25 @@ class IdentifyTenantDomain
         $tenant = Company::bySubdomain($subdomain)->first();
 
         if (!$tenant) {
+            // Check if this subdomain was an old/previous subdomain of an existing company
+            $redirectTenant = null;
+            try {
+                $redirectTenant = Company::whereJsonContains('previous_subdomains', $subdomain)->first();
+            } catch (\Throwable $e) {
+                // Fallback for older database drivers or SQLite
+            }
+
+            if (!$redirectTenant) {
+                $redirectTenant = Company::where('previous_subdomains', 'like', '%"' . $subdomain . '"%')->first();
+            }
+
+            if ($redirectTenant && !empty($redirectTenant->subdomain)) {
+                $targetBase = $redirectTenant->workspace_url;
+                $path = ltrim($request->getRequestUri(), '/');
+                $targetUrl = rtrim($targetBase, '/') . ($path !== '' ? '/' . $path : '');
+                return redirect()->away($targetUrl, 301);
+            }
+
             return response()->view('errors.tenant-not-found', [
                 'subdomain' => $subdomain,
             ], 404);

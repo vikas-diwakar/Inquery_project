@@ -106,12 +106,8 @@ class ProjectController extends Controller
             }
         }
 
-        // Generate unique inquiry QR code URL (company-wise and project-wise unique)
-        // This URL is automatically unique per company (via project.company_id)
-        // and per project (via project.id), ensuring company-wise and project-wise uniqueness
-        $inquiryUrl = $project->getInquiryFormUrl();
-        $project->inquiry_qr_code = $inquiryUrl;
-        $project->save();
+        // Generate unique inquiry QR code SVG (company-wise and project-wise unique)
+        $project->generateQrCode();
 
         return redirect()->route('dashboard')
             ->with('success', 'Project created successfully!');
@@ -231,10 +227,9 @@ class ProjectController extends Controller
             }
         }
 
-        // Ensure QR code URL is always set (in case it wasn't set during creation)
-        if (!$project->inquiry_qr_code) {
-            $project->inquiry_qr_code = $project->getInquiryFormUrl();
-            $project->save();
+        // Ensure QR code is always generated
+        if (!$project->inquiry_qr_code || !\Illuminate\Support\Facades\Storage::disk('public')->exists($project->inquiry_qr_code)) {
+            $project->generateQrCode();
         }
 
         // Handle logo upload

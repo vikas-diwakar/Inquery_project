@@ -4,12 +4,19 @@
         (!empty(config('app.domain')) && str_ends_with(request()->getHost(), '.' . ltrim(config('app.domain'), '.'))) ||
         (count(explode('.', request()->getHost())) >= 3 && !filter_var(request()->getHost(), FILTER_VALIDATE_IP))
     );
-    // If we are on an unrecognized subdomain (or explicitly no tenant resolved), route back to root domain
-    $homeUrl = ($isSubdomain && !isset($currentTenant)) ? \App\Models\Company::getRootUrl('/') : route('home');
-    $aboutUrl = ($isSubdomain && !isset($currentTenant)) ? \App\Models\Company::getRootUrl('/about') : route('about');
-    $contactUrl = ($isSubdomain && !isset($currentTenant)) ? \App\Models\Company::getRootUrl('/contact') : route('contact');
-    $loginUrl = ($isSubdomain && !isset($currentTenant)) ? \App\Models\Company::getRootUrl('/login') : route('login');
-    $registerUrl = ($isSubdomain && !isset($currentTenant)) ? \App\Models\Company::getRootUrl('/register') : route('company.register');
+    // Navigation links always point to root SaaS portal when on a subdomain
+    $homeUrl = $isSubdomain ? \App\Models\Company::getRootUrl('/') : route('home');
+    $aboutUrl = $isSubdomain ? \App\Models\Company::getRootUrl('/about') : route('about');
+    $contactUrl = $isSubdomain ? \App\Models\Company::getRootUrl('/contact') : route('contact');
+    $loginUrl = isset($currentTenant) ? route('login') : ($isSubdomain ? \App\Models\Company::getRootUrl('/login') : route('login'));
+    $registerUrl = \App\Models\Company::getRootUrl('/register');
+
+    // Tenant users only see dashboard when scoped to their workspace subdomain
+    $showDashboard = auth()->check() && (
+        isset($currentTenant) || 
+        !auth()->user()->company || 
+        !auth()->user()->company->subdomain
+    );
 @endphp
 
 <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs transition-all">
@@ -35,7 +42,7 @@
 
             <!-- Right Actions (Login & Register / Dashboard) -->
             <div class="hidden md:flex items-center space-x-3">
-                @auth
+                @if($showDashboard)
                     <a href="{{ route('dashboard') }}" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20">
                         Dashboard →
                     </a>
@@ -43,10 +50,12 @@
                     <a href="{{ $loginUrl }}" class="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 hover:text-indigo-600 hover:bg-slate-100 transition-all">
                         Log In
                     </a>
-                    <a href="{{ $registerUrl }}" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20">
-                        Start Free Trial
-                    </a>
-                @endauth
+                    @if(!isset($currentTenant))
+                        <a href="{{ $registerUrl }}" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm transition-all shadow-md shadow-indigo-500/20">
+                            Start Free Trial
+                        </a>
+                    @endif
+                @endif
             </div>
 
             <!-- Mobile Menu Toggle Button -->
@@ -72,7 +81,7 @@
             Contact Us
         </a>
         <div class="pt-3 border-t border-slate-200 flex flex-col space-y-2">
-            @auth
+            @if($showDashboard)
                 <a href="{{ route('dashboard') }}" class="w-full text-center px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">
                     Dashboard →
                 </a>
@@ -80,10 +89,12 @@
                 <a href="{{ $loginUrl }}" class="w-full text-center px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm">
                     Log In
                 </a>
-                <a href="{{ $registerUrl }}" class="w-full text-center px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">
-                    Start Free Trial
-                </a>
-            @endauth
+                @if(!isset($currentTenant))
+                    <a href="{{ $registerUrl }}" class="w-full text-center px-4 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md">
+                        Start Free Trial
+                    </a>
+                @endif
+            @endif
         </div>
     </div>
 </header>

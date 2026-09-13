@@ -31,7 +31,9 @@ class QueuedEmailSendingTest extends TestCase
             'admin_password_confirmation' => 'Password123!',
         ]);
 
-        $response->assertRedirect('/login');
+        $company = Company::where('email', 'contact@apex.com')->first();
+        $this->assertNotNull($company);
+        $response->assertRedirect($company->workspace_url . '/login');
 
         Queue::assertPushed(SendEmailVerificationJob::class);
         Queue::assertPushed(SendWelcomeEmailJob::class);
@@ -44,7 +46,7 @@ class QueuedEmailSendingTest extends TestCase
         $company = Company::create(['name' => 'Estate Co', 'email' => 'estate@co.com']);
         $project = Project::create(['company_id' => $company->id, 'name' => 'Ocean View']);
 
-        $response = $this->post(route('public.inquiry.store', $project), [
+        $response = $this->post(route('public.inquiry.store', ['project' => $project->getEncryptedKey()]), [
             'customer_name' => 'Alice Smith',
             'phone' => '+19876543210',
             'email' => 'alice@example.com',

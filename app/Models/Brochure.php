@@ -60,9 +60,19 @@ class Brochure extends Model
 
     /**
      * Generate and save the brochure QR code SVG image file
+     * Deletes any old QR code files first to prevent stale assets and ensure fresh link encoding.
      */
     public function generateQrCode(): string
     {
+        // 1. Delete any existing QR files for this brochure
+        $prefix = 'qrcodes/brochure_' . $this->id;
+        $allFiles = \Illuminate\Support\Facades\Storage::disk('public')->files('qrcodes');
+        foreach ($allFiles as $file) {
+            if (str_starts_with($file, $prefix)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($file);
+            }
+        }
+
         $downloadUrl = $this->getDownloadUrl();
         $qrCodePath = 'qrcodes/brochure_' . $this->id . '.svg';
 

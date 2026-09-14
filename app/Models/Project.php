@@ -126,9 +126,24 @@ class Project extends Model
 
     /**
      * Generate and save the inquiry QR code SVG image file
+     * Deletes any old QR code files first to prevent stale assets and ensure fresh link encoding.
      */
     public function generateQrCode(): string
     {
+        // 1. Delete old recorded QR file if it exists
+        if (!empty($this->inquiry_qr_code) && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->inquiry_qr_code)) {
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($this->inquiry_qr_code);
+        }
+
+        // 2. Delete any existing QR files for this company & project
+        $prefix = 'qrcodes/inquiry-' . $this->company_id . '-' . $this->id;
+        $allFiles = \Illuminate\Support\Facades\Storage::disk('public')->files('qrcodes');
+        foreach ($allFiles as $file) {
+            if (str_starts_with($file, $prefix)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($file);
+            }
+        }
+
         $inquiryUrl = $this->getInquiryFormUrl();
         $qrCodePath = 'qrcodes/inquiry-' . $this->company_id . '-' . $this->id . '.svg';
 

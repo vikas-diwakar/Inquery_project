@@ -340,12 +340,15 @@ class Company extends Model
      */
     public function regenerateAllQrCodes(): array
     {
+        $this->refresh();
+
         $projectCount = 0;
         $brochureCount = 0;
 
         // Regenerate Form QR codes for all projects
         $projects = $this->projects()->get();
         foreach ($projects as $project) {
+            $project->setRelation('company', $this);
             $project->generateQrCode();
             $projectCount++;
         }
@@ -353,6 +356,7 @@ class Company extends Model
         // Regenerate Brochure QR codes for all brochures
         $brochures = $this->brochures()->get();
         foreach ($brochures as $brochure) {
+            $brochure->setRelation('company', $this);
             $brochure->generateQrCode();
             $brochureCount++;
         }

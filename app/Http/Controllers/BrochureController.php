@@ -129,6 +129,14 @@ class BrochureController extends Controller
             Storage::disk('public')->delete($brochure->file_path);
         }
 
+        // Delete any generated QR code files for this brochure
+        $prefix = 'qrcodes/brochure_' . $brochure->id;
+        foreach (Storage::disk('public')->files('qrcodes') as $f) {
+            if (str_starts_with($f, $prefix)) {
+                Storage::disk('public')->delete($f);
+            }
+        }
+
         $brochure->delete();
 
         return redirect()->route('brochures.index')

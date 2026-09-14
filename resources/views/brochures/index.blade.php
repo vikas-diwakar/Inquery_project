@@ -43,7 +43,7 @@
                             <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div class="flex items-center space-x-4">
                                     <div class="border-2 border-slate-200 p-2 rounded-xl bg-white shadow-sm shrink-0">
-                                        <img src="{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}" alt="Brochure QR Code" class="w-20 h-20 object-contain">
+                                        <img src="{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}?v={{ @filemtime(storage_path('app/public/qrcodes/brochure_' . $brochure->id . '.svg')) ?: time() }}" alt="Brochure QR Code" class="w-20 h-20 object-contain">
                                     </div>
                                     <div>
                                         <p class="text-xs font-semibold text-slate-700">Scan to download brochure</p>
@@ -52,7 +52,7 @@
                                 </div>
                                 <div class="flex items-center space-x-2 shrink-0">
                                     <button type="button" 
-                                            onclick="downloadBrandedBrochureQr('{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}', '{{ addslashes($project->company->name ?? auth()->user()->company->name ?? 'Company') }}', '{{ addslashes($project->name) }}', '{{ addslashes($brochure->file_name) }}')" 
+                                            onclick="downloadBrandedBrochureQr('{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}?v={{ @filemtime(storage_path('app/public/qrcodes/brochure_' . $brochure->id . '.svg')) ?: time() }}', '{{ addslashes($project->company->name ?? auth()->user()->company->name ?? 'Company') }}', '{{ addslashes($project->name) }}', '{{ addslashes($brochure->file_name) }}')" 
                                             class="inline-flex items-center justify-center px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm space-x-1.5">
                                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                         <span>Download QR Code</span>

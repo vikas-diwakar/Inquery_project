@@ -22,7 +22,7 @@
             <div class="space-y-4">
                 @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
                     <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex justify-center shadow-inner">
-                        <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}" alt="Inquiry QR Code" class="w-64 h-64 object-contain">
+                        <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}?v={{ @filemtime(storage_path('app/public/' . $project->inquiry_qr_code)) ?: time() }}" alt="Inquiry QR Code" class="w-64 h-64 object-contain">
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <button id="downloadPngBtn" type="button" class="btn-primary space-x-2 w-full">

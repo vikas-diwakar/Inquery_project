@@ -30,9 +30,10 @@ class CheckSubscription
 
         // Allow access to subscription-related routes
         $subscriptionRoutes = [
+            'subscription.required',
             'subscription.choose-plan',
             'subscription.activate-plan',
-            'subscription.required',
+            'subscription.create-order',
             'subscription.index',
             'subscription.show',
             'subscription.checkout',
@@ -42,7 +43,28 @@ class CheckSubscription
             'logout',
         ];
 
-        if (in_array($request->route()?->getName(), $subscriptionRoutes)) {
+        $currentRouteName = $request->route()?->getName();
+
+        if ($currentRouteName && in_array($currentRouteName, $subscriptionRoutes, true)) {
+            // If non-admin tries to access admin-only subscription routes while company has no active subscription
+            $adminOnlySubscriptionRoutes = [
+                'subscription.choose-plan',
+                'subscription.activate-plan',
+                'subscription.create-order',
+                'subscription.index',
+                'subscription.show',
+                'subscription.checkout',
+                'subscription.purchase',
+                'subscription.renew',
+                'subscription.cancel',
+            ];
+
+            $isExplicitNonAdmin = $user->role && $user->role->name !== 'Admin';
+
+            if ($isExplicitNonAdmin && in_array($currentRouteName, $adminOnlySubscriptionRoutes, true)) {
+                return redirect()->route('subscription.required');
+            }
+
             return $next($request);
         }
 
@@ -51,17 +73,20 @@ class CheckSubscription
             return $next($request);
         }
 
-        // If company is on first login (no subscription ever), redirect to plan selection
-        if ($company->isFirstLogin()) {
-            return redirect()->route('subscription.choose-plan');
-        }
-
-        // No active subscription and not first login - redirect to subscription required
+        // Return JSON 403 for API / AJAX requests when subscription is expired or inactive
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => 'Subscription expired. Please renew your subscription.',
+                'message' => $company->isFirstLogin()
+                    ? 'Subscription plan selection required.'
+                    : 'Subscription expired. Please renew your subscription.',
                 'subscription_required' => true
             ], 403);
+        }
+
+        // If company is on first login (no subscription ever) and user is not explicitly non-admin, redirect to plan selection
+        $isExplicitNonAdmin = $user->role && $user->role->name !== 'Admin';
+        if ($company->isFirstLogin() && !$isExplicitNonAdmin) {
+            return redirect()->route('subscription.choose-plan');
         }
 
         return redirect()->route('subscription.required')

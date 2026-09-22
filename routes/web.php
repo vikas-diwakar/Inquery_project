@@ -142,80 +142,82 @@ Route::middleware('auth')->group(function () {
     Route::post('/subscription/renew', [SubscriptionController::class, 'renew'])->name('subscription.renew');
     Route::post('/subscription/cancel', [SubscriptionController::class, 'cancel'])->name('subscription.cancel');
 
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // All Application Routes (strictly require an active subscription)
+    Route::middleware('subscription')->group(function () {
+        // Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Projects (accessible without project selection)
-    Route::middleware('tenant')->group(function () {
-        Route::resource('projects', ProjectController::class);
-        Route::get('/projects/{project}/select', [ProjectController::class, 'select'])->name('projects.select');
-        Route::post('/projects/clear-selection', [ProjectController::class, 'clearSelection'])->name('projects.clear-selection');
+        // Projects (accessible without project selection)
+        Route::middleware('tenant')->group(function () {
+            Route::resource('projects', ProjectController::class);
+            Route::get('/projects/{project}/select', [ProjectController::class, 'select'])->name('projects.select');
+            Route::post('/projects/clear-selection', [ProjectController::class, 'clearSelection'])->name('projects.clear-selection');
 
-        // Unit Inventory & Stacking Chart
-        Route::get('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'index'])->name('projects.units.index');
-        Route::post('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'store'])->name('projects.units.store');
-        Route::post('/projects/{project}/units/batch', [\App\Http\Controllers\ProjectUnitController::class, 'generateBatch'])->name('projects.units.batch');
-        Route::patch('/units/{unit}/status', [\App\Http\Controllers\ProjectUnitController::class, 'updateStatus'])->name('units.update-status');
-        Route::put('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'update'])->name('units.update');
-        Route::delete('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'destroy'])->name('units.destroy');
-    });
+            // Unit Inventory & Stacking Chart
+            Route::get('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'index'])->name('projects.units.index');
+            Route::post('/projects/{project}/units', [\App\Http\Controllers\ProjectUnitController::class, 'store'])->name('projects.units.store');
+            Route::post('/projects/{project}/units/batch', [\App\Http\Controllers\ProjectUnitController::class, 'generateBatch'])->name('projects.units.batch');
+            Route::patch('/units/{unit}/status', [\App\Http\Controllers\ProjectUnitController::class, 'updateStatus'])->name('units.update-status');
+            Route::put('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'update'])->name('units.update');
+            Route::delete('/units/{unit}', [\App\Http\Controllers\ProjectUnitController::class, 'destroy'])->name('units.destroy');
+        });
 
-    // Project-specific routes (require project selection and active subscription)
-    Route::middleware(['tenant', 'project', 'subscription'])->group(function () {
-        // Inquiries
-        Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
-        Route::get('/inquiries/export', [InquiryController::class, 'export'])->name('inquiries.export');
-        Route::get('/inquiries/create', [InquiryController::class, 'create'])->name('inquiries.create');
-        Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
-        Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
-        Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
-        Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
-        Route::post('/inquiries/{inquiry}/resend-whatsapp', [InquiryController::class, 'resendWhatsApp'])->name('inquiries.resend-whatsapp');
-        Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
+        // Project-specific routes (require project selection)
+        Route::middleware(['tenant', 'project'])->group(function () {
+            // Inquiries
+            Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
+            Route::get('/inquiries/export', [InquiryController::class, 'export'])->name('inquiries.export');
+            Route::get('/inquiries/create', [InquiryController::class, 'create'])->name('inquiries.create');
+            Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
+            Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');
+            Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
+            Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
+            Route::post('/inquiries/{inquiry}/resend-whatsapp', [InquiryController::class, 'resendWhatsApp'])->name('inquiries.resend-whatsapp');
+            Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
 
-        // WhatsApp Integration Settings
-        Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
-        Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
-        Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
-        Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
+            // WhatsApp Integration Settings
+            Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
+            Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
+            Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
+            Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
 
-        // Lead Drip Automation Sequences
-        Route::get('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'index'])->name('settings.drip');
-        Route::post('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'store'])->name('settings.drip.store');
-        Route::delete('/settings/drip/{step}', [\App\Http\Controllers\LeadDripController::class, 'destroy'])->name('settings.drip.destroy');
-        Route::post('/settings/drip/process-now', [\App\Http\Controllers\LeadDripController::class, 'processNow'])->name('settings.drip.process-now');
-        Route::post('/settings/drip/process-selected', [\App\Http\Controllers\LeadDripController::class, 'processSelected'])->name('settings.drip.process-selected');
-        Route::post('/settings/drip/discard-selected', [\App\Http\Controllers\LeadDripController::class, 'discardSelected'])->name('settings.drip.discard-selected');
-        Route::post('/settings/drip/{log}/process-single', [\App\Http\Controllers\LeadDripController::class, 'processSingle'])->name('settings.drip.process-single');
-        Route::post('/settings/drip/{log}/discard', [\App\Http\Controllers\LeadDripController::class, 'discardSingle'])->name('settings.drip.discard-single');
-        Route::post('/settings/drip/enroll-past', [\App\Http\Controllers\LeadDripController::class, 'enrollPastLeads'])->name('settings.drip.enroll-past');
+            // Lead Drip Automation Sequences
+            Route::get('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'index'])->name('settings.drip');
+            Route::post('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'store'])->name('settings.drip.store');
+            Route::delete('/settings/drip/{step}', [\App\Http\Controllers\LeadDripController::class, 'destroy'])->name('settings.drip.destroy');
+            Route::post('/settings/drip/process-now', [\App\Http\Controllers\LeadDripController::class, 'processNow'])->name('settings.drip.process-now');
+            Route::post('/settings/drip/process-selected', [\App\Http\Controllers\LeadDripController::class, 'processSelected'])->name('settings.drip.process-selected');
+            Route::post('/settings/drip/discard-selected', [\App\Http\Controllers\LeadDripController::class, 'discardSelected'])->name('settings.drip.discard-selected');
+            Route::post('/settings/drip/{log}/process-single', [\App\Http\Controllers\LeadDripController::class, 'processSingle'])->name('settings.drip.process-single');
+            Route::post('/settings/drip/{log}/discard', [\App\Http\Controllers\LeadDripController::class, 'discardSingle'])->name('settings.drip.discard-single');
+            Route::post('/settings/drip/enroll-past', [\App\Http\Controllers\LeadDripController::class, 'enrollPastLeads'])->name('settings.drip.enroll-past');
 
-        // Follow-up routes
-        Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
-        Route::post('/inquiries/{inquiry}/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
-        Route::post('/inquiries/{inquiry}/follow-ups/complete', [FollowUpController::class, 'complete'])->name('follow-ups.complete');
-        Route::post('/follow-ups/bulk-schedule', [FollowUpController::class, 'bulkSchedule'])->name('follow-ups.bulk-schedule');
-        Route::get('/api/follow-ups/stats', [FollowUpController::class, 'getStats'])->name('follow-ups.stats');
+            // Follow-up routes
+            Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
+            Route::post('/inquiries/{inquiry}/follow-ups', [FollowUpController::class, 'store'])->name('follow-ups.store');
+            Route::post('/inquiries/{inquiry}/follow-ups/complete', [FollowUpController::class, 'complete'])->name('follow-ups.complete');
+            Route::post('/follow-ups/bulk-schedule', [FollowUpController::class, 'bulkSchedule'])->name('follow-ups.bulk-schedule');
+            Route::get('/api/follow-ups/stats', [FollowUpController::class, 'getStats'])->name('follow-ups.stats');
 
-        // Brochures
-        Route::get('/brochures', [BrochureController::class, 'index'])->name('brochures.index');
-        Route::get('/brochures/create', [BrochureController::class, 'create'])->name('brochures.create');
-        Route::post('/brochures', [BrochureController::class, 'store'])->name('brochures.store');
-        Route::delete('/brochures/{brochure}', [BrochureController::class, 'destroy'])->name('brochures.destroy');
+            // Brochures
+            Route::get('/brochures', [BrochureController::class, 'index'])->name('brochures.index');
+            Route::get('/brochures/create', [BrochureController::class, 'create'])->name('brochures.create');
+            Route::post('/brochures', [BrochureController::class, 'store'])->name('brochures.store');
+            Route::delete('/brochures/{brochure}', [BrochureController::class, 'destroy'])->name('brochures.destroy');
 
-        // Forms & QR Codes
-        Route::get('/forms-qr', [FormQRController::class, 'index'])->name('forms-qr.index');
-        Route::get('/forms-qr/create-inquiry-form', [FormQRController::class, 'createInquiryForm'])->name('forms-qr.create-inquiry-form');
-        Route::post('/forms-qr/generate-inquiry-qr', [FormQRController::class, 'generateInquiryQR'])->name('forms-qr.generate-inquiry-qr');
-        Route::get('/forms-qr/inquiry-qr', [FormQRController::class, 'showInquiryQR'])->name('forms-qr.show-inquiry-qr');
-        Route::get('/forms-qr/inquiry-qr/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
-        Route::get('/forms-qr/brochure-qr', [FormQRController::class, 'brochureQR'])->name('forms-qr.brochure-qr');
-        Route::get('/forms-qr/brochure-qr/{brochure}', [FormQRController::class, 'showBrochureQR'])->name('forms-qr.show-brochure-qr');
+            // Forms & QR Codes
+            Route::get('/forms-qr', [FormQRController::class, 'index'])->name('forms-qr.index');
+            Route::get('/forms-qr/create-inquiry-form', [FormQRController::class, 'createInquiryForm'])->name('forms-qr.create-inquiry-form');
+            Route::post('/forms-qr/generate-inquiry-qr', [FormQRController::class, 'generateInquiryQR'])->name('forms-qr.generate-inquiry-qr');
+            Route::get('/forms-qr/inquiry-qr', [FormQRController::class, 'showInquiryQR'])->name('forms-qr.show-inquiry-qr');
+            Route::get('/forms-qr/inquiry-qr/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
+            Route::get('/forms-qr/brochure-qr', [FormQRController::class, 'brochureQR'])->name('forms-qr.brochure-qr');
+            Route::get('/forms-qr/brochure-qr/{brochure}', [FormQRController::class, 'showBrochureQR'])->name('forms-qr.show-brochure-qr');
 
-        // Integrations panel
-        Route::get('/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('integrations.index');
-        Route::post('/projects/{project}/regenerate-token', [\App\Http\Controllers\IntegrationController::class, 'regenerateToken'])->name('projects.regenerate-token');
-    });
+            // Integrations panel
+            Route::get('/integrations', [\App\Http\Controllers\IntegrationController::class, 'index'])->name('integrations.index');
+            Route::post('/projects/{project}/regenerate-token', [\App\Http\Controllers\IntegrationController::class, 'regenerateToken'])->name('projects.regenerate-token');
+        });
 
         // Users & Company Settings (Admin only)
         Route::middleware('role:Admin')->group(function () {
@@ -223,4 +225,5 @@ Route::middleware('auth')->group(function () {
             Route::get('/settings/domain', [\App\Http\Controllers\CompanyDomainController::class, 'index'])->name('settings.domain');
             Route::put('/settings/domain', [\App\Http\Controllers\CompanyDomainController::class, 'update'])->name('settings.domain.update');
         });
+    });
 });

@@ -29,6 +29,8 @@ class UserProjectAssignmentAndSalesExecutivePermissionsTest extends TestCase
             'name' => 'Acme Real Estate',
             'email' => 'acme@realestate.com',
             'slug' => 'acme-real-estate',
+            'subscription_status' => 'active',
+            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $this->adminRole = Role::create([

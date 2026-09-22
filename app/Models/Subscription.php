@@ -93,7 +93,8 @@ class Subscription extends Model
      */
     public function scopeActive($query)
     {
-        return $query->whereIn('status', ['active', 'trial']);
+        return $query->whereIn('status', ['active', 'trial'])
+            ->where('end_date', '>=', Carbon::now()->toDateString());
     }
 
     /**

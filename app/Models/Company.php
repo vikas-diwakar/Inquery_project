@@ -233,6 +233,11 @@ class Company extends Model
          $this->update([
              'subscription_status' => 'expired',
          ]);
+
+         $this->subscriptions()
+             ->whereIn('status', ['active', 'trial'])
+             ->where('end_date', '<=', now())
+             ->update(['status' => 'expired']);
      }
 
     /**

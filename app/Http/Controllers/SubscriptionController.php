@@ -94,6 +94,11 @@ class SubscriptionController extends Controller
             return redirect()->route('dashboard');
         }
 
+        // Non-admin users cannot select or activate plans; send them to subscription required
+        if (auth()->user()->role && auth()->user()->role->name !== 'Admin') {
+            return redirect()->route('subscription.required');
+        }
+
         $plans = SubscriptionPlan::active()->get();
 
         // Filter plans based on whether trial is available
@@ -114,6 +119,8 @@ class SubscriptionController extends Controller
      */
     public function activatePlan(Request $request)
     {
+        $this->authorize('manageSubscription', auth()->user()->company);
+
         SubscriptionPlan::ensureDefaultPlansExist();
 
         $request->validate([

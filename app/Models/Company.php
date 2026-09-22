@@ -115,12 +115,36 @@ class Company extends Model
      */
     public function hasActiveSubscription(): bool
     {
+        // 1. Check latest subscription record if it exists in subscriptions table
+        $latestSubscription = $this->subscriptions()->latest()->first();
+        if ($latestSubscription) {
+            // Check if end_date has passed
+            if ($latestSubscription->end_date && \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay()->isPast()) {
+                $this->expireSubscription();
+                return false;
+            }
+
+            if ($latestSubscription->status === 'expired' || $latestSubscription->status === 'cancelled') {
+                if ($this->subscription_status !== 'expired') {
+                    $this->expireSubscription();
+                }
+                return false;
+            }
+
+            if (in_array($latestSubscription->status, ['active', 'trial'])) {
+                if ($latestSubscription->end_date && \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay()->isFuture()) {
+                    return true;
+                }
+            }
+        }
+
+        // 2. Fallback check on company columns
         if ($this->subscription_status === 'trial') {
             if ($this->trial_ends_at && $this->trial_ends_at->isPast()) {
                 $this->expireSubscription();
                 return false;
             }
-            return true;
+            return (bool) $this->trial_ends_at;
         }
 
         if ($this->subscription_status === 'active') {
@@ -128,7 +152,7 @@ class Company extends Model
                 $this->expireSubscription();
                 return false;
             }
-            return true;
+            return (bool) $this->subscription_ends_at;
         }
 
         return false;
@@ -232,6 +256,8 @@ class Company extends Model
      {
          $this->update([
              'subscription_status' => 'expired',
+             'trial_ends_at' => ($this->trial_ends_at && $this->trial_ends_at->isFuture()) ? now()->subMinute() : $this->trial_ends_at,
+             'subscription_ends_at' => ($this->subscription_ends_at && $this->subscription_ends_at->isFuture()) ? now()->subMinute() : $this->subscription_ends_at,
          ]);
 
          $this->subscriptions()

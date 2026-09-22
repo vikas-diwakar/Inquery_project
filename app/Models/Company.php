@@ -115,44 +115,71 @@ class Company extends Model
      */
     public function hasActiveSubscription(): bool
     {
-        // 1. Check latest subscription record if it exists in subscriptions table
         $latestSubscription = $this->subscriptions()->latest()->first();
-        if ($latestSubscription) {
-            // Check if end_date has passed
-            if ($latestSubscription->end_date && \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay()->isPast()) {
-                $this->expireSubscription();
-                return false;
-            }
 
-            if ($latestSubscription->status === 'expired' || $latestSubscription->status === 'cancelled') {
-                if ($this->subscription_status !== 'expired') {
-                    $this->expireSubscription();
-                }
-                return false;
-            }
-
-            if (in_array($latestSubscription->status, ['active', 'trial'])) {
-                if ($latestSubscription->end_date && \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay()->isFuture()) {
-                    return true;
-                }
+        // Parse all possible end dates across subscriptions and company columns
+        $subEndDate = null;
+        if ($latestSubscription && $latestSubscription->end_date) {
+            try {
+                $subEndDate = \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay();
+            } catch (\Throwable $e) {
+                $subEndDate = null;
             }
         }
 
-        // 2. Fallback check on company columns
-        if ($this->subscription_status === 'trial') {
-            if ($this->trial_ends_at && $this->trial_ends_at->isPast()) {
-                $this->expireSubscription();
-                return false;
+        $companySubEndDate = null;
+        if ($this->subscription_ends_at) {
+            try {
+                $companySubEndDate = \Carbon\Carbon::parse($this->subscription_ends_at)->endOfDay();
+            } catch (\Throwable $e) {
+                $companySubEndDate = null;
             }
-            return (bool) $this->trial_ends_at;
         }
 
-        if ($this->subscription_status === 'active') {
-            if ($this->subscription_ends_at && $this->subscription_ends_at->isPast()) {
-                $this->expireSubscription();
-                return false;
+        $companyTrialEndDate = null;
+        if ($this->trial_ends_at) {
+            try {
+                $companyTrialEndDate = \Carbon\Carbon::parse($this->trial_ends_at)->endOfDay();
+            } catch (\Throwable $e) {
+                $companyTrialEndDate = null;
             }
-            return (bool) $this->subscription_ends_at;
+        }
+
+        // Collect all future end dates
+        $futureEndDates = collect([$subEndDate, $companySubEndDate, $companyTrialEndDate])
+            ->filter(fn($date) => $date && $date->isFuture());
+
+        // If ANY end date is in the future, the company subscription is ACTIVE
+        if ($futureEndDates->isNotEmpty()) {
+            $effectiveEndDate = $futureEndDates->max();
+
+            $activeStatus = ($this->subscription_status === 'trial' || ($latestSubscription && $latestSubscription->status === 'trial'))
+                ? 'trial'
+                : 'active';
+
+            // Reactivate company if it was marked as expired
+            if ($this->subscription_status === 'expired') {
+                $this->update([
+                    'subscription_status' => $activeStatus,
+                    'subscription_ends_at' => ($activeStatus === 'active') ? $effectiveEndDate : $this->subscription_ends_at,
+                    'trial_ends_at' => ($activeStatus === 'trial') ? $effectiveEndDate : $this->trial_ends_at,
+                ]);
+            }
+
+            // Reactivate subscription record if it was marked as expired
+            if ($latestSubscription && $latestSubscription->status === 'expired') {
+                $latestSubscription->update([
+                    'status' => $activeStatus,
+                    'end_date' => $effectiveEndDate->toDateString(),
+                ]);
+            }
+
+            return true;
+        }
+
+        // Only expire if no future end dates exist
+        if ($this->subscription_status !== 'expired' || ($latestSubscription && in_array($latestSubscription->status, ['active', 'trial']))) {
+            $this->expireSubscription();
         }
 
         return false;
@@ -256,8 +283,6 @@ class Company extends Model
      {
          $this->update([
              'subscription_status' => 'expired',
-             'trial_ends_at' => ($this->trial_ends_at && $this->trial_ends_at->isFuture()) ? now()->subMinute() : $this->trial_ends_at,
-             'subscription_ends_at' => ($this->subscription_ends_at && $this->subscription_ends_at->isFuture()) ? now()->subMinute() : $this->subscription_ends_at,
          ]);
 
          $this->subscriptions()

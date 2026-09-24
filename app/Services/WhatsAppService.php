@@ -34,12 +34,30 @@ class WhatsAppService
         $executiveName = $inquiry->assignedUser ? $inquiry->assignedUser->name : 'Sales Desk';
 
         // Compile Template
-        $template = $company->getDefaultWhatsAppTemplate();
+        $template = $company ? $company->getDefaultWhatsAppTemplate() : '';
         $message = str_replace(
             ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}'],
             [$inquiry->customer_name, $inquiry->project->name ?? 'Project', $company->name ?? 'PropDrip', $brochureUrl, $executiveName],
             $template
         );
+
+        return $this->sendCustomMessage($inquiry, $message, true);
+    }
+
+    /**
+     * Send a custom or templated WhatsApp message to an inquiry
+     */
+    public function sendCustomMessage(Inquiry $inquiry, string $message, bool $force = true): array
+    {
+        $company = $inquiry->company;
+
+        // Check if auto-send is enabled unless forced manually
+        if (!$force && (!$company || !$company->whatsapp_auto_send)) {
+            return [
+                'success' => false,
+                'message' => 'WhatsApp messaging is disabled in company settings.',
+            ];
+        }
 
         $provider = $company->whatsapp_provider ?? 'simulated';
         $success = false;

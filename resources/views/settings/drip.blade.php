@@ -31,6 +31,25 @@
         </div>
     </div>
 
+    <!-- Quick Custom Drip Outreach Banner -->
+    <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-indigo-600 rounded-3xl p-6 text-white shadow-xl shadow-emerald-600/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="space-y-1">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-white/20 text-white backdrop-blur-md">
+                ⚡ Instant Lead Outreach
+            </span>
+            <h2 class="text-lg sm:text-xl font-black tracking-tight">Looking to send a custom drip to specific leads right now?</h2>
+            <p class="text-xs sm:text-sm text-emerald-100 max-w-2xl">
+                Go to the Project Inquiries table to select leads with checkboxes, open the live modal popup, customize your message with dynamic tags, and dispatch instantly via WhatsApp.
+            </p>
+        </div>
+        <div class="flex-shrink-0">
+            <a href="{{ route('inquiries.index') }}" class="inline-flex items-center space-x-2 bg-white text-emerald-800 hover:bg-emerald-50 font-extrabold text-xs py-3 px-5 rounded-2xl shadow-lg transition-all transform hover:-translate-y-0.5">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>Select Inquiries & Send Drip →</span>
+            </a>
+        </div>
+    </div>
+
     <!-- Drip Sequence Stats -->
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center space-x-4">

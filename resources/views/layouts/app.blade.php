@@ -98,9 +98,6 @@
                                     <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                         WhatsApp API
                                     </a>
-                                    <a href="{{ route('settings.drip') }}" class="{{ request()->routeIs('settings.drip*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Lead Drips ⚡
-                                    </a>
                                 @endif
                             </div>
                         @endif

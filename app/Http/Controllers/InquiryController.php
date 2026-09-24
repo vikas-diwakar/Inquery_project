@@ -389,4 +389,81 @@ class InquiryController extends Controller
 
         return Excel::download(new InquiriesExport($query), $filename);
     }
+
+    /**
+     * Send custom or templated drip message to selected inquiries
+     */
+    public function sendCustomDrip(Request $request)
+    {
+        $validated = $request->validate([
+            'inquiry_ids' => 'required|array|min:1',
+            'inquiry_ids.*' => 'integer|exists:inquiries,id',
+            'message_content' => 'required|string|max:4000',
+            'lead_drip_step_id' => 'nullable|integer|exists:lead_drip_steps,id',
+        ], [
+            'inquiry_ids.required' => 'Please select at least one inquiry to send drip message.',
+            'message_content.required' => 'Message content is required.',
+        ]);
+
+        $companyId = auth()->user()->company_id;
+        $inquiries = Inquiry::where('company_id', $companyId)
+            ->whereIn('id', $validated['inquiry_ids'])
+            ->with(['project', 'company', 'assignedUser'])
+            ->get();
+
+        if ($inquiries->isEmpty()) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No valid inquiries found.'], 404);
+            }
+            return redirect()->back()->with('error', 'No valid inquiries found.');
+        }
+
+        $dripService = app(\App\Services\DripNurtureService::class);
+        $whatsAppService = app(\App\Services\WhatsAppService::class);
+
+        $sentCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        foreach ($inquiries as $inquiry) {
+            $compiledMessage = $dripService->compileTemplate($validated['message_content'], $inquiry);
+
+            $result = $whatsAppService->sendCustomMessage($inquiry, $compiledMessage, true);
+
+            \App\Models\InquiryDripLog::create([
+                'company_id' => $companyId,
+                'inquiry_id' => $inquiry->id,
+                'lead_drip_step_id' => $validated['lead_drip_step_id'] ?? null,
+                'scheduled_for' => now(),
+                'status' => $result['success'] ? 'sent' : 'failed',
+                'sent_at' => $result['success'] ? now() : null,
+                'sent_message' => $compiledMessage,
+                'last_error' => $result['success'] ? null : ($result['message'] ?? 'Failed to send'),
+            ]);
+
+            if ($result['success']) {
+                $sentCount++;
+            } else {
+                $failedCount++;
+                $errors[] = "{$inquiry->customer_name}: " . ($result['message'] ?? 'Dispatch failed');
+            }
+        }
+
+        $message = "Custom drip sent to {$sentCount} recipient(s)!";
+        if ($failedCount > 0) {
+            $message .= " ({$failedCount} failed)";
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => $sentCount > 0,
+                'sent_count' => $sentCount,
+                'failed_count' => $failedCount,
+                'message' => $message,
+                'errors' => $errors,
+            ]);
+        }
+
+        return redirect()->back()->with($sentCount > 0 ? 'success' : 'error', $message);
+    }
 }

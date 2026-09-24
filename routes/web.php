@@ -173,6 +173,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/inquiries/{inquiry}', [InquiryController::class, 'update'])->name('inquiries.update');
             Route::patch('/inquiries/{inquiry}/status', [InquiryController::class, 'updateStatus'])->name('inquiries.update-status');
             Route::post('/inquiries/{inquiry}/resend-whatsapp', [InquiryController::class, 'resendWhatsApp'])->name('inquiries.resend-whatsapp');
+            Route::post('/inquiries/send-custom-drip', [InquiryController::class, 'sendCustomDrip'])->name('inquiries.send-custom-drip');
             Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
 
             // WhatsApp Integration Settings

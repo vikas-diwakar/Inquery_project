@@ -167,21 +167,11 @@ class DripNurtureService
             }
 
             // Compile template
-            $company = $inquiry->company;
-            $project = $inquiry->project;
-            $executive = $inquiry->assignedUser ? $inquiry->assignedUser->name : ($company ? $company->name : 'Sales Team');
-            $brochure = $project ? $project->brochures()->latest()->first() : null;
-            $brochureUrl = $brochure ? $brochure->getDownloadUrl() : ($project ? $project->getInquiryFormUrl() : url('/'));
-
-            $message = str_replace(
-                ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}'],
-                [$inquiry->customer_name, $project->name, $company->name ?? 'Real Estate SaaS', $brochureUrl, $executive],
-                $step->message_template
-            );
+            $message = $this->compileTemplate($step->message_template, $inquiry);
 
             // Dispatch message via WhatsApp
             try {
-                $result = $whatsAppService->sendInstantBrochure($inquiry, true);
+                $result = $whatsAppService->sendCustomMessage($inquiry, $message, true);
 
                 if ($result['success']) {
                     $log->update([
@@ -212,5 +202,23 @@ class DripNurtureService
             'sent' => $sentCount,
             'failed' => $failedCount,
         ];
+    }
+
+    /**
+     * Compile message template with inquiry specific dynamic tags
+     */
+    public function compileTemplate(string $template, Inquiry $inquiry): string
+    {
+        $company = $inquiry->company;
+        $project = $inquiry->project;
+        $executive = $inquiry->assignedUser ? $inquiry->assignedUser->name : ($company ? $company->name : 'Sales Desk');
+        $brochure = $project ? $project->brochures()->latest()->first() : null;
+        $brochureUrl = $brochure ? $brochure->getDownloadUrl() : ($project ? $project->getInquiryFormUrl() : url('/'));
+
+        return str_replace(
+            ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}', '{phone}'],
+            [$inquiry->customer_name, $project ? $project->name : 'Project', $company ? $company->name : 'Real Estate SaaS', $brochureUrl, $executive, $inquiry->phone],
+            $template
+        );
     }
 }

@@ -57,4 +57,11 @@ return [
         ],
     ],
 
+    'meta' => [
+        'app_id' => env('META_APP_ID'),
+        'app_secret' => env('META_APP_SECRET'),
+        'config_id' => env('META_WHATSAPP_CONFIG_ID'),
+        'system_user_token' => env('META_SYSTEM_USER_TOKEN'),
+    ],
+
 ];

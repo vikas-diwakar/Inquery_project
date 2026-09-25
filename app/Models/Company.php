@@ -26,6 +26,10 @@ class Company extends Model
         'whatsapp_provider',
         'whatsapp_api_key',
         'whatsapp_phone_number_id',
+        'whatsapp_waba_id',
+        'whatsapp_connected_phone',
+        'whatsapp_account_status',
+        'whatsapp_connected_at',
         'whatsapp_instance_id',
         'whatsapp_auto_send',
         'whatsapp_welcome_template',
@@ -39,6 +43,7 @@ class Company extends Model
         'subscription_ends_at' => 'datetime',
         'trial_used' => 'boolean',
         'whatsapp_auto_send' => 'boolean',
+        'whatsapp_connected_at' => 'datetime',
         'previous_subdomains' => 'array',
     ];
 

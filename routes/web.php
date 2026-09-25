@@ -176,11 +176,14 @@ Route::middleware('auth')->group(function () {
             Route::post('/inquiries/send-custom-drip', [InquiryController::class, 'sendCustomDrip'])->name('inquiries.send-custom-drip');
             Route::delete('/inquiries/{inquiry}', [InquiryController::class, 'destroy'])->name('inquiries.destroy');
 
-            // WhatsApp Integration Settings
+            // WhatsApp Integration Settings & Embedded Signup
             Route::get('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'index'])->name('settings.whatsapp');
             Route::post('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update']);
             Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
             Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
+            Route::post('/settings/whatsapp/embedded-callback', [\App\Http\Controllers\WhatsAppSettingController::class, 'handleEmbeddedCallback'])->name('settings.whatsapp.embedded-callback');
+            Route::post('/settings/whatsapp/disconnect', [\App\Http\Controllers\WhatsAppSettingController::class, 'disconnect'])->name('settings.whatsapp.disconnect');
+            Route::post('/settings/whatsapp/quick-demo-connect', [\App\Http\Controllers\WhatsAppSettingController::class, 'quickDemoConnect'])->name('settings.whatsapp.demo-connect');
 
             // Lead Drip Automation Sequences
             Route::get('/settings/drip', [\App\Http\Controllers\LeadDripController::class, 'index'])->name('settings.drip');

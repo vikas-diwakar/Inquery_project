@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Log;
 class WhatsAppService
 {
     /**
+     * Last API error message for diagnostics
+     */
+    protected string $lastError = '';
+
+    /**
      * Send instant WhatsApp brochure & welcome message for an inquiry
      */
     public function sendInstantBrochure(Inquiry $inquiry, bool $force = false): array
@@ -62,22 +67,23 @@ class WhatsAppService
         $provider = $company->whatsapp_provider ?? 'simulated';
         $success = false;
         $responseMsg = '';
+        $this->lastError = '';
 
         try {
             switch ($provider) {
                 case 'twilio':
                     $success = $this->sendViaTwilio($company, $inquiry->phone, $message);
-                    $responseMsg = $success ? 'Sent via Twilio API' : 'Twilio API Error';
+                    $responseMsg = $success ? 'Sent via Twilio API' : ($this->lastError ?: 'Twilio API Error');
                     break;
 
                 case 'ultramsg':
                     $success = $this->sendViaUltraMsg($company, $inquiry->phone, $message);
-                    $responseMsg = $success ? 'Sent via UltraMsg API' : 'UltraMsg API Error';
+                    $responseMsg = $success ? 'Sent via UltraMsg API' : ($this->lastError ?: 'UltraMsg API Error');
                     break;
 
                 case 'meta_cloud':
                     $success = $this->sendViaMetaCloud($company, $inquiry->phone, $message);
-                    $responseMsg = $success ? 'Sent via Meta Cloud API' : 'Meta Cloud API Error';
+                    $responseMsg = $success ? 'Sent via Meta Cloud API' : ($this->lastError ?: 'Meta Cloud API Error');
                     break;
 
                 case 'simulated':
@@ -94,12 +100,14 @@ class WhatsAppService
             $responseMsg = 'Delivery error: ' . $e->getMessage();
         }
 
-        // Update inquiry WhatsApp tracking status
-        $inquiry->update([
-            'whatsapp_sent_at' => $success ? now() : $inquiry->whatsapp_sent_at,
-            'whatsapp_status' => $success ? 'sent' : 'failed',
-            'whatsapp_last_message' => $message,
-        ]);
+        // Update inquiry WhatsApp tracking status if the inquiry is already persisted in DB
+        if ($inquiry->exists) {
+            $inquiry->update([
+                'whatsapp_sent_at' => $success ? now() : $inquiry->whatsapp_sent_at,
+                'whatsapp_status' => $success ? 'sent' : 'failed',
+                'whatsapp_last_message' => $message,
+            ]);
+        }
 
         return [
             'success' => $success,
@@ -114,14 +122,14 @@ class WhatsAppService
     protected function sendViaTwilio($company, string $phone, string $message): bool
     {
         if (empty($company->whatsapp_api_key) || empty($company->whatsapp_phone_number_id)) {
+            $this->lastError = 'Missing Twilio Auth Token or Account SID';
             return false;
         }
 
-        // Twilio API format implementation
-        $accountSid = $company->whatsapp_phone_number_id;
-        $authToken = $company->whatsapp_api_key;
+        $accountSid = trim($company->whatsapp_phone_number_id);
+        $authToken = trim($company->whatsapp_api_key);
         $fromNumber = $company->whatsapp_instance_id ?? 'whatsapp:+14155238886';
-        $toNumber = 'whatsapp:' . preg_replace('/[^0-9+]/', '', $phone);
+        $toNumber = 'whatsapp:+' . self::normalizePhoneNumber($phone);
 
         $response = Http::withBasicAuth($accountSid, $authToken)
             ->asForm()
@@ -131,7 +139,13 @@ class WhatsAppService
                 'Body' => $message,
             ]);
 
-        return $response->successful();
+        if ($response->successful()) {
+            return true;
+        }
+
+        $this->lastError = 'Twilio Error: ' . ($response->json('message') ?? $response->body());
+        Log::error($this->lastError);
+        return false;
     }
 
     /**
@@ -140,12 +154,13 @@ class WhatsAppService
     protected function sendViaUltraMsg($company, string $phone, string $message): bool
     {
         if (empty($company->whatsapp_api_key) || empty($company->whatsapp_instance_id)) {
+            $this->lastError = 'Missing UltraMsg Token or Instance ID';
             return false;
         }
 
-        $instanceId = $company->whatsapp_instance_id;
-        $token = $company->whatsapp_api_key;
-        $toNumber = preg_replace('/[^0-9]/', '', $phone);
+        $instanceId = trim($company->whatsapp_instance_id);
+        $token = trim($company->whatsapp_api_key);
+        $toNumber = self::normalizePhoneNumber($phone);
 
         $response = Http::post("https://api.ultramsg.com/{$instanceId}/messages/chat", [
             'token' => $token,
@@ -153,7 +168,13 @@ class WhatsAppService
             'body' => $message,
         ]);
 
-        return $response->successful();
+        if ($response->successful()) {
+            return true;
+        }
+
+        $this->lastError = 'UltraMsg Error: ' . ($response->json('error') ?? $response->body());
+        Log::error($this->lastError);
+        return false;
     }
 
     /**
@@ -161,18 +182,26 @@ class WhatsAppService
      */
     protected function sendViaMetaCloud($company, string $phone, string $message): bool
     {
-        if (empty($company->whatsapp_api_key) || empty($company->whatsapp_phone_number_id)) {
-            Log::warning('Meta Cloud API Error: Missing API key or Phone Number ID');
+        // 1. Check for Demo sandbox connection
+        if (str_starts_with($company->whatsapp_phone_number_id ?? '', 'PHONE-')) {
+            Log::info("Demo Meta WhatsApp Cloud Dispatch from {$company->whatsapp_connected_phone} to {$phone}: \n{$message}");
+            return true;
+        }
+
+        $token = trim($company->whatsapp_api_key ?: config('services.meta.system_user_token') ?: '');
+        $phoneId = trim($company->whatsapp_phone_number_id ?? '');
+
+        if (empty($token) || empty($phoneId)) {
+            $this->lastError = 'Meta Cloud API Error: Missing API key or Phone Number ID';
+            Log::warning($this->lastError);
             return false;
         }
 
-        $phoneId = trim($company->whatsapp_phone_number_id);
-        $token = trim($company->whatsapp_api_key);
-        $toNumber = preg_replace('/[^0-9]/', '', $phone);
+        $toNumber = self::normalizePhoneNumber($phone);
 
-        // 1. Try sending freeform text message
+        // 2. Try sending freeform text message (works within 24-hr customer service window)
         $response = Http::withToken($token)
-            ->post("https://graph.facebook.com/v18.0/{$phoneId}/messages", [
+            ->post("https://graph.facebook.com/v19.0/{$phoneId}/messages", [
                 'messaging_product' => 'whatsapp',
                 'to' => $toNumber,
                 'type' => 'text',
@@ -184,11 +213,12 @@ class WhatsAppService
             return true;
         }
 
-        Log::error("Meta WhatsApp Cloud API Error ({$response->status()}): " . $response->body());
+        $metaError = $response->json('error.message') ?? $response->body();
+        Log::warning("Meta WhatsApp Cloud API Freeform Notice ({$response->status()}): {$metaError}. Attempting approved template fallback...");
 
-        // 2. If freeform text fails (Meta 24-hour window restriction), fallback to approved template
+        // 3. Fallback to pre-approved Meta Template (required if outside 24-hour window for business-initiated chats)
         $templateResponse = Http::withToken($token)
-            ->post("https://graph.facebook.com/v18.0/{$phoneId}/messages", [
+            ->post("https://graph.facebook.com/v19.0/{$phoneId}/messages", [
                 'messaging_product' => 'whatsapp',
                 'to' => $toNumber,
                 'type' => 'template',
@@ -203,8 +233,26 @@ class WhatsAppService
             return true;
         }
 
-        Log::error("Meta WhatsApp Template Fallback Error ({$templateResponse->status()}): " . $templateResponse->body());
+        $templateError = $templateResponse->json('error.message') ?? $templateResponse->body();
+        $this->lastError = "Meta Cloud Error: {$templateError}";
+        Log::error($this->lastError);
 
         return false;
+    }
+
+    /**
+     * Normalize international phone numbers (e.g. strips + spaces, prepends 91 if 10-digit)
+     */
+    public static function normalizePhoneNumber(string $phone, string $defaultCountryCode = '91'): string
+    {
+        $clean = preg_replace('/[^0-9]/', '', $phone);
+        $clean = ltrim($clean, '0');
+
+        // If 10 digits (standard mobile number without country prefix), prepend default country code
+        if (strlen($clean) === 10) {
+            return $defaultCountryCode . $clean;
+        }
+
+        return $clean;
     }
 }

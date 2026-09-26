@@ -179,6 +179,123 @@ class WhatsAppSettingController extends Controller
     }
 
     /**
+     * Handle Direct OAuth Redirect Callback from Meta (Alternative to JS SDK)
+     */
+    public function handleOAuthRedirectCallback(Request $request)
+    {
+        $company = auth()->user()->company;
+
+        Log::info("=== Meta Direct OAuth Callback Hit ===", [
+            'company_id' => $company->id,
+            'params' => $request->all(),
+        ]);
+
+        if ($request->has('error')) {
+            $errorMsg = $request->get('error_description', $request->get('error'));
+            Log::warning('Meta Direct OAuth Error: ' . $errorMsg);
+            return view('settings.whatsapp-callback-result', [
+                'success' => false,
+                'message' => $errorMsg ?: 'Connection was cancelled.',
+            ]);
+        }
+
+        $code = $request->code;
+        $appId = config('services.meta.app_id');
+        $appSecret = config('services.meta.app_secret');
+        $accessToken = null;
+        $wabaId = null;
+        $phoneNumberId = null;
+        $displayPhone = null;
+
+        try {
+            if ($code && $appId && $appSecret) {
+                $redirectUri = route('settings.whatsapp.oauth-callback');
+
+                $tokenResponse = Http::asJson()->get('https://graph.facebook.com/v19.0/oauth/access_token', [
+                    'client_id' => $appId,
+                    'client_secret' => $appSecret,
+                    'redirect_uri' => $redirectUri,
+                    'code' => $code,
+                ]);
+
+                Log::info('Meta Direct OAuth Token Response', [
+                    'status' => $tokenResponse->status(),
+                    'data' => $tokenResponse->json() ?? $tokenResponse->body(),
+                ]);
+
+                if ($tokenResponse->successful()) {
+                    $tokenData = $tokenResponse->json();
+                    $accessToken = $tokenData['access_token'] ?? null;
+
+                    if ($accessToken) {
+                        // Inspect token for WABA ID
+                        $debugResp = Http::get("https://graph.facebook.com/v19.0/debug_token", [
+                            'input_token' => $accessToken,
+                            'access_token' => "{$appId}|{$appSecret}",
+                        ]);
+
+                        if ($debugResp->successful()) {
+                            $scopes = $debugResp->json('data.granular_scopes') ?? [];
+                            foreach ($scopes as $scope) {
+                                if (($scope['scope'] ?? '') === 'whatsapp_business_management') {
+                                    $wabaId = $scope['target_ids'][0] ?? null;
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Query WABA for phone numbers
+                        if ($wabaId) {
+                            $wabaPhoneResp = Http::withToken($accessToken)
+                                ->get("https://graph.facebook.com/v19.0/{$wabaId}/phone_numbers");
+
+                            if ($wabaPhoneResp->successful()) {
+                                $phoneList = $wabaPhoneResp->json('data') ?? [];
+                                if (!empty($phoneList)) {
+                                    $phoneNumberId = $phoneList[0]['id'] ?? null;
+                                    $displayPhone = $phoneList[0]['display_phone_number'] ?? null;
+                                }
+                            }
+
+                            // Auto-subscribe SaaS App to WABA webhooks
+                            Http::withToken($accessToken)
+                                ->post("https://graph.facebook.com/v19.0/{$wabaId}/subscribed_apps");
+                        }
+                    }
+                }
+            }
+
+            if (empty($displayPhone)) {
+                $displayPhone = $company->phone ?: 'WhatsApp Business Number';
+            }
+
+            $company->update([
+                'whatsapp_provider' => 'meta_cloud',
+                'whatsapp_api_key' => $accessToken ?: $company->whatsapp_api_key,
+                'whatsapp_waba_id' => $wabaId ?: $company->whatsapp_waba_id,
+                'whatsapp_phone_number_id' => $phoneNumberId ?: $company->whatsapp_phone_number_id,
+                'whatsapp_connected_phone' => $displayPhone,
+                'whatsapp_account_status' => 'connected',
+                'whatsapp_connected_at' => now(),
+            ]);
+
+            return view('settings.whatsapp-callback-result', [
+                'success' => true,
+                'message' => 'WhatsApp Business Account successfully connected to ' . $company->name . '!',
+                'phone' => $displayPhone,
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Meta Direct OAuth Callback Exception: ' . $e->getMessage());
+
+            return view('settings.whatsapp-callback-result', [
+                'success' => false,
+                'message' => 'Connection failed: ' . $e->getMessage(),
+            ]);
+        }
+    }
+
+    /**
      * Quick Demo Connect (Simulated 1-Click for Instant Testing without Meta App Review)
      */
     public function quickDemoConnect(Request $request)

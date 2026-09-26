@@ -182,6 +182,7 @@ Route::middleware('auth')->group(function () {
             Route::put('/settings/whatsapp', [\App\Http\Controllers\WhatsAppSettingController::class, 'update'])->name('settings.whatsapp.update');
             Route::post('/settings/whatsapp/test', [\App\Http\Controllers\WhatsAppSettingController::class, 'testSend'])->name('settings.whatsapp.test');
             Route::post('/settings/whatsapp/embedded-callback', [\App\Http\Controllers\WhatsAppSettingController::class, 'handleEmbeddedCallback'])->name('settings.whatsapp.embedded-callback');
+            Route::get('/settings/whatsapp/callback', [\App\Http\Controllers\WhatsAppSettingController::class, 'handleOAuthRedirectCallback'])->name('settings.whatsapp.oauth-callback');
             Route::post('/settings/whatsapp/disconnect', [\App\Http\Controllers\WhatsAppSettingController::class, 'disconnect'])->name('settings.whatsapp.disconnect');
             Route::post('/settings/whatsapp/quick-demo-connect', [\App\Http\Controllers\WhatsAppSettingController::class, 'quickDemoConnect'])->name('settings.whatsapp.demo-connect');
 

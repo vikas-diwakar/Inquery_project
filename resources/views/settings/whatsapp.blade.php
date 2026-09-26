@@ -164,17 +164,13 @@
                 </div>
 
                 <!-- Main Connect Button Section -->
-                <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                    <!-- Primary Meta Embedded Signup Button -->
-                    <button type="button" id="meta-connect-btn" onclick="launchMetaEmbeddedSignup()" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-emerald-600/25 transition duration-150 flex items-center justify-center space-x-3">
+                <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
+                    <!-- Primary Direct Meta OAuth Popup Button (Bypasses JSSDK domain restrictions) -->
+                    <button type="button" onclick="launchMetaOAuth()" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-emerald-600/25 transition duration-150 flex items-center justify-center space-x-3">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.814 2.791.814 3.179 0 5.765-2.587 5.765-5.766.001-3.181-2.584-5.766-5.765-5.766zm9.969 5.766c0 5.518-4.482 10-10 10-1.748 0-3.385-.45-4.819-1.241l-7.181 1.883 1.916-7.003c-.879-1.488-1.386-3.226-1.386-5.08 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
                         </svg>
-                        <span id="btn-text">Connect WhatsApp Business</span>
-                        <svg id="btn-spinner" class="hidden animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                        <span>Connect WhatsApp Business</span>
                     </button>
 
                     <!-- Instant Demo Sandbox Connect Form (For instant local testing) -->
@@ -371,6 +367,28 @@
         textarea.value = text.substring(0, start) + tag + text.substring(end);
         textarea.focus();
         textarea.selectionStart = textarea.selectionEnd = start + tag.length;
+    }
+
+    // Launch Direct Meta OAuth Pop-up (Bypasses JSSDK domain restrictions)
+    function launchMetaOAuth() {
+        if (!META_APP_ID || !META_CONFIG_ID) {
+            alert("Meta App ID or WhatsApp Config ID is not configured yet in .env.\n\nPlease set META_APP_ID and META_WHATSAPP_CONFIG_ID, or use the 'Quick Demo Connect' button.");
+            return;
+        }
+
+        const redirectUri = encodeURIComponent("{{ route('settings.whatsapp.oauth-callback') }}");
+        const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${redirectUri}&config_id=${META_CONFIG_ID}&response_type=code`;
+
+        const w = 620;
+        const h = 750;
+        const left = (screen.width / 2) - (w / 2);
+        const top = (screen.height / 2) - (h / 2);
+
+        console.log('🚀 [Meta WhatsApp Signup] Opening Direct OAuth Dialog:', authUrl);
+        const popup = window.open(authUrl, 'MetaWhatsAppSignup', `width=${w},height=${h},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes`);
+        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+            window.location.href = authUrl; // fallback if browser popup blocker blocked it
+        }
     }
 
     // Initialize Facebook JS SDK if Meta App ID is provided

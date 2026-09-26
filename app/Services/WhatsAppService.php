@@ -64,7 +64,15 @@ class WhatsAppService
             ];
         }
 
-        $provider = $company->whatsapp_provider ?? 'simulated';
+        // Determine WhatsApp provider: use company setting if defined, otherwise fallback to centralized meta_cloud if configured
+        $provider = $company->whatsapp_provider ?? null;
+        if (empty($provider) || $provider === 'simulated') {
+            if (!empty(config('services.social.whatsapp.phone_number_id')) || !empty(env('WHATSAPP_PHONE_NUMBER_ID'))) {
+                $provider = 'meta_cloud';
+            } else {
+                $provider = 'simulated';
+            }
+        }
         $success = false;
         $responseMsg = '';
         $this->lastError = '';
@@ -188,11 +196,17 @@ class WhatsAppService
             return true;
         }
 
-        $token = trim($company->whatsapp_api_key ?: config('services.meta.system_user_token') ?: '');
-        $phoneId = trim($company->whatsapp_phone_number_id ?? '');
+        $token = trim($company->whatsapp_api_key 
+            ?: config('services.meta.system_user_token') 
+            ?: config('services.social.whatsapp.access_token') 
+            ?: env('WHATSAPP_ACCESS_TOKEN', ''));
+
+        $phoneId = trim($company->whatsapp_phone_number_id 
+            ?: config('services.social.whatsapp.phone_number_id') 
+            ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
 
         if (empty($token) || empty($phoneId)) {
-            $this->lastError = 'Meta Cloud API Error: Missing API key or Phone Number ID';
+            $this->lastError = 'Meta Cloud API Error: Missing API key or Phone Number ID in company or centralized config';
             Log::warning($this->lastError);
             return false;
         }

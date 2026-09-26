@@ -64,4 +64,10 @@ return [
         'system_user_token' => env('META_SYSTEM_USER_TOKEN'),
     ],
 
+    'whatsapp' => [
+        'phone_number_id' => env('WHATSAPP_PHONE_NUMBER_ID', '1225311857342715'),
+        'access_token' => env('WHATSAPP_ACCESS_TOKEN', env('META_SYSTEM_USER_TOKEN')),
+        'waba_id' => env('WHATSAPP_WABA_ID', '1874255826882288'),
+    ],
+
 ];

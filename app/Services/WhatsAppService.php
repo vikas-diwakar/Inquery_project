@@ -201,21 +201,23 @@ class WhatsAppService
 
         $token = $useCompanyCustom 
             ? trim($company->whatsapp_api_key)
-            : trim(config('services.meta.system_user_token') 
+            : trim(config('services.whatsapp.access_token')
+                ?: config('services.meta.system_user_token') 
                 ?: config('services.social.whatsapp.access_token') 
                 ?: env('WHATSAPP_ACCESS_TOKEN', ''));
 
         $phoneId = $useCompanyCustom 
             ? trim($company->whatsapp_phone_number_id)
-            : trim(config('services.social.whatsapp.phone_number_id') 
+            : trim(config('services.whatsapp.phone_number_id')
+                ?: config('services.social.whatsapp.phone_number_id') 
                 ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
 
         // If company token is empty, fallback to centralized
         if (empty($token)) {
-            $token = trim(config('services.meta.system_user_token') ?: config('services.social.whatsapp.access_token') ?: env('WHATSAPP_ACCESS_TOKEN', ''));
+            $token = trim(config('services.whatsapp.access_token') ?: config('services.meta.system_user_token') ?: config('services.social.whatsapp.access_token') ?: env('WHATSAPP_ACCESS_TOKEN', ''));
         }
         if (empty($phoneId)) {
-            $phoneId = trim(config('services.social.whatsapp.phone_number_id') ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
+            $phoneId = trim(config('services.whatsapp.phone_number_id') ?: config('services.social.whatsapp.phone_number_id') ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
         }
 
         if (empty($token) || empty($phoneId)) {
@@ -236,12 +238,13 @@ class WhatsAppService
             ]);
 
         if ($response->successful()) {
-            Log::info("Meta WhatsApp Cloud API text message sent successfully to {$toNumber}");
+            Log::info("Meta WhatsApp Cloud API text message sent successfully to {$toNumber} using Phone ID {$phoneId}");
             return true;
         }
 
         $metaError = $response->json('error.message') ?? $response->body();
-        Log::warning("Meta WhatsApp Cloud API Freeform Notice ({$response->status()}): {$metaError}. Attempting approved template fallback...");
+        $tokenPrefix = substr($token, 0, 10);
+        Log::warning("Meta WhatsApp Cloud API Freeform Notice ({$response->status()}): {$metaError}. [Phone: {$phoneId}, Token: {$tokenPrefix}...]. Attempting approved template fallback...");
 
         // 3. Fallback to pre-approved Meta Template (required if outside 24-hour window for business-initiated chats)
         $templateResponse = Http::withToken($token)

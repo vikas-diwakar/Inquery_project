@@ -196,14 +196,27 @@ class WhatsAppService
             return true;
         }
 
-        $token = trim($company->whatsapp_api_key 
-            ?: config('services.meta.system_user_token') 
-            ?: config('services.social.whatsapp.access_token') 
-            ?: env('WHATSAPP_ACCESS_TOKEN', ''));
+        // Only use company-specific credentials if the company has an actively connected custom account
+        $useCompanyCustom = ($company->whatsapp_account_status === 'connected' && !empty($company->whatsapp_api_key) && !empty($company->whatsapp_phone_number_id));
 
-        $phoneId = trim($company->whatsapp_phone_number_id 
-            ?: config('services.social.whatsapp.phone_number_id') 
-            ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
+        $token = $useCompanyCustom 
+            ? trim($company->whatsapp_api_key)
+            : trim(config('services.meta.system_user_token') 
+                ?: config('services.social.whatsapp.access_token') 
+                ?: env('WHATSAPP_ACCESS_TOKEN', ''));
+
+        $phoneId = $useCompanyCustom 
+            ? trim($company->whatsapp_phone_number_id)
+            : trim(config('services.social.whatsapp.phone_number_id') 
+                ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
+
+        // If company token is empty, fallback to centralized
+        if (empty($token)) {
+            $token = trim(config('services.meta.system_user_token') ?: config('services.social.whatsapp.access_token') ?: env('WHATSAPP_ACCESS_TOKEN', ''));
+        }
+        if (empty($phoneId)) {
+            $phoneId = trim(config('services.social.whatsapp.phone_number_id') ?: env('WHATSAPP_PHONE_NUMBER_ID', ''));
+        }
 
         if (empty($token) || empty($phoneId)) {
             $this->lastError = 'Meta Cloud API Error: Missing API key or Phone Number ID in company or centralized config';

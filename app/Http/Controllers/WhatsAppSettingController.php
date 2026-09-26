@@ -359,10 +359,10 @@ class WhatsAppSettingController extends Controller
 
         $updateData = [
             'whatsapp_provider' => $validated['whatsapp_provider'],
-            'whatsapp_api_key' => $validated['whatsapp_api_key'] ?? $company->whatsapp_api_key,
-            'whatsapp_phone_number_id' => $validated['whatsapp_phone_number_id'] ?? $company->whatsapp_phone_number_id,
-            'whatsapp_waba_id' => $validated['whatsapp_waba_id'] ?? $company->whatsapp_waba_id,
-            'whatsapp_connected_phone' => $validated['whatsapp_connected_phone'] ?? $company->whatsapp_connected_phone,
+            'whatsapp_api_key' => $request->filled('whatsapp_api_key') ? $validated['whatsapp_api_key'] : null,
+            'whatsapp_phone_number_id' => $request->filled('whatsapp_phone_number_id') ? $validated['whatsapp_phone_number_id'] : null,
+            'whatsapp_waba_id' => $request->filled('whatsapp_waba_id') ? $validated['whatsapp_waba_id'] : null,
+            'whatsapp_connected_phone' => $request->filled('whatsapp_connected_phone') ? $validated['whatsapp_connected_phone'] : null,
             'whatsapp_instance_id' => $validated['whatsapp_instance_id'] ?? null,
             'whatsapp_auto_send' => $request->has('whatsapp_auto_send'),
             'whatsapp_welcome_template' => $validated['whatsapp_welcome_template'] ?? null,
@@ -371,6 +371,8 @@ class WhatsAppSettingController extends Controller
         if ($validated['whatsapp_provider'] === 'meta_cloud' && !empty($updateData['whatsapp_phone_number_id'])) {
             $updateData['whatsapp_account_status'] = 'connected';
             $updateData['whatsapp_connected_at'] = $company->whatsapp_connected_at ?? now();
+        } else if (empty($updateData['whatsapp_phone_number_id'])) {
+            $updateData['whatsapp_account_status'] = 'disconnected';
         }
 
         $company->update($updateData);

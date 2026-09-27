@@ -64,13 +64,30 @@ class WhatsAppService
             ];
         }
 
-        // Determine WhatsApp provider: use company setting if defined, otherwise fallback to centralized meta_cloud if configured
+        // Determine WhatsApp provider:
+        // 1. Explicit company setting if connected
+        // 2. Explicit WHATSAPP_PROVIDER env variable
+        // 3. Environment-based: in 'local' use UltraMsg for instant testing without template review; in 'production' use official Meta Cloud API
         $provider = $company->whatsapp_provider ?? null;
         if (empty($provider) || $provider === 'simulated') {
-            if (!empty(config('services.social.whatsapp.phone_number_id')) || !empty(env('WHATSAPP_PHONE_NUMBER_ID'))) {
-                $provider = 'meta_cloud';
+            if (!empty(env('WHATSAPP_PROVIDER'))) {
+                $provider = env('WHATSAPP_PROVIDER');
+            } elseif (app()->isLocal() || config('app.env') === 'local') {
+                // LOCAL ENVIRONMENT: Prefer UltraMsg for zero-template, instant delivery
+                if (!empty(env('ULTRAMSG_INSTANCE_ID')) || !empty(env('WHATSAPP_INSTANCE_ID')) || !empty(config('services.ultramsg.instance_id'))) {
+                    $provider = 'ultramsg';
+                } elseif (!empty(config('services.whatsapp.phone_number_id')) || !empty(env('WHATSAPP_PHONE_NUMBER_ID'))) {
+                    $provider = 'meta_cloud';
+                } else {
+                    $provider = 'simulated';
+                }
             } else {
-                $provider = 'simulated';
+                // PRODUCTION ENVIRONMENT: Always use official Meta WhatsApp Cloud API
+                if (!empty(config('services.whatsapp.phone_number_id')) || !empty(env('WHATSAPP_PHONE_NUMBER_ID')) || !empty(config('services.social.whatsapp.phone_number_id'))) {
+                    $provider = 'meta_cloud';
+                } else {
+                    $provider = 'simulated';
+                }
             }
         }
         $success = false;
@@ -161,13 +178,22 @@ class WhatsAppService
      */
     protected function sendViaUltraMsg($company, string $phone, string $message): bool
     {
-        if (empty($company->whatsapp_api_key) || empty($company->whatsapp_instance_id)) {
-            $this->lastError = 'Missing UltraMsg Token or Instance ID';
+        $instanceId = trim($company->whatsapp_instance_id 
+            ?: config('services.ultramsg.instance_id') 
+            ?: env('ULTRAMSG_INSTANCE_ID') 
+            ?: env('WHATSAPP_INSTANCE_ID', ''));
+
+        $token = trim($company->whatsapp_api_key 
+            ?: config('services.ultramsg.token') 
+            ?: env('ULTRAMSG_TOKEN') 
+            ?: env('WHATSAPP_API_KEY', ''));
+
+        if (empty($token) || empty($instanceId)) {
+            $this->lastError = 'Missing UltraMsg Token or Instance ID in company or centralized .env';
+            Log::warning($this->lastError);
             return false;
         }
 
-        $instanceId = trim($company->whatsapp_instance_id);
-        $token = trim($company->whatsapp_api_key);
         $toNumber = self::normalizePhoneNumber($phone);
 
         $response = Http::post("https://api.ultramsg.com/{$instanceId}/messages/chat", [

@@ -70,4 +70,9 @@ return [
         'waba_id' => env('WHATSAPP_WABA_ID', '1874255826882288'),
     ],
 
+    'ultramsg' => [
+        'instance_id' => env('ULTRAMSG_INSTANCE_ID', env('WHATSAPP_INSTANCE_ID')),
+        'token' => env('ULTRAMSG_TOKEN', env('WHATSAPP_API_KEY')),
+    ],
+
 ];

@@ -334,8 +334,8 @@
                     <input type="text" name="whatsapp_phone_number_id" value="{{ old('whatsapp_phone_number_id', $company->whatsapp_phone_number_id) }}" class="input-field" placeholder="e.g. 10928374829">
                 </div>
                 <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">WABA Account ID</label>
-                    <input type="text" name="whatsapp_waba_id" value="{{ old('whatsapp_waba_id', $company->whatsapp_waba_id) }}" class="input-field" placeholder="e.g. 9876543210123">
+                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">WABA Account ID / UltraMsg Instance ID</label>
+                    <input type="text" name="whatsapp_waba_id" value="{{ old('whatsapp_waba_id', $company->whatsapp_waba_id) }}" class="input-field" placeholder="e.g. instance12345 or 9876543210123">
                 </div>
                 <div class="space-y-1.5">
                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Display Business Phone</label>

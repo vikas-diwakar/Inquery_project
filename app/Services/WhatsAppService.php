@@ -46,13 +46,21 @@ class WhatsAppService
             $template
         );
 
-        return $this->sendCustomMessage($inquiry, $message, true);
+        $templateParams = [
+            $inquiry->customer_name ?: 'Valued Customer',
+            $inquiry->project->name ?? 'Project',
+            $company->name ?? 'PropDrip',
+            $brochureUrl,
+            $executiveName,
+        ];
+
+        return $this->sendCustomMessage($inquiry, $message, true, $templateParams);
     }
 
     /**
      * Send a custom or templated WhatsApp message to an inquiry
      */
-    public function sendCustomMessage(Inquiry $inquiry, string $message, bool $force = true): array
+    public function sendCustomMessage(Inquiry $inquiry, string $message, bool $force = true, array $templateParams = []): array
     {
         $company = $inquiry->company;
 
@@ -107,7 +115,7 @@ class WhatsAppService
                     break;
 
                 case 'meta_cloud':
-                    $success = $this->sendViaMetaCloud($company, $inquiry->phone, $message);
+                    $success = $this->sendViaMetaCloud($company, $inquiry->phone, $message, $templateParams);
                     $responseMsg = $success ? 'Sent via Meta Cloud API' : ($this->lastError ?: 'Meta Cloud API Error');
                     break;
 
@@ -179,6 +187,7 @@ class WhatsAppService
     protected function sendViaUltraMsg($company, string $phone, string $message): bool
     {
         $instanceId = trim($company->whatsapp_instance_id 
+            ?: $company->whatsapp_waba_id
             ?: config('services.ultramsg.instance_id') 
             ?: env('ULTRAMSG_INSTANCE_ID') 
             ?: env('WHATSAPP_INSTANCE_ID', ''));
@@ -214,7 +223,7 @@ class WhatsAppService
     /**
      * Send message via Meta WhatsApp Cloud API
      */
-    protected function sendViaMetaCloud($company, string $phone, string $message): bool
+    protected function sendViaMetaCloud($company, string $phone, string $message, array $templateParams = []): bool
     {
         // 1. Check for Demo sandbox connection
         if (str_starts_with($company->whatsapp_phone_number_id ?? '', 'PHONE-')) {
@@ -254,7 +263,40 @@ class WhatsAppService
 
         $toNumber = self::normalizePhoneNumber($phone);
 
-        // 2. Try sending freeform text message (works within 24-hr customer service window)
+        // 2. If template parameters are provided, prioritize the approved Meta Template for cold inquiries
+        if (!empty($templateParams)) {
+            $templateName = env('WHATSAPP_TEMPLATE_NAME', config('services.whatsapp.template_name', 'property_inquiry_brochure'));
+            $templateLang = env('WHATSAPP_TEMPLATE_LANG', config('services.whatsapp.template_lang', 'en_IN'));
+
+            $templateResponse = Http::withToken($token)
+                ->post("https://graph.facebook.com/v19.0/{$phoneId}/messages", [
+                    'messaging_product' => 'whatsapp',
+                    'to' => $toNumber,
+                    'type' => 'template',
+                    'template' => [
+                        'name' => $templateName,
+                        'language' => ['code' => $templateLang],
+                        'components' => [
+                            [
+                                'type' => 'body',
+                                'parameters' => array_map(function ($val) {
+                                    return ['type' => 'text', 'text' => (string) $val];
+                                }, $templateParams),
+                            ]
+                        ]
+                    ]
+                ]);
+
+            if ($templateResponse->successful()) {
+                Log::info("Meta WhatsApp Cloud API template ({$templateName}) sent successfully to {$toNumber} using Phone ID {$phoneId}");
+                return true;
+            }
+
+            $templateError = $templateResponse->json('error.message') ?? $templateResponse->body();
+            Log::warning("Meta WhatsApp Template Dispatch Notice ({$templateResponse->status()}): {$templateError}. Attempting text fallback...");
+        }
+
+        // 3. Try sending freeform text message (works within 24-hr customer service window)
         $response = Http::withToken($token)
             ->post("https://graph.facebook.com/v19.0/{$phoneId}/messages", [
                 'messaging_product' => 'whatsapp',
@@ -269,28 +311,7 @@ class WhatsAppService
         }
 
         $metaError = $response->json('error.message') ?? $response->body();
-        $tokenPrefix = substr($token, 0, 10);
-        Log::warning("Meta WhatsApp Cloud API Freeform Notice ({$response->status()}): {$metaError}. [Phone: {$phoneId}, Token: {$tokenPrefix}...]. Attempting approved template fallback...");
-
-        // 3. Fallback to pre-approved Meta Template (required if outside 24-hour window for business-initiated chats)
-        $templateResponse = Http::withToken($token)
-            ->post("https://graph.facebook.com/v19.0/{$phoneId}/messages", [
-                'messaging_product' => 'whatsapp',
-                'to' => $toNumber,
-                'type' => 'template',
-                'template' => [
-                    'name' => 'hello_world',
-                    'language' => ['code' => 'en_US']
-                ]
-            ]);
-
-        if ($templateResponse->successful()) {
-            Log::info("Meta WhatsApp sent via hello_world template fallback to {$toNumber}");
-            return true;
-        }
-
-        $templateError = $templateResponse->json('error.message') ?? $templateResponse->body();
-        $this->lastError = "Meta Cloud Error: {$templateError}";
+        $this->lastError = "Meta Cloud Error: {$metaError}";
         Log::error($this->lastError);
 
         return false;

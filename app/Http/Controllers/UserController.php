@@ -69,6 +69,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
+        // When viewing users management, clear active project selection
+        session()->forget('selected_project_id');
+
         $companyId = auth()->user()->company_id ?? Company::default()->id;
 
         $users = User::where('company_id', $companyId)

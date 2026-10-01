@@ -15,6 +15,9 @@ class ProjectController extends Controller
      */
     public function index()
     {
+        // When viewing the all-projects list, clear active project selection
+        session()->forget('selected_project_id');
+
         $query = Project::where('company_id', auth()->user()->company_id);
 
         // If user is not admin, only show projects they're assigned to
@@ -40,6 +43,7 @@ class ProjectController extends Controller
     public function create()
     {
         $this->authorize('create', Project::class);
+        session()->forget('selected_project_id');
         return view('projects.create');
     }
 

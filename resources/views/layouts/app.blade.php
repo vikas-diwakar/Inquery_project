@@ -19,6 +19,22 @@
             : asset('images/propdrip-logo.png');
         $hasActiveSub = true;
         $logoRoute = route('dashboard');
+
+        // Project Scope vs Global Scope determination
+        $navSelectedProjectId = session('selected_project_id');
+        // Only show project-specific inner menus if a project is selected AND we are not on global listing/admin routes
+        $isProjectScope = $navSelectedProjectId 
+            && !request()->routeIs('projects.index') 
+            && !request()->routeIs('projects.create') 
+            && !request()->routeIs('users.*') 
+            && !request()->routeIs('settings.company*');
+
+        $navActiveProject = null;
+        if ($navSelectedProjectId && auth()->check()) {
+            $navActiveProject = $project ?? $selectedProject ?? \App\Models\Project::where('id', $navSelectedProjectId)
+                ->where('company_id', auth()->user()->company_id)
+                ->first();
+        }
     @endphp
     @if($hasNavLogo)
         <link rel="preload" as="image" href="{{ $navLogoUrl }}" fetchpriority="high">
@@ -56,7 +72,7 @@
                                 Dashboard
                             </a>
                             
-                            @if(!session('selected_project_id'))
+                            @if(!$isProjectScope)
                                 <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                     Projects
                                 </a>
@@ -72,9 +88,7 @@
                                         <span>Company Settings</span>
                                     </a>
                                 @endif
-                            @endif
-
-                            @if(session('selected_project_id'))
+                            @else
                                 <a href="{{ route('inquiries.index') }}" class="{{ request()->routeIs('inquiries.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
                                     Inquiries
                                 </a>
@@ -96,10 +110,11 @@
 
                     <!-- Right Section: Selected Project & User Profile (Desktop/Tablet) -->
                     <div class="hidden md:flex items-center space-x-3 flex-shrink-0">
-                        @if(session('selected_project_id') && isset($selectedProject))
-                            <div class="flex items-center bg-indigo-50/80 border border-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1.5 rounded-full">
-                                <span class="h-2 w-2 rounded-full bg-indigo-600 mr-2"></span>
-                                <span class="max-w-[120px] truncate">{{ $selectedProject->name }}</span>
+                        @if($navActiveProject && $isProjectScope)
+                            <div class="flex items-center bg-indigo-50/90 border border-indigo-200 text-indigo-900 text-xs font-semibold px-3 py-1.5 rounded-full shadow-2xs">
+                                <span class="h-2 w-2 rounded-full bg-indigo-600 mr-2 shrink-0 animate-pulse"></span>
+                                <span class="max-w-[120px] truncate font-bold" title="{{ $navActiveProject->name }}">{{ $navActiveProject->name }}</span>
+                                <a href="{{ route('projects.index') }}" class="ml-2 text-[10px] text-indigo-600 hover:text-indigo-900 underline font-extrabold uppercase tracking-wider" title="Switch project">Switch</a>
                             </div>
                         @endif
 
@@ -127,10 +142,10 @@
 
                     <!-- Mobile Menu Button (Visible on screens < md) -->
                     <div class="flex items-center md:hidden space-x-2">
-                        @if(session('selected_project_id') && isset($selectedProject))
+                        @if($isProjectScope && $navActiveProject)
                             <div class="flex items-center bg-indigo-50 border border-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-1 rounded-lg max-w-[120px] truncate">
                                 <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 mr-1.5 shrink-0"></span>
-                                <span class="truncate">{{ $selectedProject->name }}</span>
+                                <span class="truncate">{{ $navActiveProject->name }}</span>
                             </div>
                         @endif
 
@@ -165,13 +180,10 @@
                             <span class="text-xs text-indigo-600 font-semibold">{{ auth()->user()->role->name ?? 'User' }}</span>
                         </div>
                     </div>
-                    @if(session('selected_project_id') && isset($selectedProject))
-                        <form action="{{ route('projects.clear-selection') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="text-[11px] font-semibold text-slate-500 hover:text-indigo-600 px-2 py-1 rounded border border-slate-200 bg-white">
-                                Switch Project
-                            </button>
-                        </form>
+                    @if($isProjectScope && $navActiveProject)
+                        <a href="{{ route('projects.index') }}" class="text-[11px] font-semibold text-slate-600 hover:text-indigo-600 px-2 py-1 rounded border border-slate-200 bg-white shadow-2xs">
+                            Switch Project
+                        </a>
                     @endif
                 </div>
 
@@ -183,7 +195,7 @@
                         <span>Dashboard</span>
                     </a>
 
-                    @if(!session('selected_project_id'))
+                    @if(!$isProjectScope)
                         <a href="{{ route('projects.index') }}" 
                             class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('projects.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
@@ -202,9 +214,7 @@
                                 <span>Company Settings</span>
                             </a>
                         @endif
-                    @endif
-
-                    @if(session('selected_project_id'))
+                    @else
                         <a href="{{ route('inquiries.index') }}" 
                             class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('inquiries.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
                             <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>

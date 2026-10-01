@@ -13,6 +13,9 @@ class CompanySettingController extends Controller
      */
     public function edit()
     {
+        // When viewing company settings, clear active project selection
+        session()->forget('selected_project_id');
+
         $company = auth()->user()->company ?? Company::default();
 
         return view('settings.company', compact('company'));

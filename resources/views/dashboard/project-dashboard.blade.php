@@ -7,7 +7,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <div class="flex items-center space-x-3 mb-1.5">
-                <a href="{{ route('dashboard') }}" class="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm font-semibold flex items-center gap-1">
+                <a href="{{ route('projects.index') }}" class="text-indigo-600 hover:text-indigo-800 text-xs sm:text-sm font-semibold flex items-center gap-1">
                     <span>← All Projects</span>
                 </a>
                 <span class="text-gray-300">|</span>

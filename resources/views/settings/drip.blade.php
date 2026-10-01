@@ -12,16 +12,16 @@
             <p class="text-xs sm:text-sm text-slate-500 mt-1">Prevent leads from going cold with automated multi-day WhatsApp messages (Day 1, Day 3, Day 7, Day 14).</p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
-            <form action="{{ route('settings.drip.enroll-past') }}" method="POST">
+        <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <form action="{{ route('settings.drip.enroll-past') }}" method="POST" class="w-full sm:w-auto">
                 @csrf
-                <button type="submit" class="btn-secondary text-xs space-x-2">
+                <button type="submit" class="btn-secondary text-xs space-x-2 w-full sm:w-auto justify-center">
                     <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                     <span>Enroll All Past Leads</span>
                 </button>
             </form>
 
-            <button type="button" onclick="openModal('selectUsersDripModal')" class="btn-primary text-xs space-x-2 shadow-lg shadow-indigo-500/20">
+            <button type="button" onclick="openModal('selectUsersDripModal')" class="btn-primary text-xs space-x-2 shadow-lg shadow-indigo-500/20 w-full sm:w-auto justify-center">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 <span>Dispatch Selected Users Drips</span>
                 @if($stats['pending_drips'] > 0)
@@ -172,7 +172,7 @@
             </div>
 
             <!-- Table Selection Actions -->
-            <div id="tableBulkActions" class="flex items-center space-x-2">
+            <div id="tableBulkActions" class="flex flex-wrap items-center gap-2">
                 <span id="tableSelectedCountBadge" class="hidden text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-xl">
                     0 users selected
                 </span>
@@ -190,18 +190,18 @@
         <form id="tableBulkDispatchForm" action="{{ route('settings.drip.process-selected') }}" method="POST">
             @csrf
             <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-600">
+                <table class="min-w-[700px] w-full text-left text-xs text-slate-600">
                     <thead class="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold">
                         <tr>
-                            <th class="p-3 w-10 text-center">
+                            <th class="p-3 w-10 text-center whitespace-nowrap">
                                 <input type="checkbox" id="selectAllTableCheckbox" onchange="toggleSelectAllTable(this)" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" title="Select All Pending Users">
                             </th>
-                            <th class="p-3">Customer Lead</th>
-                            <th class="p-3">Project</th>
-                            <th class="p-3">Drip Step</th>
-                            <th class="p-3">Scheduled For</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3 text-right">Actions</th>
+                            <th class="p-3 whitespace-nowrap">Customer Lead</th>
+                            <th class="p-3 whitespace-nowrap">Project</th>
+                            <th class="p-3 whitespace-nowrap">Drip Step</th>
+                            <th class="p-3 whitespace-nowrap">Scheduled For</th>
+                            <th class="p-3 whitespace-nowrap">Status</th>
+                            <th class="p-3 text-right whitespace-nowrap">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">

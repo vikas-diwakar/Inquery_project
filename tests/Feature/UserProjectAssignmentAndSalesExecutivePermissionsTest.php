@@ -216,4 +216,154 @@ class UserProjectAssignmentAndSalesExecutivePermissionsTest extends TestCase
             'id' => $this->project1->id,
         ]);
     }
+
+    public function test_sales_executive_cannot_access_user_management(): void
+    {
+        $salesUser = User::create([
+            'company_id' => $this->company->id,
+            'role_id' => $this->salesExecutiveRole->id,
+            'name' => 'Jane Executive',
+            'email' => 'jane.executive@acme.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+        $salesUser->projects()->attach($this->project1->id);
+
+        // Sales executive cannot access users listing
+        $response = $this->actingAs($salesUser)->get(route('users.index'));
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('error');
+
+        // Sales executive cannot access user creation form
+        $response = $this->actingAs($salesUser)->get(route('users.create'));
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('error');
+    }
+
+    public function test_sales_executive_cannot_access_company_settings(): void
+    {
+        $salesUser = User::create([
+            'company_id' => $this->company->id,
+            'role_id' => $this->salesExecutiveRole->id,
+            'name' => 'Jane Executive',
+            'email' => 'jane.executive@acme.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+        $salesUser->projects()->attach($this->project1->id);
+
+        $response = $this->actingAs($salesUser)->get(route('settings.company'));
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('error');
+    }
+
+    public function test_admin_has_full_access_to_users_and_company_settings(): void
+    {
+        // Admin can access users index and create
+        $response = $this->actingAs($this->adminUser)->get(route('users.index'));
+        $response->assertStatus(200);
+
+        $response = $this->actingAs($this->adminUser)->get(route('users.create'));
+        $response->assertStatus(200);
+
+        // Admin can access company settings
+        $response = $this->actingAs($this->adminUser)->get(route('settings.company'));
+        $response->assertStatus(200);
+    }
+
+    public function test_sales_executive_only_sees_assigned_projects(): void
+    {
+        $salesUser = User::create([
+            'company_id' => $this->company->id,
+            'role_id' => $this->salesExecutiveRole->id,
+            'name' => 'Jane Executive',
+            'email' => 'jane.executive@acme.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+        $salesUser->projects()->attach($this->project1->id); // Assigned to project1 ONLY
+
+        // Index page
+        $response = $this->actingAs($salesUser)->get(route('projects.index'));
+        $response->assertStatus(200);
+        $response->assertSee('Sunrise Heights'); // project 1
+        $response->assertDontSee('Ocean Towers'); // project 2
+
+        // Dashboard projects list
+        $response = $this->actingAs($salesUser)->get(route('dashboard'));
+        $response->assertStatus(200);
+        $response->assertSee('Sunrise Heights');
+        $response->assertDontSee('Ocean Towers');
+    }
+
+    public function test_sales_executive_cannot_select_unassigned_project(): void
+    {
+        $salesUser = User::create([
+            'company_id' => $this->company->id,
+            'role_id' => $this->salesExecutiveRole->id,
+            'name' => 'Jane Executive',
+            'email' => 'jane.executive@acme.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+        $salesUser->projects()->attach($this->project1->id); // Assigned to project1 ONLY
+
+        // Attempting to select unassigned project2 must be rejected with 403 Forbidden
+        $response = $this->actingAs($salesUser)->get(route('projects.select', $this->project2));
+        $response->assertStatus(403);
+    }
+
+    public function test_sales_executive_cannot_view_inquiries_of_unassigned_project(): void
+    {
+        $salesUser = User::create([
+            'company_id' => $this->company->id,
+            'role_id' => $this->salesExecutiveRole->id,
+            'name' => 'Jane Executive',
+            'email' => 'jane.executive@acme.com',
+            'password' => bcrypt('password123'),
+            'email_verified_at' => now(),
+        ]);
+        $salesUser->projects()->attach($this->project1->id); // Assigned to project1 ONLY
+
+        // Inquiry belonging to project 2
+        $inquiryProject2 = \App\Models\Inquiry::create([
+            'company_id' => $this->company->id,
+            'project_id' => $this->project2->id,
+            'customer_name' => 'Secret Customer',
+            'phone' => '1234567890',
+            'status' => 'new',
+        ]);
+
+        // Attempting to view inquiry of project 2
+        $response = $this->actingAs($salesUser)
+            ->withSession(['selected_project_id' => $this->project1->id])
+            ->get(route('inquiries.show', $inquiryProject2));
+
+        $response->assertStatus(403);
+    }
+
+    public function test_creating_user_sends_welcome_email_with_credentials(): void
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $response = $this->actingAs($this->adminUser)
+            ->post(route('users.store'), [
+                'name' => 'Michael Salesman',
+                'email' => 'michael.sales@acme.com',
+                'password' => 'SecurePass123!',
+                'password_confirmation' => 'SecurePass123!',
+                'role_id' => $this->salesExecutiveRole->id,
+                'project_ids' => [$this->project1->id],
+            ]);
+
+        $response->assertRedirect(route('users.index'));
+        $response->assertSessionHas('success');
+
+        // Verify welcome email was sent to the new user's email
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\NewUserWelcomeMail::class, function ($mail) {
+            return $mail->hasTo('michael.sales@acme.com')
+                && $mail->password === 'SecurePass123!'
+                && $mail->user->name === 'Michael Salesman';
+        });
+    }
 }

@@ -162,11 +162,11 @@
                 </script>
             </div>
             
-            <div class="pt-6 border-t border-slate-200 flex items-center justify-between">
-                <a href="{{ route('projects.index') }}" class="btn-secondary">
+            <div class="pt-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                <a href="{{ route('projects.index') }}" class="btn-secondary w-full sm:w-auto text-center justify-center">
                     Cancel
                 </a>
-                <button type="submit" class="btn-primary space-x-2">
+                <button type="submit" class="btn-primary space-x-2 w-full sm:w-auto justify-center">
                     <span>Create Project</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>

@@ -96,9 +96,13 @@
                     </div>
                 </div>
                 
-                <!-- Role Dropdown -->
-                <div class="md:col-span-2 space-y-1.5">
-                    <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">User Role <span class="text-rose-500">*</span></label>
+                <!-- Role Dropdown & Information Card -->
+                <div class="md:col-span-2 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label for="role_id" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Assign User Role <span class="text-rose-500">*</span></label>
+                        <span id="role-badge-preview" class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">Select a role below</span>
+                    </div>
+
                     <div class="relative rounded-xl shadow-sm">
                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,13 +111,34 @@
                         </div>
                         <select name="role_id" id="role_id" required onchange="toggleProjectsField()" 
                             class="block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all cursor-pointer">
-                            <option value="">-- Select a role --</option>
+                            <option value="">-- Choose User Role --</option>
                             @foreach($roles as $role)
+                                @php
+                                    $desc = match($role->name) {
+                                        'Admin' => 'Admin (Full Access: Dashboard, Users, Settings, Projects)',
+                                        'Manager' => 'Manager (Manage Projects, Brochures, Inquiries & Leads)',
+                                        'Sales Executive' => 'Sales Executive (Handle Assigned Inquiries & WhatsApp)',
+                                        default => $role->name,
+                                    };
+                                @endphp
                                 <option value="{{ $role->id }}" data-role-name="{{ $role->name }}" {{ old('role_id', $user->role_id) == $role->id ? 'selected' : '' }}>
-                                    {{ $role->name }} {{ $role->name === 'Admin' ? '(Full Access)' : '' }}
+                                    {{ $desc }}
                                 </option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <!-- Role Explanation Helper Card -->
+                    <div id="role-info-card" class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 flex items-start space-x-3 transition-all">
+                        <div id="role-icon-container" class="shrink-0 p-1.5 rounded-lg bg-indigo-100 text-indigo-700">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div class="space-y-0.5">
+                            <div class="font-bold text-slate-800" id="role-title-text">Select a user role</div>
+                            <div id="role-desc-text" class="text-slate-500">Choosing a role determines what permissions the user has and whether project assignment is compulsory.</div>
+                        </div>
                     </div>
                 </div>
 
@@ -143,11 +168,11 @@
             </div>
             
             <!-- Submit & Cancel Actions -->
-            <div class="pt-6 border-t border-slate-200 flex items-center justify-between">
-                <a href="{{ route('users.index') }}" class="btn-secondary">
+            <div class="pt-6 border-t border-slate-200 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3">
+                <a href="{{ route('users.index') }}" class="btn-secondary w-full sm:w-auto text-center justify-center">
                     Cancel
                 </a>
-                <button type="submit" class="btn-primary space-x-2">
+                <button type="submit" class="btn-primary space-x-2 w-full sm:w-auto justify-center">
                     <span>Update User Account</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -159,6 +184,57 @@
 </div>
 
 <script>
+    function updateRolePreview(roleName) {
+        const previewBadge = document.getElementById('role-badge-preview');
+        const titleText = document.getElementById('role-title-text');
+        const descText = document.getElementById('role-desc-text');
+        const iconContainer = document.getElementById('role-icon-container');
+
+        if (!roleName) {
+            if (previewBadge) {
+                previewBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600';
+                previewBadge.textContent = 'Select a role below';
+            }
+            if (titleText) titleText.textContent = 'Select a user role';
+            if (descText) descText.textContent = 'Choosing a role determines what permissions the user has and whether project assignment is compulsory.';
+            return;
+        }
+
+        if (roleName === 'Admin') {
+            if (previewBadge) {
+                previewBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-700 border border-purple-200';
+                previewBadge.textContent = 'Admin (Full Access)';
+            }
+            if (titleText) titleText.textContent = 'Administrator (Full Unrestricted Access)';
+            if (descText) descText.textContent = 'Admins have complete access across the CRM, including user management, settings, WhatsApp API configuration, and all projects automatically.';
+            if (iconContainer) iconContainer.className = 'shrink-0 p-1.5 rounded-lg bg-purple-100 text-purple-700';
+        } else if (roleName === 'Manager') {
+            if (previewBadge) {
+                previewBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200';
+                previewBadge.textContent = 'Manager';
+            }
+            if (titleText) titleText.textContent = 'Manager (Assigned Projects & Inquiries)';
+            if (descText) descText.textContent = 'Managers can oversee inquiries, brochures, follow-ups, and lead drips for the specific projects assigned below.';
+            if (iconContainer) iconContainer.className = 'shrink-0 p-1.5 rounded-lg bg-indigo-100 text-indigo-700';
+        } else if (roleName === 'Sales Executive') {
+            if (previewBadge) {
+                previewBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200';
+                previewBadge.textContent = 'Sales Executive';
+            }
+            if (titleText) titleText.textContent = 'Sales Executive (Assigned Leads & Inquiries)';
+            if (descText) descText.textContent = 'Sales Executives can view and manage their assigned customer inquiries, send WhatsApp messages, and schedule follow-ups for assigned projects.';
+            if (iconContainer) iconContainer.className = 'shrink-0 p-1.5 rounded-lg bg-emerald-100 text-emerald-700';
+        } else {
+            if (previewBadge) {
+                previewBadge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200';
+                previewBadge.textContent = roleName;
+            }
+            if (titleText) titleText.textContent = roleName + ' Role';
+            if (descText) descText.textContent = 'Custom role permissions applied to assigned projects.';
+            if (iconContainer) iconContainer.className = 'shrink-0 p-1.5 rounded-lg bg-slate-100 text-slate-700';
+        }
+    }
+
     function toggleProjectsField() {
         const roleSelect = document.getElementById('role_id');
         if (!roleSelect) return;
@@ -166,6 +242,8 @@
         const roleName = selectedOption ? selectedOption.getAttribute('data-role-name') : null;
         const projectsField = document.getElementById('projects-field');
         
+        updateRolePreview(roleName);
+
         if (projectsField) {
             if (roleName && roleName !== 'Admin') {
                 projectsField.style.display = 'block';
@@ -241,4 +319,3 @@
     });
 </script>
 @endsection
-

@@ -24,12 +24,12 @@
                     <div class="p-6 rounded-2xl bg-slate-50 border border-slate-200/80 flex justify-center shadow-inner">
                         <img id="inquiryQrImg" src="{{ Storage::url($project->inquiry_qr_code) }}?v={{ @filemtime(storage_path('app/public/' . $project->inquiry_qr_code)) ?: time() }}" alt="Inquiry QR Code" class="w-64 h-64 object-contain">
                     </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button id="downloadPngBtn" type="button" class="btn-primary space-x-2 w-full">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button id="downloadPngBtn" type="button" class="btn-primary space-x-2 w-full justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             <span>Download PNG</span>
                         </button>
-                        <button id="downloadJpegBtn" type="button" class="btn-secondary space-x-2 w-full">
+                        <button id="downloadJpegBtn" type="button" class="btn-secondary space-x-2 w-full justify-center">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                             <span>Download JPEG</span>
                         </button>

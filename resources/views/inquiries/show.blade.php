@@ -4,16 +4,16 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto py-4 space-y-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <a href="{{ route('inquiries.index') }}" class="inline-flex items-center space-x-2 text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             <span>Back to Inquiries</span>
         </a>
 
         <!-- Resend WhatsApp Button -->
-        <form action="{{ route('inquiries.resend-whatsapp', $inquiry) }}" method="POST">
+        <form action="{{ route('inquiries.resend-whatsapp', $inquiry) }}" method="POST" class="w-full sm:w-auto">
             @csrf
-            <button type="submit" class="btn-secondary text-xs space-x-2">
+            <button type="submit" class="btn-secondary text-xs space-x-2 w-full sm:w-auto justify-center">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                 <span>Resend WhatsApp Brochure</span>
             </button>
@@ -208,7 +208,7 @@
                     <select name="assigned_to" id="assigned_to" class="input-field cursor-pointer">
                         <option value="">-- Unassigned --</option>
                         @foreach(\App\Models\User::where('company_id', auth()->user()?->company_id ?? $inquiry->company_id)->get() as $user)
-                            <option value="{{ $user->id }}" {{ $inquiry->assigned_to === $user->id ? 'selected' : '' }}>{{ $user->name }} ({{ $user->email }})</option>
+                            <option value="{{ $user->id }}" {{ $inquiry->assigned_to === $user->id ? 'selected' : '' }}>{{ $user->name }} [{{ $user->role->name ?? 'Staff' }}] ({{ $user->email }})</option>
                         @endforeach
                     </select>
                 </div>
@@ -220,7 +220,7 @@
             </div>
             
             <div class="pt-2 flex justify-end">
-                <button type="submit" class="btn-primary space-x-2">
+                <button type="submit" class="btn-primary space-x-2 w-full sm:w-auto justify-center">
                     <span>Update Status & Notes</span>
                 </button>
             </div>
@@ -229,12 +229,12 @@
 
     <!-- Automated Lead Drip Nurturing Timeline Card -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8 space-y-4">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
                 <h2 class="text-lg font-bold text-slate-900">Automated Lead Nurturing Drip Timeline</h2>
                 <p class="text-xs text-slate-500">Multi-touch scheduled WhatsApp sequence (Day 1, Day 3, Day 7, Day 14).</p>
             </div>
-            <a href="{{ route('settings.drip') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Configure Drip Templates →</a>
+            <a href="{{ route('settings.drip') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 shrink-0">Configure Drip Templates →</a>
         </div>
 
         <div class="space-y-3">

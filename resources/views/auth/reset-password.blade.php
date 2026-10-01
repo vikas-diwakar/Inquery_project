@@ -42,7 +42,7 @@
         @endif
 
         <!-- Form -->
-        <form class="space-y-5" action="{{ route('password.update') }}" method="POST">
+        <form class="space-y-5" action="{{ route('password.update', [], false) }}" method="POST">
             @csrf
             <input type="hidden" name="token" value="{{ $token }}">
 

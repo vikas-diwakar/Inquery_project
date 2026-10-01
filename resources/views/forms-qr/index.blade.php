@@ -18,7 +18,7 @@
                 <h2 class="text-lg font-semibold text-slate-900">Create Inquiry Form QR</h2>
             </div>
             <p class="text-slate-600 mb-4 text-sm">Generate unique QR codes for project inquiry forms. Public users can scan these to access and submit inquiry forms.</p>
-            <a href="{{ route('forms-qr.create-inquiry-form') }}" class="btn-primary inline-flex">
+            <a href="{{ route('forms-qr.create-inquiry-form') }}" class="btn-primary inline-flex w-full sm:w-auto text-center justify-center">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                 Create Inquiry Form QR
             </a>
@@ -31,7 +31,7 @@
                 <h2 class="text-lg font-semibold text-slate-900">Brochure QR Codes</h2>
             </div>
             <p class="text-slate-600 mb-4 text-sm">View and manage QR codes for project brochures. Users can scan these to download brochures directly.</p>
-            <a href="{{ route('forms-qr.brochure-qr') }}" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm">
+            <a href="{{ route('forms-qr.brochure-qr') }}" class="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-sm w-full sm:w-auto">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 View Brochure QR Codes
             </a>
@@ -60,9 +60,9 @@
         </div>
         <div class="mt-4">
             @if($project->inquiry_qr_code && Storage::disk('public')->exists($project->inquiry_qr_code))
-                <a href="{{ route('forms-qr.show-inquiry-qr') }}" class="btn-primary">View QR Code</a>
+                <a href="{{ route('forms-qr.show-inquiry-qr') }}" class="btn-primary inline-flex w-full sm:w-auto text-center justify-center">View QR Code</a>
             @else
-                <a href="{{ route('forms-qr.create-inquiry-form') }}" class="btn-primary">Generate QR Code</a>
+                <a href="{{ route('forms-qr.create-inquiry-form') }}" class="btn-primary inline-flex w-full sm:w-auto text-center justify-center">Generate QR Code</a>
             @endif
         </div>
     </div>

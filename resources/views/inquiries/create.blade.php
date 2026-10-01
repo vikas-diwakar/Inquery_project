@@ -111,7 +111,7 @@
                         <option value="">-- Unassigned --</option>
                         @foreach($projectUsers as $user)
                             <option value="{{ $user->id }}" {{ old('assigned_to') == $user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ $user->email }})
+                                {{ $user->name }} [{{ $user->role->name ?? 'Staff' }}] ({{ $user->email }})
                             </option>
                         @endforeach
                     </select>

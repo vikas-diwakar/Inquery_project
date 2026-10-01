@@ -118,13 +118,18 @@ class ProjectController extends Controller
      */
     public function select(Request $request, Project $project)
     {
-        if (!auth()->user()->can('view', $project)) {
-            abort(403, 'Unauthorized access');
-        }
-
         // Verify project belongs to user's company
         if ($project->company_id !== auth()->user()->company_id) {
             abort(403, 'Unauthorized access');
+        }
+
+        // Authorize via ProjectPolicy (checks assignment for non-admin users)
+        $this->authorize('view', $project);
+
+        // Explicit safeguard for non-admin users (Sales Executives, Managers)
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$user->projects()->where('projects.id', $project->id)->exists()) {
+            abort(403, 'Unauthorized access: You are not assigned to this project.');
         }
 
         // Set selected project in session

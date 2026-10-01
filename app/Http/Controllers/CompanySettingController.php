@@ -13,7 +13,7 @@ class CompanySettingController extends Controller
      */
     public function edit()
     {
-        $company = Company::default();
+        $company = auth()->user()->company ?? Company::default();
 
         return view('settings.company', compact('company'));
     }
@@ -23,7 +23,7 @@ class CompanySettingController extends Controller
      */
     public function update(Request $request)
     {
-        $company = Company::default();
+        $company = auth()->user()->company ?? Company::default();
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -65,6 +65,6 @@ class CompanySettingController extends Controller
         $company->save();
 
         return redirect()->route('settings.company')
-            ->with('success', 'Company details updated successfully.');
+            ->with('success', 'Company details and logo updated successfully.');
     }
 }

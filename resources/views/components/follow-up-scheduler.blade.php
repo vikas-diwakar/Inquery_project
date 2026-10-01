@@ -26,7 +26,7 @@
                 <textarea id="notes" name="notes" rows="3" class="input-field border px-3 py-2.5" placeholder="Add any notes for this follow-up...">{{ old('notes', $inquiry->follow_up_notes) }}</textarea>
                 @error('notes')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-            <button type="submit" class="btn-primary">Schedule Follow-up</button>
+            <button type="submit" class="btn-primary w-full sm:w-auto justify-center">Schedule Follow-up</button>
         </form>
 
         <div class="mt-6 pt-6 border-t border-slate-200">

@@ -136,15 +136,15 @@
                 </script>
             </div>
             
-            <div class="mt-6 flex items-center justify-between pt-4 border-t border-slate-200">
-                <div class="flex space-x-3">
-                    <button type="submit" class="btn-primary">Update Project</button>
-                    <a href="{{ route('projects.index') }}" class="btn-secondary">Cancel</a>
+            <div class="mt-6 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-4 pt-4 border-t border-slate-200">
+                <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+                    <button type="submit" class="btn-primary w-full sm:w-auto justify-center">Update Project</button>
+                    <a href="{{ route('projects.index') }}" class="btn-secondary w-full sm:w-auto text-center justify-center">Cancel</a>
                 </div>
                 @can('delete', $project)
                     <button type="button" 
                         onclick="showConfirmationModal('Delete Project', 'Are you sure you want to delete \'{{ addslashes($project->name) }}\'? All existing records will be archived safely in the database.', function() { document.getElementById('delete-project-form-{{ $project->id }}').submit(); })"
-                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all">
+                        class="px-4 py-2 rounded-xl text-sm font-semibold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition-all w-full sm:w-auto text-center">
                         Delete Project
                     </button>
                 @endcan

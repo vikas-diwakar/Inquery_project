@@ -100,9 +100,9 @@
                 <input type="date" name="date_to" id="date_to" value="{{ request('date_to') }}" class="input-field py-2 text-xs">
             </div>
 
-            <div class="sm:col-span-2 md:col-span-4 flex justify-end space-x-3 pt-2">
-                <a href="{{ route('inquiries.index') }}" class="btn-secondary text-xs py-2 px-4">Clear Filters</a>
-                <button type="submit" class="btn-primary text-xs py-2 px-5">Apply Filters</button>
+            <div class="sm:col-span-2 md:col-span-4 flex flex-col sm:flex-row justify-end gap-2 pt-2">
+                <a href="{{ route('inquiries.index') }}" class="btn-secondary text-xs py-2 px-4 text-center justify-center">Clear Filters</a>
+                <button type="submit" class="btn-primary text-xs py-2 px-5 text-center justify-center">Apply Filters</button>
             </div>
         </form>
     </div>
@@ -110,21 +110,21 @@
     <!-- Inquiries Table -->
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs text-slate-600">
+            <table class="w-full text-left text-xs text-slate-600 min-w-[700px]">
                 <thead class="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold">
                     <tr>
-                        <th class="p-4 w-10">
+                        <th class="p-4 w-10 whitespace-nowrap">
                             <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)" 
                                 class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" 
                                 title="Select All On This Page">
                         </th>
-                        <th class="p-4">Customer</th>
-                        <th class="p-4">AI Intent Score</th>
-                        <th class="p-4">Assigned Executive</th>
-                        <th class="p-4">Unit Option / Budget</th>
-                        <th class="p-4">Lead Status</th>
-                        <th class="p-4">Date</th>
-                        <th class="p-4 text-right">Actions</th>
+                        <th class="p-4 whitespace-nowrap">Customer</th>
+                        <th class="p-4 whitespace-nowrap">AI Intent Score</th>
+                        <th class="p-4 whitespace-nowrap">Assigned Executive</th>
+                        <th class="p-4 whitespace-nowrap">Unit Option / Budget</th>
+                        <th class="p-4 whitespace-nowrap">Lead Status</th>
+                        <th class="p-4 whitespace-nowrap">Date</th>
+                        <th class="p-4 text-right whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">

@@ -18,13 +18,13 @@
             @forelse($brochures as $brochure)
                 <li>
                     <div class="px-4 py-4 sm:px-6">
-                        <div class="flex items-center justify-between">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div class="flex items-center">
-                                <svg class="h-10 w-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg class="h-10 w-10 text-red-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
-                                <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-900">{{ $brochure->file_name }}</p>
+                                <div class="ml-4 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">{{ $brochure->file_name }}</p>
                                     <p class="text-sm text-gray-500">Uploaded: {{ $brochure->created_at->format('M d, Y') }}</p>
                                 </div>
                             </div>
@@ -45,15 +45,15 @@
                                     <div class="border-2 border-slate-200 p-2 rounded-xl bg-white shadow-sm shrink-0">
                                         <img src="{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}?v={{ @filemtime(storage_path('app/public/qrcodes/brochure_' . $brochure->id . '.svg')) ?: time() }}" alt="Brochure QR Code" class="w-20 h-20 object-contain">
                                     </div>
-                                    <div>
+                                    <div class="min-w-0">
                                         <p class="text-xs font-semibold text-slate-700">Scan to download brochure</p>
                                         <a href="{{ $brochure->getDownloadUrl() }}" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 break-all font-mono">{{ $brochure->getDownloadUrl() }}</a>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-2 shrink-0">
+                                <div class="flex items-center space-x-2 shrink-0 w-full sm:w-auto">
                                     <button type="button" 
                                             onclick="downloadBrandedBrochureQr('{{ Storage::url('qrcodes/brochure_' . $brochure->id . '.svg') }}?v={{ @filemtime(storage_path('app/public/qrcodes/brochure_' . $brochure->id . '.svg')) ?: time() }}', '{{ addslashes($project->company->name ?? auth()->user()->company->name ?? 'Company') }}', '{{ addslashes($project->name) }}', '{{ addslashes($brochure->file_name) }}')" 
-                                            class="inline-flex items-center justify-center px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm space-x-1.5">
+                                            class="inline-flex items-center justify-center px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 transition-colors shadow-sm space-x-1.5 w-full sm:w-auto">
                                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                                         <span>Download QR Code</span>
                                     </button>

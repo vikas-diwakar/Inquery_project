@@ -52,7 +52,7 @@
         @endif
 
         <!-- Form -->
-        <form class="space-y-5" action="{{ route('password.email') }}" method="POST">
+        <form class="space-y-5" action="{{ route('password.email', [], false) }}" method="POST">
             @csrf
 
             <div class="space-y-1.5">

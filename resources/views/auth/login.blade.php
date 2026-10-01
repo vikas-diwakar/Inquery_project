@@ -141,7 +141,7 @@
                 @endif
 
                 <!-- Login Form -->
-                <form method="POST" action="{{ route('login') }}" class="space-y-4">
+                <form method="POST" action="{{ route('login', [], false) }}" class="space-y-4">
                     @csrf
 
                     <!-- Email Field -->

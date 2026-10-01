@@ -40,8 +40,8 @@
     <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-6 sm:p-7 text-white shadow-xl relative overflow-hidden">
         <div class="absolute -right-16 -top-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
         <div class="relative z-10 space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span class="px-3 py-1 rounded-full text-[11px] font-mono font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 w-fit">
                     Official Meta WhatsApp Cloud API (BSP Option 2)
                 </span>
                 <span class="text-xs text-slate-300 font-medium">Tenant ID: #{{ $company->id }} ({{ $company->name }})</span>

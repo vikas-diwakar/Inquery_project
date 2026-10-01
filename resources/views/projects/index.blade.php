@@ -62,12 +62,12 @@
                 </div>
 
                 <!-- Action Footer Buttons -->
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-between gap-2">
-                    <a href="{{ route('projects.select', $project) }}" class="btn-primary text-xs py-2 px-3 space-x-1 flex-1 text-center justify-center">
+                <div class="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+                    <a href="{{ route('projects.select', $project) }}" class="btn-primary text-xs py-2 px-3 space-x-1 flex-1 min-w-[110px] text-center justify-center">
                         <span>Select Project</span>
                     </a>
                     
-                    <a href="{{ route('projects.units.index', $project) }}" class="btn-secondary text-xs py-2 px-3 space-x-1" title="Manage Stacking Chart Units">
+                    <a href="{{ route('projects.units.index', $project) }}" class="btn-secondary text-xs py-2 px-3 space-x-1 shrink-0" title="Manage Stacking Chart Units">
                         <span>🏗️ Stacking Chart</span>
                     </a>
 

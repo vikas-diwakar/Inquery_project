@@ -8,15 +8,27 @@ use App\Models\User;
 class ProjectPolicy
 {
     /**
-     * Determine if the user can view the project
+     * Determine if the user can view the project.
+     * Admin has access to all company projects.
+     * Non-admin users (such as Sales Executives) can ONLY access their assigned projects.
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->company_id === $project->company_id;
+        if ($user->company_id !== $project->company_id) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        // Non-admin users can ONLY view/access projects assigned to them
+        return $user->projects()->where('projects.id', $project->id)->exists();
     }
 
     /**
-     * Determine if the user can create projects
+     * Determine if the user can create projects.
+     * Sales Executives cannot create projects.
      */
     public function create(User $user): bool
     {
@@ -28,7 +40,8 @@ class ProjectPolicy
     }
 
     /**
-     * Determine if the user can update the project
+     * Determine if the user can update the project.
+     * Sales Executives cannot update projects.
      */
     public function update(User $user, Project $project): bool
     {
@@ -41,7 +54,8 @@ class ProjectPolicy
     }
 
     /**
-     * Determine if the user can delete the project
+     * Determine if the user can delete the project.
+     * Only Admin can delete projects.
      */
     public function delete(User $user, Project $project): bool
     {

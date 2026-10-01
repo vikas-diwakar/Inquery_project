@@ -126,4 +126,34 @@ class StandaloneCrmTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Oceanview Residences');
     }
+
+    public function test_admin_can_upload_update_and_remove_company_logo(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        // 1. Upload new logo
+        $logoFile = \Illuminate\Http\UploadedFile::fake()->image('agency-logo.png', 400, 100);
+
+        $response = $this->actingAs($this->adminUser)->put(route('settings.company.update'), [
+            'name' => 'Apex Real Estate',
+            'email' => 'contact@apex.test',
+            'logo' => $logoFile,
+        ]);
+
+        $response->assertRedirect(route('settings.company'));
+        $this->company->refresh();
+        $this->assertNotNull($this->company->logo);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($this->company->logo);
+
+        // 2. Remove logo
+        $removeResponse = $this->actingAs($this->adminUser)->put(route('settings.company.update'), [
+            'name' => 'Apex Real Estate',
+            'email' => 'contact@apex.test',
+            'remove_logo' => '1',
+        ]);
+
+        $removeResponse->assertRedirect(route('settings.company'));
+        $this->company->refresh();
+        $this->assertNull($this->company->logo);
+    }
 }

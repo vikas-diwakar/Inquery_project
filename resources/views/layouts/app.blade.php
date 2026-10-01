@@ -13,13 +13,16 @@
 
     @php
         $navCompany = $currentTenant ?? (auth()->check() ? auth()->user()->company : \App\Models\Company::default());
-        $navLogoUrl = ($navCompany && $navCompany->logo) 
+        $hasNavLogo = $navCompany && $navCompany->logo && \Illuminate\Support\Facades\Storage::disk('public')->exists($navCompany->logo);
+        $navLogoUrl = $hasNavLogo 
             ? asset('storage/' . $navCompany->logo) 
             : asset('images/propdrip-logo.png');
         $hasActiveSub = true;
         $logoRoute = route('dashboard');
     @endphp
-    <link rel="preload" as="image" href="{{ $navLogoUrl }}" fetchpriority="high">
+    @if($hasNavLogo)
+        <link rel="preload" as="image" href="{{ $navLogoUrl }}" fetchpriority="high">
+    @endif
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -30,14 +33,20 @@
                 <div class="flex justify-between h-16 items-center">
                     <!-- Left Section: Logo & Nav Links -->
                     <div class="flex items-center space-x-4 lg:space-x-6 flex-shrink-0">
-                        <div class="w-32 sm:w-36 h-9 flex items-center flex-shrink-0">
-                            <a href="{{ $logoRoute }}" class="flex items-center h-full w-full">
-                                <img src="{{ $navLogoUrl }}" 
-                                    alt="{{ $navCompany->name ?? config('app.name') }}" 
-                                    width="130" height="36"
-                                    loading="eager" decoding="sync" fetchpriority="high"
-                                    style="height: 36px; max-height: 36px; max-width: 130px; width: auto; object-fit: contain;" 
-                                    class="rounded-lg object-contain flex-shrink-0">
+                        <div class="h-9 flex items-center flex-shrink-0">
+                            <a href="{{ $logoRoute }}" class="flex items-center h-full">
+                                @if($hasNavLogo)
+                                    <img src="{{ $navLogoUrl }}" 
+                                        alt="{{ $navCompany->name ?? config('app.name') }}" 
+                                        width="130" height="36"
+                                        loading="eager" decoding="sync" fetchpriority="high"
+                                        style="height: 36px; max-height: 36px; max-width: 150px; width: auto; object-fit: contain;" 
+                                        class="rounded-lg object-contain flex-shrink-0">
+                                @else
+                                    <div class="h-9 px-3 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shadow-xs tracking-tight">
+                                        {{ $navCompany->name ?? config('app.name') }}
+                                    </div>
+                                @endif
                             </a>
                         </div>
 
@@ -85,8 +94,8 @@
                         </div>
                     </div>
 
-                    <!-- Right Section: Selected Project & User Profile -->
-                    <div class="hidden sm:flex items-center space-x-3 flex-shrink-0">
+                    <!-- Right Section: Selected Project & User Profile (Desktop/Tablet) -->
+                    <div class="hidden md:flex items-center space-x-3 flex-shrink-0">
                         @if(session('selected_project_id') && isset($selectedProject))
                             <div class="flex items-center bg-indigo-50/80 border border-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1.5 rounded-full">
                                 <span class="h-2 w-2 rounded-full bg-indigo-600 mr-2"></span>
@@ -108,7 +117,7 @@
                         <!-- Logout Button -->
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
-                            <button type="submit" title="Sign out" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                            <button type="submit" title="Sign out" class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                                 </svg>
@@ -116,41 +125,122 @@
                         </form>
                     </div>
 
-                    <!-- Mobile Menu Button -->
-                    <div class="flex items-center sm:hidden">
-                        <button type="button" onclick="document.getElementById('mobileMenu').classList.toggle('hidden')" class="p-2 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <!-- Mobile Menu Button (Visible on screens < md) -->
+                    <div class="flex items-center md:hidden space-x-2">
+                        @if(session('selected_project_id') && isset($selectedProject))
+                            <div class="flex items-center bg-indigo-50 border border-indigo-100 text-indigo-700 text-[11px] font-bold px-2 py-1 rounded-lg max-w-[120px] truncate">
+                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-600 mr-1.5 shrink-0"></span>
+                                <span class="truncate">{{ $selectedProject->name }}</span>
+                            </div>
+                        @endif
+
+                        <button type="button" 
+                            id="mobileMenuToggle"
+                            onclick="toggleMobileMenu()" 
+                            class="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                            aria-label="Toggle Navigation Menu">
+                            <!-- Hamburger Icon -->
+                            <svg id="hamburgerIcon" class="h-6 w-6 block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <!-- Close Icon -->
+                            <svg id="closeIcon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <!-- Mobile Navigation Drawer -->
-            <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 bg-white/95 px-4 pt-2 pb-4 space-y-1">
-                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
-                @if(!session('selected_project_id'))
-                    <a href="{{ route('projects.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Projects</a>
-                @endif
-                @if(session('selected_project_id'))
-                    <a href="{{ route('inquiries.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Inquiries</a>
-                    <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Follow-ups</a>
-                    <a href="{{ route('brochures.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Brochures</a>
-                    <a href="{{ route('forms-qr.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Form & QR</a>
-                    <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
-                @endif
-                @if(auth()->user()->isAdmin())
-                    @if(!session('selected_project_id'))
-                        <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>
-                        <a href="{{ route('settings.company') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Company Settings</a>
+            <!-- Enhanced Mobile Navigation Drawer -->
+            <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 bg-white shadow-xl transition-all">
+                <!-- User Profile Header in Mobile Drawer -->
+                <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-9 w-9 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="font-bold text-slate-900 text-sm leading-tight">{{ auth()->user()->name }}</span>
+                            <span class="text-xs text-indigo-600 font-semibold">{{ auth()->user()->role->name ?? 'User' }}</span>
+                        </div>
+                    </div>
+                    @if(session('selected_project_id') && isset($selectedProject))
+                        <form action="{{ route('projects.clear-selection') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="text-[11px] font-semibold text-slate-500 hover:text-indigo-600 px-2 py-1 rounded border border-slate-200 bg-white">
+                                Switch Project
+                            </button>
+                        </form>
                     @endif
-                @endif
-                <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
-                    <span class="text-sm font-medium text-slate-700">{{ auth()->user()->name }}</span>
+                </div>
+
+                <!-- Navigation Links List -->
+                <div class="px-3 py-3 space-y-1">
+                    <a href="{{ route('dashboard') }}" 
+                        class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+
+                    @if(!session('selected_project_id'))
+                        <a href="{{ route('projects.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('projects.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            <span>Projects</span>
+                        </a>
+
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('users.index') }}" 
+                                class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+                                <span>Users</span>
+                            </a>
+                            <a href="{{ route('settings.company') }}" 
+                                class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('settings.company*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                <span>Company Settings</span>
+                            </a>
+                        @endif
+                    @endif
+
+                    @if(session('selected_project_id'))
+                        <a href="{{ route('inquiries.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('inquiries.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            <span>Inquiries</span>
+                        </a>
+                        <a href="{{ route('follow-ups.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('follow-ups.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            <span>Follow-ups</span>
+                        </a>
+                        <a href="{{ route('brochures.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('brochures.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <span>Brochures</span>
+                        </a>
+                        <a href="{{ route('forms-qr.index') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('forms-qr.*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                            <span>Form & QR</span>
+                        </a>
+                        <a href="{{ route('settings.whatsapp') }}" 
+                            class="flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors {{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-bold' : 'text-slate-700 hover:bg-slate-50' }}">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                            <span>WhatsApp API</span>
+                        </a>
+                    @endif
+                </div>
+
+                <!-- Drawer Logout Action -->
+                <div class="p-4 border-t border-slate-100 bg-slate-50/50">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="text-sm font-medium text-red-600 hover:text-red-700">Logout</button>
+                        <button type="submit" class="w-full flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition-colors cursor-pointer">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                            <span>Sign Out of Portal</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -187,7 +277,7 @@
         </header>
     @endauth
 
-    <main class="flex-grow py-8">
+    <main class="flex-grow py-4 sm:py-6 lg:py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
             @if(session('success'))
                 <div class="flex items-center p-4 bg-emerald-50/90 border border-emerald-200 text-emerald-800 rounded-xl shadow-sm backdrop-blur-md animate-fade-in" role="alert">
@@ -240,6 +330,24 @@
     @include('components.confirmation-modal')
 
     <script>
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburgerIcon');
+        const close = document.getElementById('closeIcon');
+        if (!menu) return;
+
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (hamburger) hamburger.classList.add('hidden');
+            if (close) close.classList.remove('hidden');
+        } else {
+            menu.classList.add('hidden');
+            if (hamburger) hamburger.classList.remove('hidden');
+            if (close) close.classList.add('hidden');
+        }
+    }
+
     let confirmationCallback = null;
 
     function showConfirmationModal(title, message, callback, options = {}) {

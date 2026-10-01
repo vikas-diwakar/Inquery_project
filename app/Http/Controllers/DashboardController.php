@@ -51,6 +51,16 @@ class DashboardController extends Controller
             return redirect()->route('dashboard');
         }
 
+        // If user is not admin, verify they are assigned to this project
+        if (!$user->isAdmin()) {
+            $isAssigned = $user->projects()->where('projects.id', $project->id)->exists();
+            if (!$isAssigned) {
+                session()->forget('selected_project_id');
+                return redirect()->route('dashboard')
+                    ->with('error', 'You do not have access to this project. Please select an assigned project.');
+            }
+        }
+
         // Get project-specific statistics
         $totalInquiries = Inquiry::where('company_id', $companyId)
             ->where('project_id', $project->id)

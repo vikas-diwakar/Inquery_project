@@ -62,16 +62,16 @@
             <h3 class="text-lg font-semibold">Overdue Follow-ups ({{ $overdue->count() }})</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3">Customer</th><th class="px-4 sm:px-6 py-3">Project</th><th class="px-4 sm:px-6 py-3">Due Date</th><th class="px-4 sm:px-6 py-3">Assigned To</th><th class="px-4 sm:px-6 py-3">Actions</th></tr></thead>
+            <table class="min-w-[640px] w-full divide-y divide-slate-200">
+                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Customer</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Project</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Due Date</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Assigned To</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Actions</th></tr></thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
                     @foreach($overdue as $inquiry)
                     <tr class="hover:bg-red-50/50 transition-colors">
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->project->name }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm font-semibold text-red-600">{{ $inquiry->next_follow_up_date->format('M d, Y H:i') }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->project->name }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm font-semibold text-red-600 whitespace-nowrap">{{ $inquiry->next_follow_up_date->format('M d, Y H:i') }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -86,16 +86,16 @@
             <h3 class="text-lg font-semibold">Today's Follow-ups ({{ $today->count() }})</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3">Customer</th><th class="px-4 sm:px-6 py-3">Project</th><th class="px-4 sm:px-6 py-3">Time</th><th class="px-4 sm:px-6 py-3">Assigned To</th><th class="px-4 sm:px-6 py-3">Actions</th></tr></thead>
+            <table class="min-w-[640px] w-full divide-y divide-slate-200">
+                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Customer</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Project</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Time</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Assigned To</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Actions</th></tr></thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
                     @foreach($today as $inquiry)
                     <tr class="hover:bg-sky-50/50 transition-colors">
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->project->name }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->next_follow_up_date->format('H:i A') }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->project->name }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->next_follow_up_date->format('H:i A') }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -110,16 +110,16 @@
             <h3 class="text-lg font-semibold">Upcoming Follow-ups ({{ $upcoming->count() }})</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
-                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3">Customer</th><th class="px-4 sm:px-6 py-3">Project</th><th class="px-4 sm:px-6 py-3">Scheduled Date</th><th class="px-4 sm:px-6 py-3">Assigned To</th><th class="px-4 sm:px-6 py-3">Actions</th></tr></thead>
+            <table class="min-w-[640px] w-full divide-y divide-slate-200">
+                <thead class="table-header"><tr><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Customer</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Project</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Scheduled Date</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Assigned To</th><th class="px-4 sm:px-6 py-3 whitespace-nowrap">Actions</th></tr></thead>
                 <tbody class="divide-y divide-slate-200 bg-white">
                     @foreach($upcoming as $inquiry)
                     <tr class="hover:bg-slate-50/50 transition-colors">
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->project->name }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->next_follow_up_date->format('M d, Y H:i') }}</td>
-                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
-                        <td class="px-4 sm:px-6 py-3"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="font-medium text-primary-600 hover:text-primary-700">{{ $inquiry->customer_name }}</a></td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->project->name }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->next_follow_up_date->format('M d, Y H:i') }}</td>
+                        <td class="px-4 sm:px-6 py-3 text-sm text-slate-600 whitespace-nowrap">{{ $inquiry->assignedUser->name ?? 'Unassigned' }}</td>
+                        <td class="px-4 sm:px-6 py-3 whitespace-nowrap"><a href="{{ route('inquiries.show', $inquiry) }}" class="text-sm font-medium text-primary-600 hover:text-primary-700">View</a></td>
                     </tr>
                     @endforeach
                 </tbody>

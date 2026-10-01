@@ -85,27 +85,81 @@
                     </div>
                 </div>
 
-                <!-- Property Unit Options -->
+                <!-- Property Unit Options with Custom Type Support -->
                 <div class="space-y-2 pt-2">
                     <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Unit / Property Type Configurations</label>
-                    <p class="text-xs text-slate-500">Select property configurations available in this project for customer inquiries.</p>
+                    <p class="text-xs text-slate-500">Select or add property configurations available in this project for customer inquiries.</p>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 border border-slate-200 rounded-2xl p-4 bg-slate-50/80">
+                    <div class="border border-slate-200 rounded-2xl p-4 bg-slate-50/80">
                         @php
                             $predefinedOptions = [
                                 '1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK',
                                 'Studio', 'Penthouse', 'Villa', 'Shop', 'Office', 'Plot'
                             ];
+                            $oldSelected = old('selected_unit_options', []);
+                            $customOldSelected = array_diff($oldSelected, $predefinedOptions);
                         @endphp
 
-                        @foreach($predefinedOptions as $option)
-                            <label class="flex items-center p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 cursor-pointer space-x-2.5 transition-all">
-                                <input type="checkbox" name="selected_unit_options[]" value="{{ $option }}" {{ in_array($option, old('selected_unit_options', [])) ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                                <span class="text-xs font-semibold text-slate-800">{{ $option }}</span>
-                            </label>
-                        @endforeach
+                        <div id="create-unit-options-container" class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                            @foreach($predefinedOptions as $option)
+                                <label class="flex items-center p-2.5 rounded-xl bg-white border border-slate-200/80 hover:border-indigo-300 cursor-pointer space-x-2.5 transition-all">
+                                    <input type="checkbox" name="selected_unit_options[]" value="{{ $option }}" {{ in_array($option, $oldSelected) ? 'checked' : '' }} class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                    <span class="text-xs font-semibold text-slate-800">{{ $option }}</span>
+                                </label>
+                            @endforeach
+
+                            @foreach($customOldSelected as $customOpt)
+                                <label class="flex items-center justify-between p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 custom-chip cursor-pointer">
+                                    <div class="flex items-center space-x-2">
+                                        <input type="checkbox" name="selected_unit_options[]" value="{{ $customOpt }}" checked class="h-4 w-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500">
+                                        <span class="text-xs font-bold text-indigo-900">{{ $customOpt }}</span>
+                                    </div>
+                                    <button type="button" onclick="this.closest('.custom-chip').remove()" class="text-xs text-slate-400 hover:text-rose-600 ml-2" title="Remove">✕</button>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <!-- ➕ Add Custom Unit Type Input Box -->
+                        <div class="flex items-center gap-2 pt-3 border-t border-slate-200">
+                            <input type="text" id="create-custom-unit-input" 
+                                placeholder="Type custom type (e.g. Duplex, 2.5 BHK, Farmhouse, Showroom) and click Add..." 
+                                class="input-field border px-3 py-2 text-xs flex-1 rounded-lg bg-white"
+                                onkeydown="if(event.key === 'Enter'){ event.preventDefault(); addCreateCustomUnitOption(); }">
+                            <button type="button" onclick="addCreateCustomUnitOption()" class="btn-secondary px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-1">
+                                <span>+ Add Type</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                <script>
+                function addCreateCustomUnitOption() {
+                    const input = document.getElementById('create-custom-unit-input');
+                    const val = input.value.trim();
+                    if (!val) return;
+
+                    const existing = Array.from(document.querySelectorAll('input[name="selected_unit_options[]"]')).map(el => el.value.toLowerCase());
+                    if (existing.includes(val.toLowerCase())) {
+                        alert('This unit type is already added!');
+                        input.value = '';
+                        return;
+                    }
+
+                    const container = document.getElementById('create-unit-options-container');
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center justify-between p-2.5 rounded-xl bg-indigo-50 border border-indigo-200 custom-chip cursor-pointer';
+                    label.innerHTML = `
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" name="selected_unit_options[]" value="${val}" checked class="h-4 w-4 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-xs font-bold text-indigo-900">${val}</span>
+                        </div>
+                        <button type="button" onclick="this.closest(\'.custom-chip\').remove()" class="text-xs text-slate-400 hover:text-rose-600 ml-2" title="Remove">✕</button>
+                    `;
+
+                    container.appendChild(label);
+                    input.value = '';
+                }
+                </script>
             </div>
             
             <div class="pt-6 border-t border-slate-200 flex items-center justify-between">

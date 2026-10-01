@@ -21,8 +21,6 @@ class BrochureDownloadTest extends TestCase
         $company = Company::create([
             'name' => 'PropDrip Realty',
             'email' => 'contact@propdrip.in',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $project = Project::create([
@@ -53,8 +51,6 @@ class BrochureDownloadTest extends TestCase
         $company = Company::create([
             'name' => 'Apex Towers',
             'email' => 'info@apextowers.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $project = Project::create([
@@ -83,8 +79,6 @@ class BrochureDownloadTest extends TestCase
         $company = Company::create([
             'name' => 'Apex Towers',
             'email' => 'info2@apextowers.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $project = Project::create([

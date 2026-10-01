@@ -12,17 +12,11 @@ class Company extends Model
 
     protected $fillable = [
         'name',
-        'subdomain',
-        'previous_subdomains',
         'email',
         'phone',
         'address',
         'logo',
         'is_active',
-        'subscription_status',
-        'trial_ends_at',
-        'subscription_ends_at',
-        'trial_used',
         'whatsapp_provider',
         'whatsapp_api_key',
         'whatsapp_phone_number_id',
@@ -39,12 +33,8 @@ class Company extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'trial_ends_at' => 'datetime',
-        'subscription_ends_at' => 'datetime',
-        'trial_used' => 'boolean',
         'whatsapp_auto_send' => 'boolean',
         'whatsapp_connected_at' => 'datetime',
-        'previous_subdomains' => 'array',
     ];
 
     /**
@@ -100,300 +90,19 @@ class Company extends Model
     }
 
     /**
-     * Get all subscriptions for this company
+     * Get the default/primary company instance for standalone CRM operation.
      */
-    public function subscriptions(): HasMany
+    public static function default(): self
     {
-        return $this->hasMany(Subscription::class);
-    }
-
-    /**
-     * Get the active subscription for this company
-     */
-    public function activeSubscription()
-    {
-        return $this->subscriptions()->active()->latest()->first();
-    }
-
-    /**
-     * Check if company has active subscription
-     */
-    public function hasActiveSubscription(): bool
-    {
-        $latestSubscription = $this->subscriptions()->latest()->first();
-
-        // Parse all possible end dates across subscriptions and company columns
-        $subEndDate = null;
-        if ($latestSubscription && $latestSubscription->end_date) {
-            try {
-                $subEndDate = \Carbon\Carbon::parse($latestSubscription->end_date)->endOfDay();
-            } catch (\Throwable $e) {
-                $subEndDate = null;
-            }
+        $company = static::first();
+        if (!$company) {
+            $company = static::create([
+                'name' => config('app.name', 'Real Estate CRM'),
+                'email' => 'admin@example.com',
+                'is_active' => true,
+            ]);
         }
-
-        $companySubEndDate = null;
-        if ($this->subscription_ends_at) {
-            try {
-                $companySubEndDate = \Carbon\Carbon::parse($this->subscription_ends_at)->endOfDay();
-            } catch (\Throwable $e) {
-                $companySubEndDate = null;
-            }
-        }
-
-        $companyTrialEndDate = null;
-        if ($this->trial_ends_at) {
-            try {
-                $companyTrialEndDate = \Carbon\Carbon::parse($this->trial_ends_at)->endOfDay();
-            } catch (\Throwable $e) {
-                $companyTrialEndDate = null;
-            }
-        }
-
-        // Collect all future end dates
-        $futureEndDates = collect([$subEndDate, $companySubEndDate, $companyTrialEndDate])
-            ->filter(fn($date) => $date && $date->isFuture());
-
-        // If ANY end date is in the future, the company subscription is ACTIVE
-        if ($futureEndDates->isNotEmpty()) {
-            $effectiveEndDate = $futureEndDates->max();
-
-            $activeStatus = ($this->subscription_status === 'trial' || ($latestSubscription && $latestSubscription->status === 'trial'))
-                ? 'trial'
-                : 'active';
-
-            // Reactivate company if it was marked as expired
-            if ($this->subscription_status === 'expired') {
-                $this->update([
-                    'subscription_status' => $activeStatus,
-                    'subscription_ends_at' => ($activeStatus === 'active') ? $effectiveEndDate : $this->subscription_ends_at,
-                    'trial_ends_at' => ($activeStatus === 'trial') ? $effectiveEndDate : $this->trial_ends_at,
-                ]);
-            }
-
-            // Reactivate subscription record if it was marked as expired
-            if ($latestSubscription && $latestSubscription->status === 'expired') {
-                $latestSubscription->update([
-                    'status' => $activeStatus,
-                    'end_date' => $effectiveEndDate->toDateString(),
-                ]);
-            }
-
-            return true;
-        }
-
-        // Only expire if no future end dates exist
-        if ($this->subscription_status !== 'expired' || ($latestSubscription && in_array($latestSubscription->status, ['active', 'trial']))) {
-            $this->expireSubscription();
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if company is on trial
-     */
-    public function onTrial(): bool
-    {
-        return $this->subscription_status === 'trial' &&
-               $this->trial_ends_at &&
-               $this->trial_ends_at->isFuture();
-    }
-
-    /**
-     * Check if company subscription is expired
-     */
-    public function subscriptionExpired(): bool
-    {
-        return !$this->hasActiveSubscription();
-    }
-
-    /**
-     * Check if trial is expiring soon (within 7 days)
-     */
-    public function trialExpiringSoon(): bool
-    {
-        return $this->onTrial() &&
-               $this->trial_ends_at->diffInDays(now()) <= 7;
-    }
-
-    /**
-     * Check if subscription is expiring soon (within 7 days)
-     */
-    public function subscriptionExpiringSoon(): bool
-    {
-        return $this->hasActiveSubscription() &&
-               $this->subscription_ends_at &&
-               $this->subscription_ends_at->diffInDays(now()) <= 7;
-    }
-
-    /**
-     * Check if company can use free trial
-     */
-    public function canUseTrial(): bool
-    {
-        // Can use trial if never used it before
-        if (!$this->trial_used) {
-            return true;
-        }
-
-        // Can use trial again if the last trial subscription has expired
-        $lastTrial = $this->subscriptions()->where('status', 'trial')->latest()->first();
-        if ($lastTrial && $lastTrial->isExpired()) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if this is the first login (no subscriptions ever)
-     */
-    public function isFirstLogin(): bool
-    {
-        return $this->subscriptions()->count() === 0;
-    }
-
-    /**
-     * Start trial period for the company
-     */
-    public function startTrial(int $months = 1): void
-    {
-        // Only set trial_used to true if this is the first time using trial
-        if (!$this->trial_used) {
-            $this->trial_used = true;
-        }
-
-        $this->update([
-            'subscription_status' => 'trial',
-            'trial_ends_at' => now()->addMonths($months),
-        ]);
-    }
-
-    /**
-     * Activate paid subscription
-     */
-    public function activateSubscription($endDate): void
-    {
-        $this->update([
-            'subscription_status' => 'active',
-            'subscription_ends_at' => $endDate,
-        ]);
-    }
-
-    /**
-     * Expire subscription
-     */
-     public function expireSubscription(): void
-     {
-         $this->update([
-             'subscription_status' => 'expired',
-         ]);
-
-         $this->subscriptions()
-             ->whereIn('status', ['active', 'trial'])
-             ->where('end_date', '<=', now())
-             ->update(['status' => 'expired']);
-     }
-
-    /**
-     * List of reserved subdomains that cannot be claimed by tenants
-     */
-    public static function reservedSubdomains(): array
-    {
-        return [
-            'www', 'admin', 'administrator', 'api', 'app', 'apps', 'auth', 'login', 'signin', 'signup',
-            'register', 'dashboard', 'billing', 'subscription', 'subscriptions', 'mail', 'email', 'smtp',
-            'help', 'support', 'docs', 'portal', 'status', 'dev', 'developer', 'developers', 'staging',
-            'test', 'demo', 'webhook', 'webhooks', 'static', 'assets', 'cdn', 'root', 'superadmin',
-        ];
-    }
-
-    /**
-     * Check if a subdomain is reserved
-     */
-    public static function isReservedSubdomain(string $subdomain): bool
-    {
-        return in_array(strtolower(trim($subdomain)), self::reservedSubdomains(), true);
-    }
-
-    /**
-     * Get the formatted workspace domain name (e.g. acme.propdrip.com or acme.localhost:8000)
-     */
-    public function getWorkspaceDomainAttribute(): string
-    {
-        $host = request()->getHost();
-        $port = request()->getPort();
-        $portSuffix = ($port && !in_array($port, [80, 443])) ? ":{$port}" : '';
-
-        // If current host is an existing tenant subdomain (e.g. foo.localhost or foo.propdrip.com),
-        // strip the current subdomain to find the base host.
-        $baseHost = self::getBaseHost($host);
-
-        return "{$this->subdomain}.{$baseHost}{$portSuffix}";
-    }
-
-    /**
-     * Get the full workspace URL (e.g. http://acme.localhost:8000 or https://acme.propdrip.com)
-     */
-    public function getWorkspaceUrlAttribute(): string
-    {
-        $scheme = request()->getScheme() ?: (app()->isProduction() ? 'https' : 'http');
-        return "{$scheme}://{$this->workspace_domain}";
-    }
-
-    /**
-     * Helper to detect base host from request host
-     */
-    public static function getBaseHost(string $host): string
-    {
-        // Handle IP addresses or localhost
-        if ($host === 'localhost' || str_ends_with($host, '.localhost') || filter_var($host, FILTER_VALIDATE_IP)) {
-            return 'localhost';
-        }
-
-        // Check if config has an explicit APP_DOMAIN
-        $appDomain = config('app.domain');
-        if (!empty($appDomain)) {
-            return ltrim($appDomain, '.');
-        }
-
-        // Check APP_URL host
-        $appUrlHost = parse_url(config('app.url'), PHP_URL_HOST);
-        if (!empty($appUrlHost) && $appUrlHost !== 'localhost' && !filter_var($appUrlHost, FILTER_VALIDATE_IP)) {
-            return $appUrlHost;
-        }
-
-        // Fallback: extract root domain (last two segments)
-        $parts = explode('.', $host);
-        if (count($parts) >= 2) {
-            return implode('.', array_slice($parts, -2));
-        }
-
-        return $host;
-    }
-
-    /**
-     * Helper to generate absolute root-domain URL (escaping any tenant subdomain)
-     */
-    public static function getRootUrl(string $path = ''): string
-    {
-        $request = request();
-        $scheme = $request->getScheme() ?: (app()->isProduction() ? 'https' : 'http');
-        $baseHost = self::getBaseHost($request->getHost());
-        $port = $request->getPort();
-        $portSuffix = ($port && !in_array($port, [80, 443])) ? ":{$port}" : '';
-        $cleanPath = '/' . ltrim($path, '/');
-
-        return "{$scheme}://{$baseHost}{$portSuffix}{$cleanPath}";
-    }
-
-    /**
-     * Scope to find company by subdomain
-     */
-    public function scopeBySubdomain($query, string $subdomain)
-    {
-        return $query->where('subdomain', strtolower(trim($subdomain)));
+        return $company;
     }
 
     /**
@@ -409,7 +118,6 @@ class Company extends Model
         // Regenerate Form QR codes for all projects
         $projects = $this->projects()->get();
         foreach ($projects as $project) {
-            $project->setRelation('company', $this);
             $project->generateQrCode();
             $projectCount++;
         }
@@ -417,7 +125,6 @@ class Company extends Model
         // Regenerate Brochure QR codes for all brochures
         $brochures = $this->brochures()->get();
         foreach ($brochures as $brochure) {
-            $brochure->setRelation('company', $this);
             $brochure->generateQrCode();
             $brochureCount++;
         }

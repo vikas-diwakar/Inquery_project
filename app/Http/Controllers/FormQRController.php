@@ -34,7 +34,8 @@ class FormQRController extends Controller
         $selectedProjectId = session('selected_project_id');
         $project = Project::findOrFail($selectedProjectId);
 
-        return view('forms-qr.create-inquiry-form', compact('project'));
+        $customFields = $project->customFields()->get();
+        return view('forms-qr.create-inquiry-form', compact('project', 'customFields'));
     }
 
     /**
@@ -144,5 +145,84 @@ class FormQRController extends Controller
         $brochure->load(['project', 'company']);
 
         return view('forms-qr.show-brochure-qr', compact('brochure'));
+    }
+
+    /**
+     * Store a new custom form field for this project
+     */
+    public function storeCustomField(Request $request)
+    {
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+
+        if ($project->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validated = $request->validate([
+            'field_label' => 'required|string|max:100',
+            'field_type' => 'required|in:text,number,select,textarea',
+            'field_options_raw' => 'nullable|string|max:1000',
+            'placeholder' => 'nullable|string|max:255',
+            'is_required' => 'nullable|boolean',
+        ]);
+
+        $baseSlug = \Illuminate\Support\Str::slug($validated['field_label'], '_');
+        if (empty($baseSlug)) {
+            $baseSlug = 'field_' . time();
+        }
+
+        $options = null;
+        if ($validated['field_type'] === 'select' && !empty($validated['field_options_raw'])) {
+            $options = array_values(array_filter(array_map('trim', explode(',', $validated['field_options_raw']))));
+        }
+
+        $nextOrder = (int) $project->customFields()->max('sort_order') + 1;
+
+        \App\Models\InquiryCustomField::create([
+            'company_id' => $project->company_id,
+            'project_id' => $project->id,
+            'field_label' => $validated['field_label'],
+            'field_name' => $baseSlug,
+            'field_type' => $validated['field_type'],
+            'field_options' => $options,
+            'placeholder' => $validated['placeholder'] ?? null,
+            'is_required' => $request->boolean('is_required'),
+            'is_active' => true,
+            'sort_order' => $nextOrder,
+        ]);
+
+        return redirect()->back()->with('success', "Custom field '{$validated['field_label']}' added to inquiry form!");
+    }
+
+    /**
+     * Delete a custom form field
+     */
+    public function deleteCustomField(\App\Models\InquiryCustomField $field)
+    {
+        if ($field->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $name = $field->field_label;
+        $field->delete();
+
+        return redirect()->back()->with('success', "Custom field '{$name}' removed from inquiry form.");
+    }
+
+    /**
+     * Toggle active/inactive status of a custom field
+     */
+    public function toggleCustomField(\App\Models\InquiryCustomField $field)
+    {
+        if ($field->company_id !== auth()->user()->company_id) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $field->is_active = !$field->is_active;
+        $field->save();
+
+        $status = $field->is_active ? 'activated' : 'deactivated';
+        return redirect()->back()->with('success', "Field '{$field->field_label}' has been {$status}.");
     }
 }

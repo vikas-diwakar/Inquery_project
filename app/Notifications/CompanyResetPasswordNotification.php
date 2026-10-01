@@ -19,14 +19,7 @@ class CompanyResetPasswordNotification extends ResetPassword
         $companyName = $company->name ?? 'Real Estate Portal';
         $fromEmail = config('mail.from.address');
 
-        if ($company && $company->subdomain) {
-            $resetUrl = $company->workspace_url . '/reset-password/' . $this->token . '?email=' . urlencode($notifiable->getEmailForPasswordReset());
-        } else {
-            $resetUrl = route('password.reset', [
-                'token' => $this->token,
-                'email' => $notifiable->getEmailForPasswordReset(),
-            ]);
-        }
+        $resetUrl = route('password.reset', ['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()]);
 
         return (new MailMessage)
             ->from($fromEmail, "{$companyName} Portal")

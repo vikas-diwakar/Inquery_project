@@ -3,14 +3,12 @@
 namespace App\Providers;
 
 use App\Models\Brochure;
-use App\Models\Company;
 use App\Models\Inquiry;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\BrochurePolicy;
 use App\Policies\InquiryPolicy;
 use App\Policies\ProjectPolicy;
-use App\Policies\SubscriptionPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -26,7 +24,6 @@ class AppServiceProvider extends ServiceProvider
         Inquiry::class => InquiryPolicy::class,
         Brochure::class => BrochurePolicy::class,
         User::class => UserPolicy::class,
-        Company::class => SubscriptionPolicy::class,
     ];
 
     /**
@@ -56,15 +53,6 @@ class AppServiceProvider extends ServiceProvider
                         ->withErrors(['phone' => 'Too many submission attempts from your network. Please wait a moment before trying again.'])
                         ->withInput();
                 });
-        });
-
-        \Illuminate\Support\Facades\View::composer('layouts.app', function ($view) {
-            if (session()->has('selected_project_id') && !isset($view->selectedProject)) {
-                $selectedProject = Project::find(session('selected_project_id'));
-                if ($selectedProject) {
-                    $view->with('selectedProject', $selectedProject);
-                }
-            }
         });
     }
 }

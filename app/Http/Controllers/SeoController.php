@@ -30,12 +30,7 @@ class SeoController extends Controller
             'priority' => '0.8'
         ];
 
-        $urls[] = [
-            'loc' => route('company.register'),
-            'lastmod' => now()->toIso8601String(),
-            'changefreq' => 'monthly',
-            'priority' => '0.8'
-        ];
+        
 
         // Public Project Inquiry Forms (bypass tenant scope for global sitemap)
         try {
@@ -85,7 +80,6 @@ class SeoController extends Controller
         $content .= "Disallow: /inquiries\n";
         $content .= "Disallow: /projects\n";
         $content .= "Disallow: /settings\n";
-        $content .= "Disallow: /subscription\n";
         $content .= "Disallow: /users\n\n";
         $content .= "Sitemap: {$sitemapUrl}\n";
 

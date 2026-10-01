@@ -24,6 +24,7 @@ class Inquiry extends Model
         'message',
         'description',
         'selected_unit_option_id',
+        'custom_fields',
         'status',
         'assigned_to',
         'next_follow_up_date',
@@ -48,6 +49,7 @@ class Inquiry extends Model
         'allocated_at' => 'datetime',
         'lead_score' => 'integer',
         'score_breakdown' => 'array',
+        'custom_fields' => 'array',
     ];
 
     /**

@@ -13,15 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
 
-        $middleware->web(append: [
-            \App\Http\Middleware\IdentifyTenantDomain::class,
-        ]);
-
         $middleware->alias([
             'tenant' => \App\Http\Middleware\EnsureTenant::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'project' => \App\Http\Middleware\EnsureProjectSelected::class,
-            'subscription' => \App\Http\Middleware\CheckSubscription::class,
         ]);
         $middleware->validateCsrfTokens(except: [
             '/api/*',

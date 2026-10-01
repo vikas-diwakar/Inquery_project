@@ -50,7 +50,7 @@ class RegenerateQrCodes extends Command
             $totalProjects += $res['projects_count'];
             $totalBrochures += $res['brochures_count'];
 
-            $this->line("  ✓ Company: {$company->name} (subdomain: {$company->subdomain}) -> {$res['projects_count']} project(s), {$res['brochures_count']} brochure(s)");
+            $this->line("  ✓ Company: {$company->name} -> {$res['projects_count']} project(s), {$res['brochures_count']} brochure(s)");
         }
 
         $this->info("Completed! Regenerated {$totalProjects} project form QR code(s) and {$totalBrochures} brochure QR code(s).");

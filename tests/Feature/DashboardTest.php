@@ -17,8 +17,6 @@ class DashboardTest extends TestCase
         $company = Company::create([
             'name' => 'Dashboard Test Co',
             'email' => 'dashboard@co.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addMonth(),
         ]);
 
         $user = User::factory()->create([
@@ -38,8 +36,6 @@ class DashboardTest extends TestCase
         $company = Company::create([
             'name' => 'Dashboard Test Co 2',
             'email' => 'dashboard2@co.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addMonth(),
         ]);
 
         $user = User::factory()->create([

@@ -123,6 +123,20 @@
                     <span class="font-medium text-slate-700">Message / Requirement</span>
                     <span class="text-xs text-slate-400">(Optional)</span>
                 </div>
+                @if($project->activeCustomFields && $project->activeCustomFields->isNotEmpty())
+                    @foreach($project->activeCustomFields as $cField)
+                        <div class="flex items-center space-x-2">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                            <span class="font-bold text-slate-800">{{ $cField->field_label }}</span>
+                            <span class="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Custom ({{ ucfirst($cField->field_type) }})</span>
+                            @if($cField->is_required)
+                                <span class="text-rose-500 font-bold">*</span>
+                            @else
+                                <span class="text-xs text-slate-400">(Optional)</span>
+                            @endif
+                        </div>
+                    @endforeach
+                @endif
             </div>
             <p class="mt-4 pt-3 border-t border-slate-200/60 text-xs text-slate-400"><span class="text-rose-500 font-bold">*</span> Required fields for lead submission</p>
         </div>

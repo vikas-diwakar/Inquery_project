@@ -49,13 +49,7 @@ class Brochure extends Model
      */
     public function getDownloadUrl(): string
     {
-        $encryptedKey = $this->getEncryptedKey();
-        $company = $this->relationLoaded('company') ? $this->company : $this->company()->first();
-        if ($company && !empty($company->subdomain)) {
-            return rtrim($company->workspace_url, '/') . '/brochure/' . $encryptedKey . '/download';
-        }
-
-        return route('public.brochure.download', ['brochure' => $encryptedKey]);
+        return route('public.brochure.download', ['brochure' => $this->getEncryptedKey()]);
     }
 
     /**

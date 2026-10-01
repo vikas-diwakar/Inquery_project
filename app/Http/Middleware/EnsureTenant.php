@@ -15,10 +15,18 @@ class EnsureTenant
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && !auth()->user()->company_id) {
-            return redirect()->route('company.register')
-                ->with('error', 'Please complete your company registration.');
+        $company = \App\Models\Company::default();
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            if (!$user->company_id) {
+                $user->company_id = $company->id;
+                $user->saveQuietly();
+            }
         }
+
+        app()->instance('currentTenant', $company);
+        view()->share('currentTenant', $company);
 
         return $next($request);
     }

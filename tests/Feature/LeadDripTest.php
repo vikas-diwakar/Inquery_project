@@ -28,8 +28,6 @@ class LeadDripTest extends TestCase
         $this->company = Company::create([
             'name' => 'Prime Realty Group',
             'email' => 'prime@realty.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
             'whatsapp_auto_send' => true,
         ]);
 
@@ -175,8 +173,6 @@ class LeadDripTest extends TestCase
         $otherCompany = Company::create([
             'name' => 'Other Builder',
             'email' => 'other@builder.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $otherProject = Project::create([

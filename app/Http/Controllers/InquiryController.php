@@ -163,6 +163,7 @@ class InquiryController extends Controller
             'message' => $validated['message'] ?? null,
             'description' => $validated['description'] ?? null,
             'selected_unit_option_id' => $validated['selected_unit_option_id'] ?? null,
+            'custom_fields' => $request->input('custom_fields', null),
             'status' => 'new',
         ]);
 
@@ -225,6 +226,7 @@ class InquiryController extends Controller
             'message' => $validated['message'] ?? null,
             'description' => $validated['description'] ?? null,
             'selected_unit_option_id' => $validated['selected_unit_option_id'] ?? null,
+            'custom_fields' => $request->input('custom_fields', null),
             'assigned_to' => $validated['assigned_to'] ?? null,
             'next_follow_up_date' => $followUpDate,
             'status' => 'new',

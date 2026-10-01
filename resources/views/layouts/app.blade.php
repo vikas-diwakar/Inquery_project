@@ -12,15 +12,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     @php
-        $navCompany = $currentTenant ?? (auth()->check() ? auth()->user()->company : null);
+        $navCompany = $currentTenant ?? (auth()->check() ? auth()->user()->company : \App\Models\Company::default());
         $navLogoUrl = ($navCompany && $navCompany->logo) 
             ? asset('storage/' . $navCompany->logo) 
             : asset('images/propdrip-logo.png');
-        $hasActiveSub = auth()->check() && auth()->user()->company && auth()->user()->company->hasActiveSubscription();
-        $isFirstLogin = auth()->check() && auth()->user()->company && auth()->user()->company->isFirstLogin();
-        $logoRoute = $hasActiveSub 
-            ? route('dashboard') 
-            : ($isFirstLogin && auth()->user()->isAdmin() ? route('subscription.choose-plan') : route('subscription.required'));
+        $hasActiveSub = true;
+        $logoRoute = route('dashboard');
     @endphp
     <link rel="preload" as="image" href="{{ $navLogoUrl }}" fetchpriority="high">
 
@@ -36,7 +33,7 @@
                         <div class="w-32 sm:w-36 h-9 flex items-center flex-shrink-0">
                             <a href="{{ $logoRoute }}" class="flex items-center h-full w-full">
                                 <img src="{{ $navLogoUrl }}" 
-                                    alt="{{ $navCompany->name ?? 'PropDrip' }}" 
+                                    alt="{{ $navCompany->name ?? config('app.name') }}" 
                                     width="130" height="36"
                                     loading="eager" decoding="sync" fetchpriority="high"
                                     style="height: 36px; max-height: 36px; max-width: 130px; width: auto; object-fit: contain;" 
@@ -44,68 +41,53 @@
                             </a>
                         </div>
 
-                        @if(!$hasActiveSub)
-                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 border border-rose-200 gap-1.5 flex-shrink-0">
-                                <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
-                                @if($isFirstLogin) Plan Selection Required @else Subscription Expired @endif
-                            </span>
-                        @endif
-
-                        @if($hasActiveSub)
-                            <!-- Desktop Navigation -->
-                            <div class="hidden md:flex items-center space-x-1">
-                                <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                    Dashboard
+                        <!-- Desktop Navigation -->
+                        <div class="hidden md:flex items-center space-x-1">
+                            <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                Dashboard
+                            </a>
+                            
+                            @if(!session('selected_project_id'))
+                                <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    Projects
                                 </a>
-                                
-                                @if(!session('selected_project_id'))
-                                    <a href="{{ route('projects.index') }}" class="{{ request()->routeIs('projects.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Projects
-                                    </a>
 
-                                    @if(auth()->user()->isAdmin())
-                                        <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                            Users
-                                        </a>
-                                        <a href="{{ route('settings.domain') }}" class="{{ request()->routeIs('settings.domain*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
-                                            </svg>
-                                            <span>Workspace</span>
-                                        </a>
-                                        <a href="{{ route('subscription.index') }}" class="{{ request()->routeIs('subscription.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150 flex items-center gap-1.5">
-                                            <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                                            </svg>
-                                            <span>Subscription</span>
-                                        </a>
-                                    @endif
-                                @endif
-
-                                @if(session('selected_project_id'))
-                                    <a href="{{ route('inquiries.index') }}" class="{{ request()->routeIs('inquiries.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Inquiries
+                                @if(auth()->user()->isAdmin())
+                                    <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                        Users
                                     </a>
-                                    <a href="{{ route('follow-ups.index') }}" class="{{ request()->routeIs('follow-ups.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Follow-ups
-                                    </a>
-                                    <a href="{{ route('brochures.index') }}" class="{{ request()->routeIs('brochures.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Brochures
-                                    </a>
-                                    <a href="{{ route('forms-qr.index') }}" class="{{ request()->routeIs('forms-qr.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        Form & QR
-                                    </a>
-                                    <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
-                                        WhatsApp API
+                                    <a href="{{ route('settings.company') }}" class="{{ request()->routeIs('settings.company*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150 flex items-center gap-1.5">
+                                        <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                                        </svg>
+                                        <span>Company Settings</span>
                                     </a>
                                 @endif
-                            </div>
-                        @endif
+                            @endif
+
+                            @if(session('selected_project_id'))
+                                <a href="{{ route('inquiries.index') }}" class="{{ request()->routeIs('inquiries.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    Inquiries
+                                </a>
+                                <a href="{{ route('follow-ups.index') }}" class="{{ request()->routeIs('follow-ups.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    Follow-ups
+                                </a>
+                                <a href="{{ route('brochures.index') }}" class="{{ request()->routeIs('brochures.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    Brochures
+                                </a>
+                                <a href="{{ route('forms-qr.index') }}" class="{{ request()->routeIs('forms-qr.*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    Form & QR
+                                </a>
+                                <a href="{{ route('settings.whatsapp') }}" class="{{ request()->routeIs('settings.whatsapp*') ? 'bg-indigo-50 text-indigo-700 font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 font-medium' }} px-3 py-2 rounded-lg text-sm transition-colors duration-150">
+                                    WhatsApp API
+                                </a>
+                            @endif
+                        </div>
                     </div>
 
                     <!-- Right Section: Selected Project & User Profile -->
                     <div class="hidden sm:flex items-center space-x-3 flex-shrink-0">
-                        @if($hasActiveSub && session('selected_project_id') && isset($selectedProject))
+                        @if(session('selected_project_id') && isset($selectedProject))
                             <div class="flex items-center bg-indigo-50/80 border border-indigo-100 text-indigo-800 text-xs font-semibold px-3 py-1.5 rounded-full">
                                 <span class="h-2 w-2 rounded-full bg-indigo-600 mr-2"></span>
                                 <span class="max-w-[120px] truncate">{{ $selectedProject->name }}</span>
@@ -147,33 +129,21 @@
 
             <!-- Mobile Navigation Drawer -->
             <div id="mobileMenu" class="hidden md:hidden border-t border-slate-200 bg-white/95 px-4 pt-2 pb-4 space-y-1">
-                @if($hasActiveSub)
-                    <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
+                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Dashboard</a>
+                @if(!session('selected_project_id'))
+                    <a href="{{ route('projects.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Projects</a>
+                @endif
+                @if(session('selected_project_id'))
+                    <a href="{{ route('inquiries.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Inquiries</a>
+                    <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Follow-ups</a>
+                    <a href="{{ route('brochures.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Brochures</a>
+                    <a href="{{ route('forms-qr.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Form & QR</a>
+                    <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
+                @endif
+                @if(auth()->user()->isAdmin())
                     @if(!session('selected_project_id'))
-                        <a href="{{ route('projects.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Projects</a>
-                    @endif
-                    @if(session('selected_project_id'))
-                        <a href="{{ route('inquiries.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Inquiries</a>
-                        <a href="{{ route('follow-ups.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Follow-ups</a>
-                        <a href="{{ route('brochures.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Brochures</a>
-                        <a href="{{ route('forms-qr.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Form & QR</a>
-                        <a href="{{ route('settings.whatsapp') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">WhatsApp API</a>
-                    @endif
-                    @if(auth()->user()->isAdmin())
-                        @if(!session('selected_project_id'))
-                            <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>
-                            <a href="{{ route('settings.domain') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Workspace Domain</a>
-                        @endif
-                        <a href="{{ route('subscription.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Subscription & Plans</a>
-                    @endif
-                @else
-                    <div class="px-3 py-2 text-xs font-semibold text-rose-600 bg-rose-50 rounded-md">
-                        @if($isFirstLogin) Please choose a subscription plan to activate your workspace. @else Your subscription has expired. Please renew to regain access. @endif
-                    </div>
-                    @if(auth()->user()->isAdmin())
-                        <a href="{{ $isFirstLogin ? route('subscription.choose-plan') : route('subscription.required') }}" class="block px-3 py-2 rounded-md text-sm font-semibold text-indigo-600 hover:bg-indigo-50">
-                            @if($isFirstLogin) Choose Subscription Plan @else Renew Subscription @endif
-                        </a>
+                        <a href="{{ route('users.index') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Users</a>
+                        <a href="{{ route('settings.company') }}" class="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-indigo-50 hover:text-indigo-600">Company Settings</a>
                     @endif
                 @endif
                 <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
@@ -186,44 +156,35 @@
             </div>
         </nav>
     @else
-        @if(isset($currentTenant) && $currentTenant)
-            <!-- Dedicated Tenant Branded Header (Clean & Standard, No Marketing Distractions) -->
-            <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-16 sm:h-20 items-center">
-                        <!-- Company Logo & Brand -->
-                        <div class="flex items-center space-x-3">
-                            @if($currentTenant->logo)
-                                <img src="{{ asset('storage/' . $currentTenant->logo) }}" alt="{{ $currentTenant->name }}" 
-                                    style="max-height: 40px; max-width: 180px; width: auto; height: auto; object-fit: contain;" 
-                                    class="rounded-lg shadow-xs bg-white p-1">
-                            @else
-                                <div class="h-10 px-3.5 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shadow-sm tracking-tight">
-                                    {{ $currentTenant->name }}
-                                </div>
-                            @endif
-                            <div class="hidden sm:block leading-tight">
-                                <span class="block text-sm font-bold text-slate-900">{{ $currentTenant->name }}</span>
-                                <span class="text-[11px] font-semibold text-indigo-600">Company Portal</span>
+        <!-- Guest Header -->
+        <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200/80 shadow-xs">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center space-x-3">
+                        @if($navCompany && $navCompany->logo)
+                            <img src="{{ asset('storage/' . $navCompany->logo) }}" alt="{{ $navCompany->name }}" 
+                                style="max-height: 40px; max-width: 180px; width: auto; height: auto; object-fit: contain;" 
+                                class="rounded-lg shadow-xs bg-white p-1">
+                        @else
+                            <div class="h-10 px-3.5 rounded-xl bg-indigo-600 text-white font-extrabold text-sm flex items-center justify-center shadow-sm tracking-tight">
+                                {{ $navCompany->name ?? config('app.name') }}
                             </div>
-                        </div>
-
-                        <!-- Right Workspace Info -->
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs text-slate-500 font-mono hidden md:inline-block">
-                                {{ $currentTenant->workspace_domain }}
-                            </span>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Verified Workspace
-                            </span>
+                        @endif
+                        <div class="hidden sm:block leading-tight">
+                            <span class="block text-sm font-bold text-slate-900">{{ $navCompany->name ?? config('app.name') }}</span>
+                            <span class="text-[11px] font-semibold text-indigo-600">CRM & Property Portal</span>
                         </div>
                     </div>
+
+                    <div>
+                        <a href="{{ route('login') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all shadow-sm">
+                            <span>Sign In</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </a>
+                    </div>
                 </div>
-            </header>
-        @else
-            <x-public-navbar />
-        @endif
+            </div>
+        </header>
     @endauth
 
     <main class="flex-grow py-8">

@@ -24,8 +24,6 @@ class ProjectUnitTest extends TestCase
         $this->company = Company::create([
             'name' => 'Acme Real Estate',
             'email' => 'acme@example.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $this->user = User::factory()->create([
@@ -137,8 +135,6 @@ class ProjectUnitTest extends TestCase
         $otherCompany = Company::create([
             'name' => 'Competitor Co',
             'email' => 'competitor@example.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
 
         $otherProject = Project::create([

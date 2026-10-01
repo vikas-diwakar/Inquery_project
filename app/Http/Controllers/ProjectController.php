@@ -95,11 +95,11 @@ class ProjectController extends Controller
             ];
 
             foreach ($request->selected_unit_options as $index => $optionName) {
-                // Validate that the option is from our predefined list
-                if (in_array($optionName, $predefinedOptions)) {
+                $cleanName = trim($optionName);
+                if (!empty($cleanName)) {
                     $project->unitOptions()->create([
-                        'option_name' => $optionName,
-                        'is_enabled' => true, // All selected options are enabled by default
+                        'option_name' => $cleanName,
+                        'is_enabled' => true,
                         'sort_order' => $index,
                     ]);
                 }
@@ -216,11 +216,11 @@ class ProjectController extends Controller
             ];
 
             foreach ($request->selected_unit_options as $index => $optionName) {
-                // Validate that the option is from our predefined list
-                if (in_array($optionName, $predefinedOptions)) {
+                $cleanName = trim($optionName);
+                if (!empty($cleanName)) {
                     $project->unitOptions()->create([
-                        'option_name' => $optionName,
-                        'is_enabled' => true, // All selected options are enabled by default
+                        'option_name' => $cleanName,
+                        'is_enabled' => true,
                         'sort_order' => $index,
                     ]);
                 }

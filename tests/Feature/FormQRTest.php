@@ -18,8 +18,6 @@ class FormQRTest extends TestCase
         $company = Company::create([
             'name' => 'QR Co',
             'email' => 'qr@co.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
         $user = User::factory()->create([
             'company_id' => $company->id,
@@ -56,8 +54,6 @@ class FormQRTest extends TestCase
         $company = Company::create([
             'name' => 'QR Co 2',
             'email' => 'qr2@co.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
         $project = Project::create([
             'company_id' => $company->id,
@@ -93,8 +89,6 @@ class FormQRTest extends TestCase
         $company = Company::create([
             'name' => 'QR Co 3',
             'email' => 'qr3@co.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
         ]);
         $project = Project::create([
             'company_id' => $company->id,

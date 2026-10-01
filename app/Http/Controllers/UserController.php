@@ -79,6 +79,7 @@ class UserController extends Controller
             'password' => Hash::make($validated['password']),
             'company_id' => auth()->user()->company_id,
             'role_id' => $validated['role_id'],
+            'email_verified_at' => now(),
         ]);
 
         // Attach projects to user (if not admin)

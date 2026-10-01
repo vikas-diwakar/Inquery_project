@@ -115,13 +115,7 @@ class Project extends Model
      */
     public function getInquiryFormUrl(): string
     {
-        $encryptedKey = $this->getEncryptedKey();
-        $company = $this->relationLoaded('company') ? $this->company : $this->company()->first();
-        if ($company && !empty($company->subdomain)) {
-            return rtrim($company->workspace_url, '/') . '/inquiry/' . $encryptedKey;
-        }
-
-        return route('public.inquiry.form', ['project' => $encryptedKey]);
+        return route('public.inquiry.form', ['project' => $this->getEncryptedKey()]);
     }
 
     /**
@@ -167,5 +161,21 @@ class Project extends Model
     public function getQrCodeIdentifier(): string
     {
         return "{$this->company_id}-{$this->id}";
+    }
+
+    /**
+     * Get all custom inquiry form fields for this project
+     */
+    public function customFields(): HasMany
+    {
+        return $this->hasMany(InquiryCustomField::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Get active custom inquiry form fields for this project
+     */
+    public function activeCustomFields(): HasMany
+    {
+        return $this->hasMany(InquiryCustomField::class)->where('is_active', true)->orderBy('sort_order');
     }
 }

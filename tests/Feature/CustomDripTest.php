@@ -27,8 +27,6 @@ class CustomDripTest extends TestCase
         $this->company = Company::create([
             'name' => 'Elite Realty Promoters',
             'email' => 'elite@realty.com',
-            'subscription_status' => 'active',
-            'subscription_ends_at' => now()->addYear(),
             'whatsapp_auto_send' => true,
         ]);
 
@@ -150,7 +148,6 @@ class CustomDripTest extends TestCase
         $otherCompany = Company::create([
             'name' => 'Other Builder',
             'email' => 'other@builder.com',
-            'subscription_status' => 'active',
         ]);
 
         $otherInquiry = Inquiry::create([

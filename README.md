@@ -1,356 +1,77 @@
-# Property Inquiry Management SaaS
+# 🏢 Real Estate Property & Inquiry Management System (Standalone Edition)
 
-A complete multi-tenant SaaS web application for Real Estate Builders to manage property inquiries, projects, and customer interactions.
+An independent, self-hosted, enterprise-grade Real Estate CRM and Lead Automation Web Application built with **Laravel 11**, **Tailwind CSS**, and **Alpine.js**.
 
-## Features
+Designed specifically for real estate developers, agencies, and builders to manage property portfolios, unit inventory, public QR inquiry captures, brochure distribution, and automated WhatsApp lead drip sequences.
 
-### Core Functionality
+---
 
-1. **Multi-Tenant Architecture**
-   - Each registered company acts as an independent tenant
-   - Complete data isolation between companies
-   - Single database with tenant_id-based separation
+## ✨ Features Overview
 
-2. **Company Registration**
-   - Builder/company registration with company details
-   - Logo upload support
-   - Automatic admin user creation
-   - Default role setup (Admin, Manager, Sales Executive)
+### 1. 🏗️ Property & Inventory Portfolio
+- **Unlimited Projects**: Create, edit, and organize residential and commercial property developments.
+- **Unit Inventory & Stacking Chart**: Interactive floor-by-floor unit stacking matrix with live status color indicators (Available, Booked, On Hold, Sold).
+- **Batch Unit Generator**: Rapidly generate hundreds of units with customizable pricing, carpet areas, unit types (1BHK, 2BHK, 3BHK, Penthouses), and floor ranges.
+- **Brochure Management**: Upload PDF brochures with secure storage and direct public download links.
 
-3. **Project Management**
-   - Create and manage multiple projects per company
-   - Project details: name, location, description, start date, status
-   - Project logo upload
-   - Automatic QR code generation for inquiry forms
+### 2. 🎯 Smart Lead Capture & Inquiries
+- **Dynamic QR Inquiry Forms**: Instant project-specific QR codes for offline site visits, billboards, print ads, and expos.
+- **Public Inquiry Pages & Embeddable Widgets**: Embed iframe widgets or share direct inquiry links with zero login friction.
+- **Facebook Lead Ads & Webhooks**: Integrated webhook endpoint to receive leads instantly from Facebook Ads or external landing pages.
+- **Comprehensive Inquiry Details**: Customer name, phone, email, budget range, selected unit type, source attribution, and custom notes.
+- **Status Lifecycle Tracking**: Move leads through stages: `New` &rarr; `Contacted` &rarr; `Qualified` &rarr; `Site Visit` &rarr; `Negotiation` &rarr; `Booked` &rarr; `Lost`.
+- **Excel & CSV Export**: Instant export of filtered leads for offline analysis.
 
-4. **Customer Inquiry System**
-   - Public inquiry forms (no login required)
-   - Unique QR code for each project
-   - Inquiry fields: customer name, phone, email, budget, flat type, message
-   - Inquiry status tracking: new, contacted, qualified, booked, rejected
-   - Assignment to sales executives
-   - **Excel export** with filtering and search capabilities
+### 3. 💬 WhatsApp Cloud API & Automated Drip Campaigns
+- **Meta WhatsApp Cloud API Integration**: Connect official WhatsApp business accounts directly.
+- **Instant Welcome Auto-Replies**: Deliver project brochures and personalized welcome messages the second an inquiry is submitted.
+- **Lead Drip Automation**: Design automated multi-step sequences (e.g. Day 1: Welcome & Brochure, Day 3: Virtual Tour & Amenities, Day 7: Limited Price Offer).
+- **One-Click Resend**: Re-trigger WhatsApp brochures and updates with a single click from the inquiry details screen.
 
-5. **Project Brochure System**
-   - PDF brochure upload per project
-   - Unique QR code generation for brochure downloads
-   - Direct download links (no login required)
+### 4. 📅 Follow-up Management & Reminders
+- Schedule upcoming calls, meetings, and site visits for each lead.
+- Filter by Today's follow-ups, Overdue, and Completed.
+- Calendar & agenda views with detailed interaction logs.
 
-6. **Admin Dashboard**
-   - Project-wise statistics
-   - Total inquiries and bookings
-   - Recent inquiries list
-   - Project-wise inquiry breakdown
-   - Advanced filtering: search by phone, name, date range, project, status
+### 5. 👥 Team & Role-Based Access Control (RBAC)
+- **Super Administrator**: Full control over system settings, company profile, users, and projects.
+- **Sales Managers**: Oversight of projects, unit allocations, and team inquiries.
+- **Sales Agents**: Focused view on assigned leads, calls, and follow-ups.
+- **Lead Allocation**: Supports both **Manual Assignment** and **Automated Round-Robin** distribution.
 
-7. **User & Role Management**
-   - Multiple user creation per company
-   - Role-based access control (RBAC)
-   - Three default roles:
-     - **Admin**: Full access to all features
-     - **Manager**: View and limited actions (projects, inquiries, brochures)
-     - **Sales Executive**: Only inquiry management
+### 6. 🎨 Agency White-Label & Settings
+- Fully customizable company branding: upload agency logo, set office address, phone, and inquiry support email.
+- Runs on any domain, subdomain, or local development server with zero multi-tenant or licensing friction.
 
-8. **Subscription Management System**
-   - **Free Trial**: 1-month free trial for new companies
-   - **Paid Plans**: 6-month and 1-year subscription plans
-   - **Payment Integration**: Razorpay payment gateway
-   - **Access Control**: Feature blocking for expired subscriptions
-   - **Automatic Expiry**: Background job to expire subscriptions
-   - **Trial Reactivation**: Allow trial reactivation after expiry
+---
 
-## Technology Stack
+## 🚀 Quick Start & Installation
 
-- **Backend**: Laravel 11
-- **Frontend**: Blade Templates with Tailwind CSS
-- **Database**: MySQL/PostgreSQL/SQLite
-- **Payment Gateway**: Razorpay
-- **QR Code Generation**: SimpleSoftwareIO QRCode (SVG format)
-- **File Storage**: Laravel Storage (local/public)
-- **UI Components**: Modern confirmation modals, responsive design
+Please refer to the detailed [Installation & Deployment Guide](INSTALLATION_GUIDE.md).
 
-## Installation
+```bash
+# 1. Clone repository
+git clone <repository-url>
 
-### Prerequisites
+# 2. Install dependencies
+composer install
 
-- PHP >= 8.2
-- Composer
-- Node.js and npm
-- Database (MySQL/PostgreSQL/SQLite)
+# 3. Environment setup
+cp .env.example .env
+php artisan key:generate
 
-### Setup Steps
+# 4. Migrate and seed initial admin data
+php artisan migrate --seed
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd property-inquiry-saas-new
-   ```
-
-2. **Install PHP dependencies**
-   ```bash
-   composer install
-   ```
-
-3. **Install Node dependencies**
-   ```bash
-   npm install
-   ```
-
-4. **Environment Configuration**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-   Update `.env` with your database credentials and Razorpay keys:
-   ```env
-   DB_CONNECTION=mysql
-   DB_HOST=127.0.0.1
-   DB_PORT=3306
-   DB_DATABASE=property_inquiry
-   DB_USERNAME=root
-   DB_PASSWORD=
-
-   # Razorpay Payment Gateway
-   RAZORPAY_KEY=your_razorpay_key_here
-   RAZORPAY_SECRET=your_razorpay_secret_here
-   ```
-
-   **Getting Razorpay Keys:**
-   1. Sign up at [Razorpay Dashboard](https://dashboard.razorpay.com/)
-   2. Go to Settings → API Keys
-   3. Copy your Key ID and Key Secret
-   4. Add them to your `.env` file
-
-5. **Run Migrations**
-   ```bash
-   php artisan migrate
-   ```
-
-6. **Create Storage Link**
-   ```bash
-   php artisan storage:link
-   ```
-
-7. **Build Assets**
-   ```bash
-   npm run build
-   # Or for development:
-   npm run dev
-   ```
-
-8. **Start Development Server**
-   ```bash
-   php artisan serve
-   ```
-
-   The application will be available at `http://localhost:8000`
-
-## Usage
-
-### Company Registration
-
-1. Navigate to `/register`
-2. Fill in company information:
-   - Company name, email, phone, address
-   - Company logo (optional)
-   - Admin user credentials
-3. Upon registration, you'll be automatically logged in
-
-### Creating Projects
-
-1. Log in to your account
-2. Navigate to "Projects" in the navigation
-3. Click "Add New Project"
-4. Fill in project details and upload a logo (optional)
-5. A QR code for the inquiry form will be automatically generated
-
-### Managing Inquiries
-
-1. **Public Inquiry Submission**:
-   - Customers can scan the QR code or visit the inquiry form URL
-   - Fill in the inquiry form (no login required)
-   - Inquiry is automatically saved under the project
-
-2. **Admin Inquiry Management**:
-   - View all inquiries in the "Inquiries" section
-   - Filter by project, status, date range, or search
-   - **Export inquiries to Excel** with all applied filters
-   - Update inquiry status and assign to users
-   - View detailed inquiry information
-
-### Uploading Brochures
-
-1. Navigate to "Brochures"
-2. Click "Upload Brochure"
-3. Select a project and upload a PDF file
-4. A QR code for brochure download will be automatically generated
-5. Customers can scan the QR code to download the brochure
-
-### User Management (Admin Only)
-
-1. Navigate to "Users"
-2. Click "Add New User"
-3. Fill in user details and assign a role
-4. Users can be edited or deleted (except your own account)
-
-## Database Schema
-
-### Tables
-
-- `companies` - Company/tenant information
-- `users` - User accounts with company and role association
-- `roles` - Role definitions per company
-- `projects` - Project information
-- `inquiries` - Customer inquiries
-- `brochures` - Project brochures
-
-### Multi-Tenant Isolation
-
-All tenant-specific tables include a `company_id` foreign key:
-- `users.company_id`
-- `projects.company_id`
-- `inquiries.company_id`
-- `brochures.company_id`
-- `roles.company_id`
-
-The `HasTenant` trait automatically scopes queries to the authenticated user's company.
-
-## Security Features
-
-- Multi-tenant data isolation
-- Role-based access control (RBAC)
-- CSRF protection
-- Password hashing
-- File upload validation
-- Authorization policies for resource access
-
-## File Structure
-
-```
-app/
-├── Http/
-│   ├── Controllers/
-│   │   ├── AuthController.php
-│   │   ├── CompanyRegistrationController.php
-│   │   ├── DashboardController.php
-│   │   ├── ProjectController.php
-│   │   ├── InquiryController.php
-│   │   ├── BrochureController.php
-│   │   └── UserController.php
-│   └── Middleware/
-│       ├── EnsureTenant.php
-│       └── CheckRole.php
-├── Models/
-│   ├── Company.php
-│   ├── User.php
-│   ├── Project.php
-│   ├── Inquiry.php
-│   ├── Brochure.php
-│   └── Role.php
-├── Policies/
-│   ├── ProjectPolicy.php
-│   ├── InquiryPolicy.php
-│   ├── BrochurePolicy.php
-│   └── UserPolicy.php
-└── Traits/
-    └── HasTenant.php
-
-database/migrations/
-├── 2024_01_01_000001_create_companies_table.php
-├── 2024_01_01_000002_add_tenant_to_users_table.php
-├── 2024_01_01_000003_create_roles_table.php
-├── 2024_01_01_000004_create_projects_table.php
-├── 2024_01_01_000005_create_inquiries_table.php
-└── 2024_01_01_000006_create_brochures_table.php
-
-resources/views/
-├── layouts/
-│   └── app.blade.php
-├── auth/
-│   └── login.blade.php
-├── company/
-│   └── register.blade.php
-├── dashboard/
-│   └── index.blade.php
-├── projects/
-│   ├── index.blade.php
-│   ├── create.blade.php
-│   ├── edit.blade.php
-│   └── show.blade.php
-├── inquiries/
-│   ├── index.blade.php
-│   └── show.blade.php
-├── brochures/
-│   ├── index.blade.php
-│   └── create.blade.php
-├── users/
-│   ├── index.blade.php
-│   ├── create.blade.php
-│   └── edit.blade.php
-└── public/
-    └── inquiry-form.blade.php
+# 5. Link storage
+php artisan storage:link
 ```
 
-## API Routes
+### Default Sign-in:
+- **Email**: `admin@example.com`
+- **Password**: `password`
 
-### Public Routes
-- `GET /inquiry/{project}` - Public inquiry form
-- `POST /inquiry/{project}` - Submit inquiry
-- `GET /brochure/{brochure}/download` - Download brochure
+---
 
-### Authenticated Routes
-- `GET /dashboard` - Dashboard
-- `GET /projects` - List projects
-- `POST /projects` - Create project
-- `GET /inquiries` - List inquiries (with filters)
-- `GET /brochures` - List brochures
-- `POST /brochures` - Upload brochure
-- `GET /users` - List users (Admin only)
-- `POST /users` - Create user (Admin only)
-
-## Default Roles & Permissions
-
-### Admin
-- Full access to all features
-- User management
-- Project management
-- Inquiry management
-- Brochure management
-
-### Manager
-- View projects
-- Create/edit projects
-- View inquiries
-- Edit inquiries
-- View brochures
-- Create brochures
-
-### Sales Executive
-- View inquiries
-- Edit inquiries
-
-## QR Code Generation
-
-QR codes are generated client-side using the `qrcode.js` library:
-- Inquiry form QR codes: Generated on project show page
-- Brochure QR codes: Generated on brochure listing page
-
-QR codes contain direct URLs to:
-- Inquiry forms: `/inquiry/{project_id}`
-- Brochure downloads: `/brochure/{brochure_id}/download`
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
-
-This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
-
-## Support
-
-For issues and questions, please open an issue on the repository.
+## 📄 License & Sale Rights
+This software is provided with full source code for private deployment and commercial client usage.

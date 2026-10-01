@@ -67,10 +67,7 @@ class IntegrationController extends Controller
             abort(404, 'Invalid integration token.');
         }
 
-        $company = $project->company;
-        if (!$company || !$company->hasActiveSubscription()) {
-            return view('public.widget-expired', compact('project'));
-        }
+        
 
         $unitOptions = $project->enabledUnitOptions;
 
@@ -88,10 +85,7 @@ class IntegrationController extends Controller
             return response()->json(['error' => 'Invalid integration token.'], 404);
         }
 
-        $company = $project->company;
-        if (!$company || !$company->hasActiveSubscription()) {
-            return response()->json(['error' => 'Subscription expired.'], 403);
-        }
+        
 
         $validated = $request->validate([
             'customer_name' => 'required|string|max:255',
@@ -151,13 +145,7 @@ class IntegrationController extends Controller
             ], 404);
         }
 
-        $company = $project->company;
-        if (!$company || !$company->hasActiveSubscription()) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Integration paused. Company subscription is inactive or expired.'
-            ], 403);
-        }
+        
 
         $payload = $request->all();
         Log::info('Lead integration webhook payload received:', [

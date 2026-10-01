@@ -39,9 +39,7 @@ class CompanyVerifyEmailNotification extends VerifyEmail
     {
         $company = $notifiable->company;
 
-        if ($company && $company->subdomain) {
-            \Illuminate\Support\Facades\URL::forceRootUrl($company->workspace_url);
-        }
+        
 
         $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
             'verification.verify',
@@ -52,9 +50,7 @@ class CompanyVerifyEmailNotification extends VerifyEmail
             ]
         );
 
-        if ($company && $company->subdomain) {
-            \Illuminate\Support\Facades\URL::forceRootUrl(null);
-        }
+        
 
         return $url;
     }

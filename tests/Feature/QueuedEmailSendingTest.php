@@ -18,27 +18,6 @@ class QueuedEmailSendingTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_company_registration_dispatches_queued_welcome_and_verification_jobs(): void
-    {
-        Queue::fake();
-
-        $response = $this->post('/register', [
-            'company_name' => 'Apex Realty',
-            'company_email' => 'contact@apex.com',
-            'admin_name' => 'John Admin',
-            'admin_email' => 'john@apex.com',
-            'admin_password' => 'Password123!',
-            'admin_password_confirmation' => 'Password123!',
-        ]);
-
-        $company = Company::where('email', 'contact@apex.com')->first();
-        $this->assertNotNull($company);
-        $response->assertRedirect($company->workspace_url . '/login');
-
-        Queue::assertPushed(SendEmailVerificationJob::class);
-        Queue::assertPushed(SendWelcomeEmailJob::class);
-    }
-
     public function test_public_inquiry_submission_dispatches_queued_email_jobs(): void
     {
         Queue::fake();

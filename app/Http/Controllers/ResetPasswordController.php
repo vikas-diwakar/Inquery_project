@@ -55,9 +55,7 @@ class ResetPasswordController extends Controller
 
         if ($status === Password::PASSWORD_RESET) {
             $user = \App\Models\User::where('email', $request->email)->first();
-            $loginUrl = ($user && $user->company && $user->company->subdomain) 
-                ? ($user->company->workspace_url . '/login') 
-                : route('login');
+            $loginUrl = route('login');
 
             return redirect($loginUrl)->with('status', 'Your password has been reset successfully! Please sign in with your new password.');
         }

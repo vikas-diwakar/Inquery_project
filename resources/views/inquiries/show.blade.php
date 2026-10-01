@@ -134,6 +134,20 @@
                 <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer Message</dt>
                 <dd class="mt-1 text-sm text-slate-800 bg-slate-50 p-3 rounded-xl border border-slate-200/60">{{ $inquiry->message ?? 'No additional message.' }}</dd>
             </div>
+
+            @if(!empty($inquiry->custom_fields) && is_array($inquiry->custom_fields))
+                <div class="sm:col-span-2 bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 space-y-2">
+                    <dt class="text-xs font-bold text-indigo-700 uppercase tracking-wider">Custom Inquiry Field Answers</dt>
+                    <dd class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        @foreach($inquiry->custom_fields as $fieldName => $fieldValue)
+                            <div class="p-2.5 bg-white rounded-xl border border-indigo-100">
+                                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">{{ ucwords(str_replace('_', ' ', $fieldName)) }}</span>
+                                <span class="text-sm font-extrabold text-slate-800">{{ is_array($fieldValue) ? implode(', ', $fieldValue) : ($fieldValue ?: '—') }}</span>
+                            </div>
+                        @endforeach
+                    </dd>
+                </div>
+            @endif
             <div>
                 <dt class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Inquiry Status</dt>
                 <dd class="mt-1">
@@ -193,7 +207,7 @@
                     <label for="assigned_to" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Assigned Executive</label>
                     <select name="assigned_to" id="assigned_to" class="input-field cursor-pointer">
                         <option value="">-- Unassigned --</option>
-                        @foreach(\App\Models\User::where('company_id', auth()->user()->company_id)->get() as $user)
+                        @foreach(\App\Models\User::where('company_id', auth()->user()?->company_id ?? $inquiry->company_id)->get() as $user)
                             <option value="{{ $user->id }}" {{ $inquiry->assigned_to === $user->id ? 'selected' : '' }}>{{ $user->name }} ({{ $user->email }})</option>
                         @endforeach
                     </select>

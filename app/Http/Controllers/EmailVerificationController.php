@@ -25,9 +25,7 @@ class EmailVerificationController extends Controller
     public function verify(Request $request, $id, $hash)
     {
         $user = User::findOrFail($id);
-        $loginUrl = ($user->company && $user->company->subdomain)
-            ? ($user->company->workspace_url . '/login')
-            : route('login');
+        $loginUrl = route('login');
 
         if (!hash_equals((string) $hash, sha1($user->getEmailForVerification()))) {
             return redirect()->to($loginUrl)->with('error', 'Invalid verification link.');
@@ -56,9 +54,7 @@ class EmailVerificationController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if ($user->hasVerifiedEmail()) {
-            $loginUrl = ($user->company && $user->company->subdomain)
-                ? ($user->company->workspace_url . '/login')
-                : route('login');
+            $loginUrl = route('login');
 
             return redirect()->to($loginUrl)->with('status', 'Email is already verified. Please sign in.');
         }

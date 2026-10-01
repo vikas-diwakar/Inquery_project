@@ -177,6 +177,41 @@
                             </div>
                         </div>
 
+                        <!-- Dynamic Custom Fields Configured by Company -->
+                        @if($project->activeCustomFields && $project->activeCustomFields->isNotEmpty())
+                            @foreach($project->activeCustomFields as $cField)
+                                <div class="space-y-1.5">
+                                    <label for="cf_{{ $cField->field_name }}" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                                        {{ $cField->field_label }}
+                                        @if($cField->is_required)
+                                            <span class="text-rose-500">*</span>
+                                        @else
+                                            <span class="text-slate-400 font-normal">(Optional)</span>
+                                        @endif
+                                    </label>
+
+                                    @if($cField->field_type === 'select')
+                                        <select id="cf_{{ $cField->field_name }}" name="custom_fields[{{ $cField->field_name }}]" {{ $cField->is_required ? 'required' : '' }} class="input-field cursor-pointer">
+                                            <option value="">-- {{ $cField->placeholder ?: 'Select ' . $cField->field_label }} --</option>
+                                            @if(is_array($cField->field_options))
+                                                @foreach($cField->field_options as $opt)
+                                                    <option value="{{ $opt }}" {{ old("custom_fields.{$cField->field_name}") == $opt ? 'selected' : '' }}>
+                                                        {{ $opt }}
+                                                    </option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                    @elseif($cField->field_type === 'textarea')
+                                        <textarea id="cf_{{ $cField->field_name }}" name="custom_fields[{{ $cField->field_name }}]" rows="2" {{ $cField->is_required ? 'required' : '' }} class="input-field" placeholder="{{ $cField->placeholder ?? '' }}">{{ old("custom_fields.{$cField->field_name}") }}</textarea>
+                                    @elseif($cField->field_type === 'number')
+                                        <input type="number" id="cf_{{ $cField->field_name }}" name="custom_fields[{{ $cField->field_name }}]" value="{{ old("custom_fields.{$cField->field_name}") }}" {{ $cField->is_required ? 'required' : '' }} class="input-field" placeholder="{{ $cField->placeholder ?? '' }}">
+                                    @else
+                                        <input type="text" id="cf_{{ $cField->field_name }}" name="custom_fields[{{ $cField->field_name }}]" value="{{ old("custom_fields.{$cField->field_name}") }}" {{ $cField->is_required ? 'required' : '' }} class="input-field" placeholder="{{ $cField->placeholder ?? '' }}">
+                                    @endif
+                                </div>
+                            @endforeach
+                        @endif
+
                         <!-- Message -->
                         <div class="space-y-1.5">
                             <label for="message" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Message / Requirements</label>

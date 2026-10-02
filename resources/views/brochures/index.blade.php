@@ -177,11 +177,11 @@
             };
             img.onerror = function() {
                 URL.revokeObjectURL(url);
-                alert('Could not generate QR image download. Please try again.');
+                showAlert('Download Failed', 'Could not generate QR image download. Please try again.', { type: 'danger' });
             };
             img.src = url;
         } catch (err) {
-            alert('Could not generate QR image download. Please try again.');
+            showAlert('Download Failed', 'Could not generate QR image download. Please try again.', { type: 'danger' });
         }
     }
 </script>

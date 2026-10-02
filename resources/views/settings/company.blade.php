@@ -446,7 +446,7 @@
 
         // Validate max size 2MB (2048 KB)
         if (file.size > 2 * 1024 * 1024) {
-            alert('The selected logo file exceeds the 2MB size limit. Please choose a smaller image.');
+            showAlert('File Too Large', 'The selected logo file exceeds the 2MB size limit. Please choose a smaller image.', { type: 'warning' });
             input.value = '';
             return;
         }

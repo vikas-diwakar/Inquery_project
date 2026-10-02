@@ -464,8 +464,7 @@
         if (checked.length === 0) return;
 
         const confirmMsg = 'Discard ' + checked.length + ' selected drip(s)? They will be removed from the pending list.';
-        if (typeof showConfirmationModal === 'function') {
-            showConfirmationModal(
+        showConfirmationModal(
                 'Discard Selected Drips',
                 confirmMsg,
                 function() {
@@ -475,16 +474,9 @@
                 },
                 {
                     confirmText: 'Yes, Discard Them',
-                    btnClass: 'btn-danger'
+                    btnClass: 'px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm'
                 }
             );
-        } else {
-            if (confirm(confirmMsg)) {
-                const form = document.getElementById('modalDispatchForm');
-                form.action = '{{ route("settings.drip.discard-selected") }}';
-                form.submit();
-            }
-        }
     }
 
     // Table Select All Checkbox
@@ -527,8 +519,7 @@
         if (checked.length === 0) return;
 
         const confirmMsg = 'Discard ' + checked.length + ' selected drip(s)? They will be removed from the pending list.';
-        if (typeof showConfirmationModal === 'function') {
-            showConfirmationModal(
+        showConfirmationModal(
                 'Discard Selected Drips',
                 confirmMsg,
                 function() {
@@ -538,22 +529,14 @@
                 },
                 {
                     confirmText: 'Yes, Discard Them',
-                    btnClass: 'btn-danger'
+                    btnClass: 'px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm'
                 }
             );
-        } else {
-            if (confirm(confirmMsg)) {
-                const form = document.getElementById('tableBulkDispatchForm');
-                form.action = '{{ route("settings.drip.discard-selected") }}';
-                form.submit();
-            }
-        }
     }
 
     // Dispatch Single User Log
     function dispatchSingleLog(logId, customerName) {
-        if (typeof showConfirmationModal === 'function') {
-            showConfirmationModal(
+        showConfirmationModal(
                 'Dispatch Drip Message',
                 'Dispatch scheduled WhatsApp drip message now to ' + customerName + '?',
                 function() {
@@ -563,23 +546,15 @@
                 },
                 {
                     confirmText: 'Yes, Dispatch Now',
-                    btnClass: 'btn-primary'
+                    type: 'info'
                 }
             );
-        } else {
-            if (confirm('Dispatch scheduled WhatsApp drip message now to ' + customerName + '?')) {
-                const form = document.getElementById('singleDispatchForm');
-                form.action = '/settings/drip/' + logId + '/process-single';
-                form.submit();
-            }
-        }
     }
 
     // Discard Single User Log
     function discardSingleLog(logId, customerName) {
         const confirmMsg = 'Discard scheduled drip message for ' + customerName + '? This will remove it from the pending list.';
-        if (typeof showConfirmationModal === 'function') {
-            showConfirmationModal(
+        showConfirmationModal(
                 'Discard Drip',
                 confirmMsg,
                 function() {
@@ -589,16 +564,9 @@
                 },
                 {
                     confirmText: 'Yes, Discard',
-                    btnClass: 'btn-danger'
+                    btnClass: 'px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm'
                 }
             );
-        } else {
-            if (confirm(confirmMsg)) {
-                const form = document.getElementById('singleDiscardForm');
-                form.action = '/settings/drip/' + logId + '/discard';
-                form.submit();
-            }
-        }
     }
 
     // Close modal on click outside (backdrop)

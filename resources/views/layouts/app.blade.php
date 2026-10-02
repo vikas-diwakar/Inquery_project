@@ -360,69 +360,126 @@
 
     let confirmationCallback = null;
 
-    function showConfirmationModal(title, message, callback, options = {}) {
-        const modal = document.getElementById('confirmationModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const confirmBtn = document.getElementById('confirmBtn');
+    // ─── Icon / colour presets ────────────────────────────────────────────────
+    const _modalPresets = {
+        danger:  { wrap: 'bg-rose-50',   icon: 'text-rose-600',   id: 'modalIconDanger'  },
+        info:    { wrap: 'bg-blue-50',    icon: 'text-blue-600',   id: 'modalIconInfo'    },
+        success: { wrap: 'bg-emerald-50', icon: 'text-emerald-600',id: 'modalIconSuccess' },
+        warning: { wrap: 'bg-amber-50',   icon: 'text-amber-600',  id: 'modalIconWarning' },
+    };
 
-        if (modalTitle) modalTitle.textContent = title;
-        if (modalMessage) modalMessage.textContent = message;
-
-        if (cancelBtn) {
-            cancelBtn.textContent = options.cancelText || 'Cancel';
-            cancelBtn.style.display = options.hideCancel ? 'none' : 'inline-flex';
-        }
-        if (confirmBtn) {
-            confirmBtn.textContent = options.confirmText || 'Confirm';
-            if (options.btnClass) {
-                confirmBtn.className = options.btnClass;
-            } else {
-                confirmBtn.className = 'btn-danger';
-            }
-        }
-
-        confirmationCallback = callback;
-
-        if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
+    function _applyModalType(type) {
+        const preset = _modalPresets[type] || _modalPresets.danger;
+        const wrap   = document.getElementById('modalIconWrap');
+        if (wrap) {
+            wrap.className = 'h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 ' + preset.wrap;
+            ['modalIconDanger','modalIconInfo','modalIconSuccess','modalIconWarning'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.className = 'w-5 h-5' + (id === preset.id ? ' ' + preset.icon : ' hidden');
+                }
+            });
         }
     }
 
-    function closeConfirmationModal() {
+    function _openModal() {
         const modal = document.getElementById('confirmationModal');
-        if (modal) {
+        const inner = document.getElementById('confirmationModalInner');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        requestAnimationFrame(() => {
+            if (inner) { inner.classList.remove('scale-95','opacity-0'); inner.classList.add('scale-100','opacity-100'); }
+        });
+    }
+
+    function _closeModal() {
+        const modal = document.getElementById('confirmationModal');
+        const inner = document.getElementById('confirmationModalInner');
+        if (!modal) return;
+        if (inner) { inner.classList.remove('scale-100','opacity-100'); inner.classList.add('scale-95','opacity-0'); }
+        setTimeout(() => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
-        }
+        }, 150);
         confirmationCallback = null;
     }
 
-    function hideConfirmationModal() {
-        closeConfirmationModal();
+    /**
+     * showConfirmationModal(title, message, callback, options)
+     * options: { confirmText, cancelText, hideCancel, btnClass, type: 'danger'|'info'|'success'|'warning' }
+     */
+    function showConfirmationModal(title, message, callback, options = {}) {
+        const modalTitle  = document.getElementById('modalTitle');
+        const modalMsg    = document.getElementById('modalMessage');
+        const cancelBtn   = document.getElementById('cancelBtn');
+        const confirmBtn  = document.getElementById('confirmBtn');
+
+        if (modalTitle) modalTitle.textContent = title;
+        if (modalMsg)   modalMsg.textContent   = message;
+
+        _applyModalType(options.type || 'danger');
+
+        if (cancelBtn) {
+            cancelBtn.textContent = options.cancelText || 'Cancel';
+            cancelBtn.style.display = options.hideCancel ? 'none' : '';
+        }
+        if (confirmBtn) {
+            confirmBtn.textContent = options.confirmText || 'Confirm';
+            confirmBtn.className = options.btnClass ||
+                'px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm';
+        }
+
+        confirmationCallback = callback;
+        _openModal();
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const cancelBtn = document.getElementById('cancelBtn');
+    /**
+     * showAlert(title, message, options)
+     * options: { type: 'info'|'success'|'warning'|'danger', okText }
+     * Replaces native alert() with a polished modal.
+     */
+    function showAlert(title, message, options = {}) {
+        const type = options.type || 'info';
         const confirmBtn = document.getElementById('confirmBtn');
-        const modal = document.getElementById('confirmationModal');
-        
-        if (cancelBtn) cancelBtn.addEventListener('click', hideConfirmationModal);
+        if (confirmBtn) {
+            const colours = {
+                danger:  'px-4 py-2 text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-sm',
+                info:    'px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-sm',
+                success: 'px-4 py-2 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-sm',
+                warning: 'px-4 py-2 text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl transition-colors shadow-sm',
+            };
+            confirmBtn.className = colours[type] || colours.info;
+        }
+        showConfirmationModal(title, message, null, {
+            type,
+            confirmText: options.okText || 'OK',
+            hideCancel: true,
+        });
+    }
+
+    function closeConfirmationModal() { _closeModal(); }
+    function hideConfirmationModal()  { _closeModal(); }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelBtn  = document.getElementById('cancelBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const modal      = document.getElementById('confirmationModal');
+
+        if (cancelBtn)  cancelBtn.addEventListener('click', _closeModal);
         if (confirmBtn) {
             confirmBtn.addEventListener('click', function() {
                 if (typeof confirmationCallback === 'function') confirmationCallback();
-                hideConfirmationModal();
+                _closeModal();
             });
         }
         if (modal) {
             modal.addEventListener('click', function(e) {
-                if (e.target === this) hideConfirmationModal();
+                if (e.target === this) _closeModal();
             });
         }
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') hideConfirmationModal();
+            if (e.key === 'Escape') _closeModal();
         });
 
         // Instant link prefetch on hover for silky smooth page transitions

@@ -99,10 +99,11 @@
                                                 {{ $cField->is_active ? 'Active' : 'Disabled' }}
                                             </button>
                                         </form>
-                                        <form action="{{ route('forms-qr.custom-fields.delete', $cField) }}" method="POST" class="inline" onsubmit="return confirm('Delete custom field \'{{ $cField->field_label }}\'?')">
+                                        <form id="deleteField{{ $cField->id }}" action="{{ route('forms-qr.custom-fields.delete', $cField) }}" method="POST" class="inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Delete Field">✕</button>
+                                            <button type="button" class="text-xs text-slate-400 hover:text-rose-600 p-1" title="Delete Field"
+                                                onclick="showConfirmationModal('Delete Custom Field', 'Delete custom field \'{{ addslashes($cField->field_label) }}\'? This cannot be undone.', function(){ document.getElementById('deleteField{{ $cField->id }}').submit(); }, { confirmText: 'Yes, Delete', type: 'danger' })">✕</button>
                                         </form>
                                     </div>
                                 </div>

@@ -147,7 +147,7 @@
     // Copy to clipboard functionality
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function() {
-            alert('Link copied to clipboard!');
+            showAlert('Copied!', 'Link copied to clipboard!', { type: 'success', okText: 'Great' });
         }, function(err) {
             const textarea = document.createElement('textarea');
             textarea.value = text;
@@ -156,9 +156,9 @@
             textarea.select();
             try {
                 document.execCommand('copy');
-                alert('Link copied to clipboard!');
+                showAlert('Copied!', 'Link copied to clipboard!', { type: 'success', okText: 'Great' });
             } catch (err) {
-                alert('Failed to copy link. Please copy manually.');
+                showAlert('Copy Failed', 'Failed to copy link. Please copy manually.', { type: 'warning' });
             }
             document.body.removeChild(textarea);
         });

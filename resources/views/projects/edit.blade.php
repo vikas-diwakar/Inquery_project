@@ -114,7 +114,7 @@
 
                     const existing = Array.from(document.querySelectorAll('input[name="selected_unit_options[]"]')).map(el => el.value.toLowerCase());
                     if (existing.includes(val.toLowerCase())) {
-                        alert('This unit type is already added!');
+                        showAlert('Already Added', 'This unit type is already added!', { type: 'warning' });
                         input.value = '';
                         return;
                     }

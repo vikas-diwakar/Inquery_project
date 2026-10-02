@@ -394,7 +394,7 @@
                 }
             }, 2000);
         }).catch(err => {
-            alert('Failed to copy text: ' + err);
+            showAlert('Copy Failed', 'Failed to copy text: ' + err, { type: 'danger' });
         });
     }
 </script>

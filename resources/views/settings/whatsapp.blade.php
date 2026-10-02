@@ -87,9 +87,11 @@
                 </div>
 
                 <!-- Disconnect Action -->
-                <form action="{{ route('settings.whatsapp.disconnect') }}" method="POST" onsubmit="return confirm('Are you sure you want to disconnect this WhatsApp number? Inquiries will stop receiving automated WhatsApp messages.');">
+                <form id="disconnectWhatsAppForm" action="{{ route('settings.whatsapp.disconnect') }}" method="POST">
                     @csrf
-                    <button type="submit" class="px-4 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-xl transition duration-150 shadow-sm flex items-center space-x-1.5">
+                    <button type="button"
+                        onclick="showConfirmationModal('Disconnect WhatsApp?', 'Are you sure you want to disconnect this WhatsApp number? Inquiries will stop receiving automated WhatsApp messages.', function(){ document.getElementById(\'disconnectWhatsAppForm\').submit(); }, { confirmText: \'Yes, Disconnect\', type: \'danger\' })"
+                        class="px-4 py-2 text-xs font-bold text-rose-600 hover:text-white bg-rose-50 hover:bg-rose-600 border border-rose-200 hover:border-rose-600 rounded-xl transition duration-150 shadow-sm flex items-center space-x-1.5">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                         <span>Disconnect Number</span>
                     </button>

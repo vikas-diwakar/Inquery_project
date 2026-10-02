@@ -441,9 +441,9 @@
                     if (data && data.success) {
                         location.reload();
                     } else {
-                        alert('Failed to update status');
+                        showAlert('Update Failed', 'Failed to update status', { type: 'danger' });
                     }
-                }).catch(() => alert('Failed to update status'));
+                }).catch(() => showAlert('Update Failed', 'Failed to update status', { type: 'danger' }));
             });
         });
     });
@@ -520,7 +520,7 @@
 
     function openBulkDripModal() {
         if (selectedLeads.length === 0) {
-            alert('Please select at least one inquiry checkbox to send WhatsApp message.');
+            showAlert('No Selection', 'Please select at least one inquiry checkbox to send WhatsApp message.', { type: 'warning' });
             return;
         }
         populateModalData();

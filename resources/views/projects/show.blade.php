@@ -150,7 +150,7 @@
     // Download QR code functionality
     document.getElementById('downloadQR').addEventListener('click', function() {
         if (!qrCodeCanvas) {
-            alert('QR code is still loading. Please wait a moment and try again.');
+            showAlert('Please Wait', 'QR code is still loading. Please wait a moment and try again.', { type: 'warning' });
             return;
         }
 
@@ -252,7 +252,7 @@
     // Copy to clipboard functionality
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(function() {
-            alert('Link copied to clipboard!');
+            showAlert('Copied!', 'Link copied to clipboard!', { type: 'success', okText: 'Great' });
         }, function(err) {
             // Fallback for older browsers
             const textarea = document.createElement('textarea');
@@ -262,9 +262,9 @@
             textarea.select();
             try {
                 document.execCommand('copy');
-                alert('Link copied to clipboard!');
+                showAlert('Copied!', 'Link copied to clipboard!', { type: 'success', okText: 'Great' });
             } catch (err) {
-                alert('Failed to copy link. Please copy manually.');
+                showAlert('Copy Failed', 'Failed to copy link. Please copy manually.', { type: 'warning' });
             }
             document.body.removeChild(textarea);
         });

@@ -84,9 +84,10 @@ class FollowUpService
     /**
      * Get overdue follow-ups for a company
      */
-    public function getOverdueFollowUps($companyId)
+    public function getOverdueFollowUps($companyId, $selectedProjectId = null)
     {
         return Inquiry::where('company_id', $companyId)
+            ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
             ->overdueFollowUps()
             ->with(['company', 'project', 'assignedUser', 'followUps'])
             ->orderBy('next_follow_up_date', 'asc')
@@ -96,9 +97,10 @@ class FollowUpService
     /**
      * Get upcoming follow-ups for a company (next 7 days)
      */
-    public function getUpcomingFollowUps($companyId)
+    public function getUpcomingFollowUps($companyId, $selectedProjectId = null)
     {
         return Inquiry::where('company_id', $companyId)
+            ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
             ->upcomingFollowUps()
             ->with(['company', 'project', 'assignedUser', 'followUps'])
             ->orderBy('next_follow_up_date', 'asc')
@@ -108,9 +110,10 @@ class FollowUpService
     /**
      * Get follow-ups that need attention today
      */
-    public function getTodayFollowUps($companyId)
+    public function getTodayFollowUps($companyId, $selectedProjectId = null)
     {
         return Inquiry::where('company_id', $companyId)
+            ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
             ->whereNotNull('next_follow_up_date')
             ->whereBetween('next_follow_up_date', [
                 now()->startOfDay(),
@@ -125,22 +128,24 @@ class FollowUpService
     /**
      * Get follow-up statistics for dashboard
      */
-    public function getFollowUpStats($companyId)
+    public function getFollowUpStats($companyId, $selectedProjectId = null)
     {
         $overdueCount = Inquiry::where('company_id', $companyId)
+            ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
             ->overdueFollowUps()
             ->count();
 
-        $todayCount = $this->getTodayFollowUps($companyId)->count();
+        $todayCount = $this->getTodayFollowUps($companyId, $selectedProjectId)->count();
 
         $upcomingCount = Inquiry::where('company_id', $companyId)
+            ->when($selectedProjectId, fn($q) => $q->where('project_id', $selectedProjectId))
             ->upcomingFollowUps()
             ->count();
 
         return [
-            'overdue' => $overdueCount,
-            'today' => $todayCount,
-            'upcoming' => $upcomingCount,
+            'overdue'       => $overdueCount,
+            'today'         => $todayCount,
+            'upcoming'      => $upcomingCount,
             'total_pending' => $overdueCount + $todayCount + $upcomingCount,
         ];
     }

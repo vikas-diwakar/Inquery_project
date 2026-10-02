@@ -17,14 +17,15 @@ class FollowUpController extends Controller
     public function index(Request $request)
     {
         $companyId = auth()->user()->company_id;
-        
+        $selectedProjectId = session('selected_project_id');
+
         // Get statistics
-        $stats = $this->followUpService->getFollowUpStats($companyId);
-        
+        $stats = $this->followUpService->getFollowUpStats($companyId, $selectedProjectId);
+
         // Get different follow-up lists
-        $overdue = $this->followUpService->getOverdueFollowUps($companyId);
-        $today = $this->followUpService->getTodayFollowUps($companyId);
-        $upcoming = $this->followUpService->getUpcomingFollowUps($companyId);
+        $overdue  = $this->followUpService->getOverdueFollowUps($companyId, $selectedProjectId);
+        $today    = $this->followUpService->getTodayFollowUps($companyId, $selectedProjectId);
+        $upcoming = $this->followUpService->getUpcomingFollowUps($companyId, $selectedProjectId);
 
         return view('follow-ups.index', compact('stats', 'overdue', 'today', 'upcoming'));
     }
@@ -114,7 +115,8 @@ class FollowUpController extends Controller
     public function getStats()
     {
         $companyId = auth()->user()->company_id;
-        $stats = $this->followUpService->getFollowUpStats($companyId);
+        $selectedProjectId = session('selected_project_id');
+        $stats = $this->followUpService->getFollowUpStats($companyId, $selectedProjectId);
 
         return response()->json($stats);
     }

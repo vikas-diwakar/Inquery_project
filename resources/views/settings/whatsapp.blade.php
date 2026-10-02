@@ -26,7 +26,7 @@
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
-                <span>Active • Connected</span>
+                <span>Active &bull; Connected</span>
             </div>
         @else
             <div class="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 shrink-0">
@@ -128,74 +128,82 @@
             </div>
         </div>
     @else
-        <!-- STATE B: NOT CONNECTED (1-CLICK ONBOARDING) -->
+        <!-- STATE B: NOT CONNECTED — Manual Credentials Form -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
-            <div class="p-6 sm:p-10 space-y-6">
-                <div class="max-w-2xl space-y-2">
-                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">Connect your WhatsApp Business Account</h2>
-                    <p class="text-sm text-slate-600 leading-relaxed">
-                        Connect your company's WhatsApp number in under 2 minutes. We use Meta's official Embedded Signup so you can verify your number via OTP without configuring servers or webhooks.
-                    </p>
+            <div class="p-6 sm:p-8 border-b border-slate-100 flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
                 </div>
-
-                <!-- 3-Step Wizard Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-3">
-                        <div class="h-7 w-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</div>
-                        <div>
-                            <div class="text-xs font-bold text-slate-900">Click Connect</div>
-                            <div class="text-[11px] text-slate-500 mt-0.5">Launches the secure Meta WhatsApp Onboarding pop-up dialog.</div>
-                        </div>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-3">
-                        <div class="h-7 w-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">2</div>
-                        <div>
-                            <div class="text-xs font-bold text-slate-900">Select / Enter Number</div>
-                            <div class="text-[11px] text-slate-500 mt-0.5">Select your Meta Business profile or enter a new dedicated business phone number.</div>
-                        </div>
-                    </div>
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-start space-x-3">
-                        <div class="h-7 w-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">3</div>
-                        <div>
-                            <div class="text-xs font-bold text-slate-900">Verify via SMS OTP</div>
-                            <div class="text-[11px] text-slate-500 mt-0.5">Meta sends a 6-digit OTP to verify ownership. That's it!</div>
-                        </div>
-                    </div>
+                <div>
+                    <h2 class="text-lg font-extrabold text-slate-900">Connect WhatsApp Business</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Enter your Meta WhatsApp Cloud API credentials to activate messaging.</p>
                 </div>
-
-                <!-- Main Connect Button Section -->
-                <div class="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
-                    <!-- Primary Direct Meta OAuth Popup Button (Bypasses JSSDK domain restrictions) -->
-                    <button type="button" onclick="launchMetaOAuth()" class="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-emerald-600/25 transition duration-150 flex items-center justify-center space-x-3">
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.598 2.669-.699c.983.538 1.839.814 2.791.814 3.179 0 5.765-2.587 5.765-5.766.001-3.181-2.584-5.766-5.765-5.766zm9.969 5.766c0 5.518-4.482 10-10 10-1.748 0-3.385-.45-4.819-1.241l-7.181 1.883 1.916-7.003c-.879-1.488-1.386-3.226-1.386-5.08 0-5.518 4.482-10 10-10 5.518 0 10 4.482 10 10z"/>
-                        </svg>
-                        <span>Connect WhatsApp Business</span>
-                    </button>
-
-                    <!-- Instant Demo Sandbox Connect Form (For instant local testing) -->
-                    <form action="{{ route('settings.whatsapp.demo-connect') }}" method="POST">
-                        @csrf
-                        <input type="hidden" name="demo_phone" value="+91 90000 {{ str_pad($company->id, 5, '0', STR_PAD_LEFT) }}">
-                        <button type="submit" class="w-full sm:w-auto px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl border border-slate-300 transition duration-150 flex items-center justify-center space-x-2" title="Connect simulated business number instantly without waiting for Meta live approval">
-                            <span>🧪 Quick Demo Connect (+91 90000 {{ str_pad($company->id, 5, '0', STR_PAD_LEFT) }})</span>
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Meta App configuration note -->
-                @if(empty($metaAppId))
-                    <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-start space-x-3">
-                        <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <div class="space-y-1">
-                            <span class="font-bold">Meta Cloud API Production Credentials:</span>
-                            <p class="text-amber-800">
-                                To activate the live Facebook dialog for all tenants, set <code class="font-mono bg-amber-100 px-1 py-0.5 rounded">META_APP_ID</code> and <code class="font-mono bg-amber-100 px-1 py-0.5 rounded">META_WHATSAPP_CONFIG_ID</code> in your SaaS <code class="font-mono bg-amber-100 px-1 py-0.5 rounded">.env</code>. You can also use the <strong>Quick Demo Connect</strong> button above to test the multi-tenant routing immediately.
-                            </p>
-                        </div>
-                    </div>
-                @endif
             </div>
+
+            <form action="{{ route('settings.whatsapp.update') }}" method="POST" class="p-6 sm:p-8 space-y-6">
+                @csrf
+                @method('PUT')
+
+                <!-- Info Note -->
+                <div class="p-4 rounded-2xl bg-blue-50 border border-blue-200/80 text-xs text-blue-900 flex items-start space-x-3">
+                    <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
+                    <span><strong>Where to find these?</strong> Log in to <strong>developers.facebook.com</strong> &rarr; your App &rarr; WhatsApp &rarr; API Setup. Copy the <em>Phone Number ID</em>, <em>WhatsApp Business Account ID (WABA ID)</em>, and generate a <em>Permanent System User Access Token</em>.</span>
+                </div>
+
+                <!-- Gateway Provider -->
+                <div class="space-y-1.5">
+                    <label for="provider_select" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Gateway Provider</label>
+                    <select name="whatsapp_provider" id="provider_select" class="input-field cursor-pointer font-semibold">
+                        <option value="meta_cloud" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'meta_cloud' ? 'selected' : '' }}>
+                            🌐 Meta WhatsApp Cloud API (Recommended)
+                        </option>
+                        <option value="simulated" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'simulated' ? 'selected' : '' }}>
+                            🧪 Simulated Mode (Development Testing - No Live Delivery)
+                        </option>
+                        <option value="twilio" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'twilio' ? 'selected' : '' }}>
+                            📲 Twilio WhatsApp Gateway
+                        </option>
+                        <option value="ultramsg" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'ultramsg' ? 'selected' : '' }}>
+                            💬 UltraMsg Gateway
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Credentials Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">API Access Token <span class="text-rose-500">*</span></label>
+                        <input type="password" name="whatsapp_api_key" value="{{ old('whatsapp_api_key', $company->whatsapp_api_key) }}" class="input-field" placeholder="EAAxxxxxxxxxxxxxxxx..." autocomplete="off">
+                        <p class="text-[11px] text-slate-400">Permanent System User Access Token from Meta App Dashboard.</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Phone Number ID <span class="text-rose-500">*</span></label>
+                        <input type="text" name="whatsapp_phone_number_id" value="{{ old('whatsapp_phone_number_id', $company->whatsapp_phone_number_id) }}" class="input-field" placeholder="e.g. 1321289067731598">
+                        <p class="text-[11px] text-slate-400">Found under WhatsApp &rarr; API Setup in your Meta App.</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">WABA Account ID <span class="text-rose-500">*</span></label>
+                        <input type="text" name="whatsapp_waba_id" value="{{ old('whatsapp_waba_id', $company->whatsapp_waba_id) }}" class="input-field" placeholder="e.g. 2556681498088580">
+                        <p class="text-[11px] text-slate-400">WhatsApp Business Account ID from Meta Business Manager.</p>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Display Business Phone <span class="text-rose-500">*</span></label>
+                        <input type="text" name="whatsapp_connected_phone" value="{{ old('whatsapp_connected_phone', $company->whatsapp_connected_phone) }}" class="input-field" placeholder="e.g. +91 84600 41855">
+                        <p class="text-[11px] text-slate-400">The actual registered WhatsApp phone number (for display).</p>
+                    </div>
+                </div>
+
+                <!-- Hidden fields to preserve other settings -->
+                <input type="hidden" name="whatsapp_auto_send" value="{{ $company->whatsapp_auto_send ? '1' : '0' }}">
+                <input type="hidden" name="whatsapp_welcome_template" value="{{ $company->whatsapp_welcome_template }}">
+
+                <div class="pt-2 border-t border-slate-200 flex items-center justify-end">
+                    <button type="submit" class="btn-primary space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                        <span>Save &amp; Connect WhatsApp</span>
+                    </button>
+                </div>
+            </form>
         </div>
     @endif
 
@@ -203,7 +211,7 @@
     <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
         <div class="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between">
             <div class="space-y-1">
-                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Automated Instant Brochure & Greeting</h2>
+                <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Automated Instant Brochure &amp; Greeting</h2>
                 <p class="text-xs sm:text-sm text-slate-500">Configure what message is sent automatically when a prospective customer scans a QR code or submits a lead form.</p>
             </div>
             <div class="h-10 w-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
@@ -221,7 +229,7 @@
             <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
                 <div class="space-y-0.5">
                     <label for="whatsapp_auto_send" class="text-sm font-bold text-slate-900 cursor-pointer">Auto-Send WhatsApp Brochure on Lead Capture</label>
-                    <p class="text-xs text-slate-500">Instantly trigger the WhatsApp greeting & brochure download link as soon as an inquiry is captured.</p>
+                    <p class="text-xs text-slate-500">Instantly trigger the WhatsApp greeting &amp; brochure download link as soon as an inquiry is captured.</p>
                 </div>
                 <label class="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" name="whatsapp_auto_send" id="whatsapp_auto_send" value="1" {{ old('whatsapp_auto_send', $company->whatsapp_auto_send) ? 'checked' : '' }} class="sr-only peer">
@@ -232,11 +240,11 @@
             <!-- Template Editor -->
             <div class="space-y-2 pt-1">
                 <div class="flex items-center justify-between">
-                    <label for="whatsapp_welcome_template" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Welcome Message & Brochure Template</label>
+                    <label for="whatsapp_welcome_template" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Welcome Message &amp; Brochure Template</label>
                     <span class="text-xs text-indigo-600 font-semibold">Live Merge Tags</span>
                 </div>
                 <textarea name="whatsapp_welcome_template" id="whatsapp_welcome_template" rows="7" class="input-field font-mono text-xs leading-relaxed" placeholder="Write greeting template...">{{ old('whatsapp_welcome_template', $company->whatsapp_welcome_template ?? $defaultTemplate) }}</textarea>
-                
+
                 <!-- Merge Tag Pills -->
                 <div class="flex flex-wrap items-center gap-2 pt-1">
                     <span class="text-[11px] font-mono bg-slate-100 border border-slate-200 px-2 py-1 rounded text-slate-700 cursor-pointer hover:bg-slate-200" onclick="insertTag('{customer_name}')">{customer_name}</span>
@@ -254,7 +262,7 @@
             <div class="pt-4 border-t border-slate-200 flex items-center justify-end">
                 <button type="submit" class="btn-primary space-x-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <span>Save Template & Preferences</span>
+                    <span>Save Template &amp; Preferences</span>
                 </button>
             </div>
         </form>
@@ -281,86 +289,10 @@
             </button>
         </form>
     </div>
-
-    <!-- Advanced / Manual Gateway Configuration (Collapsible) -->
-    <details class="group bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden transition-all">
-        <summary class="p-6 sm:p-8 cursor-pointer flex items-center justify-between select-none list-none">
-            <div class="flex items-center space-x-3">
-                <div class="h-10 w-10 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-bold text-slate-900">Developer & Alternative Gateway Settings</h3>
-                    <p class="text-xs text-slate-500">Configure custom API tokens, Twilio, UltraMsg, or Simulated mode manually.</p>
-                </div>
-            </div>
-            <div class="text-slate-400 group-open:rotate-180 transition-transform duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-            </div>
-        </summary>
-
-        <form action="{{ route('settings.whatsapp.update') }}" method="POST" class="p-6 sm:p-8 pt-0 space-y-6 border-t border-slate-100">
-            @csrf
-            @method('PUT')
-
-            <div class="space-y-1.5 pt-4">
-                <label for="provider_manual" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Gateway Provider</label>
-                <select name="whatsapp_provider" id="provider_manual" class="input-field cursor-pointer font-semibold">
-                    <option value="meta_cloud" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'meta_cloud' ? 'selected' : '' }}>
-                        🌐 Meta WhatsApp Cloud API (Recommended)
-                    </option>
-                    <option value="simulated" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'simulated' ? 'selected' : '' }}>
-                        🧪 Simulated Mode (Development Testing - No Live Delivery)
-                    </option>
-                    <option value="twilio" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'twilio' ? 'selected' : '' }}>
-                        📲 Twilio WhatsApp Gateway
-                    </option>
-                    <option value="ultramsg" {{ old('whatsapp_provider', $company->whatsapp_provider) === 'ultramsg' ? 'selected' : '' }}>
-                        💬 UltraMsg Gateway
-                    </option>
-                </select>
-            <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-start space-x-2">
-                <svg class="w-4 h-4 text-amber-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>
-                <span><strong>Centralized Mode:</strong> Leave Phone ID and Token <strong>blank</strong> to automatically use the platform's official central WhatsApp gateway (<strong>+91 84600 41855</strong>). Only enter credentials here if this specific company has their own dedicated Meta number.</span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">API Auth Token / Secret</label>
-                    <input type="password" name="whatsapp_api_key" value="{{ old('whatsapp_api_key', $company->whatsapp_api_key) }}" class="input-field" placeholder="Bearer Token / Secret">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Phone Number ID</label>
-                    <input type="text" name="whatsapp_phone_number_id" value="{{ old('whatsapp_phone_number_id', $company->whatsapp_phone_number_id) }}" class="input-field" placeholder="e.g. 10928374829">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">WABA Account ID / UltraMsg Instance ID</label>
-                    <input type="text" name="whatsapp_waba_id" value="{{ old('whatsapp_waba_id', $company->whatsapp_waba_id) }}" class="input-field" placeholder="e.g. instance12345 or 9876543210123">
-                </div>
-                <div class="space-y-1.5">
-                    <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">Display Business Phone</label>
-                    <input type="text" name="whatsapp_connected_phone" value="{{ old('whatsapp_connected_phone', $company->whatsapp_connected_phone) }}" class="input-field" placeholder="e.g. +91 90000 11111">
-                </div>
-            </div>
-
-            <input type="hidden" name="whatsapp_auto_send" value="{{ $company->whatsapp_auto_send ? '1' : '0' }}">
-            <input type="hidden" name="whatsapp_welcome_template" value="{{ $company->whatsapp_welcome_template }}">
-
-            <div class="pt-4 border-t border-slate-200 flex justify-end">
-                <button type="submit" class="btn-secondary">Save Manual Credentials</button>
-            </div>
-        </form>
-    </details>
 </div>
 
-<!-- Meta JavaScript SDK & Embedded Signup Handler -->
 <script>
-    const META_APP_ID = "{{ $metaAppId }}";
-    const META_CONFIG_ID = "{{ $metaConfigId }}";
-    const CALLBACK_URL = "{{ route('settings.whatsapp.embedded-callback') }}";
-    const CSRF_TOKEN = "{{ csrf_token() }}";
-
-    // Insert Merge Tag into template
+    // Insert Merge Tag into template textarea
     function insertTag(tag) {
         const textarea = document.getElementById('whatsapp_welcome_template');
         if (!textarea) return;
@@ -370,154 +302,6 @@
         textarea.value = text.substring(0, start) + tag + text.substring(end);
         textarea.focus();
         textarea.selectionStart = textarea.selectionEnd = start + tag.length;
-    }
-
-    // Launch Direct Meta OAuth Pop-up (Bypasses JSSDK domain restrictions)
-    function launchMetaOAuth() {
-        if (!META_APP_ID || !META_CONFIG_ID) {
-            alert("Meta App ID or WhatsApp Config ID is not configured yet in .env.\n\nPlease set META_APP_ID and META_WHATSAPP_CONFIG_ID, or use the 'Quick Demo Connect' button.");
-            return;
-        }
-
-        const redirectUri = encodeURIComponent("{{ route('settings.whatsapp.oauth-callback') }}");
-        const authUrl = `https://www.facebook.com/v19.0/dialog/oauth?client_id=${META_APP_ID}&redirect_uri=${redirectUri}&config_id=${META_CONFIG_ID}&response_type=code`;
-
-        const w = 620;
-        const h = 750;
-        const left = (screen.width / 2) - (w / 2);
-        const top = (screen.height / 2) - (h / 2);
-
-        console.log('🚀 [Meta WhatsApp Signup] Opening Direct OAuth Dialog:', authUrl);
-        const popup = window.open(authUrl, 'MetaWhatsAppSignup', `width=${w},height=${h},top=${top},left=${left},toolbar=no,menubar=no,scrollbars=yes`);
-        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
-            window.location.href = authUrl; // fallback if browser popup blocker blocked it
-        }
-    }
-
-    // Initialize Facebook JS SDK if Meta App ID is provided
-    window.fbAsyncInit = function() {
-        if (!META_APP_ID) return;
-        FB.init({
-            appId      : META_APP_ID,
-            cookie     : true,
-            xfbml      : true,
-            version    : 'v19.0'
-        });
-    };
-
-    // Load SDK asynchronously
-    (function(d, s, id){
-        var js, fjs = d.getElementsByTagName(s)[0];
-        if (d.getElementById(id)) {return;}
-        js = d.createElement(s); js.id = id;
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        fjs.parentNode.insertBefore(js, fjs);
-    }(document, 'script', 'facebook-jssdk'));
-
-    // Listen for Meta Embedded Signup message events
-    window.addEventListener('message', function(event) {
-        if (event.origin !== "https://www.facebook.com" && event.origin !== "https://web.facebook.com") {
-            return;
-        }
-
-        console.log('[Meta Embedded Signup] Raw postMessage from Facebook:', event.data);
-
-        try {
-            const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-            if (data && data.type === 'WA_EMBEDDED_SIGNUP') {
-                console.log('[Meta Embedded Signup] Event Detected:', data.event, data.data || {});
-                if (data.event === 'FINISH') {
-                    const { phone_number_id, waba_id } = data.data || {};
-                    window.metaSessionData = { phone_number_id, waba_id };
-                    console.log('✅ [Meta Embedded Signup] Onboarding Completed! Extracted IDs:', window.metaSessionData);
-                } else if (data.event === 'CANCEL') {
-                    console.warn('⚠️ [Meta Embedded Signup] User cancelled the setup flow:', data);
-                } else if (data.event === 'ERROR') {
-                    console.error('❌ [Meta Embedded Signup] Popup returned an error:', data);
-                }
-            }
-        } catch (e) {
-            console.debug('[Meta Embedded Signup] Non-JSON message ignored:', event.data);
-        }
-    });
-
-    // Launch Meta Embedded Signup Pop-up
-    function launchMetaEmbeddedSignup() {
-        if (!META_APP_ID || !META_CONFIG_ID) {
-            console.error('❌ Missing META_APP_ID or META_CONFIG_ID in .env');
-            alert("Meta App ID or WhatsApp Config ID is not configured yet in .env.\n\nPlease set META_APP_ID and META_WHATSAPP_CONFIG_ID, or use the 'Quick Demo Connect' button to test the multi-tenant workflow immediately.");
-            return;
-        }
-
-        const btnText = document.getElementById('btn-text');
-        const spinner = document.getElementById('btn-spinner');
-        btnText.innerText = "Connecting...";
-        spinner.classList.remove('hidden');
-
-        console.log('🚀 [Meta Embedded Signup] Opening FB.login popup with Config ID:', META_CONFIG_ID);
-
-        FB.login(function(response) {
-            console.log('📥 [Meta Embedded Signup] FB.login returned response:', response);
-
-            if (response.authResponse) {
-                const code = response.authResponse.code;
-                const sessionInfo = window.metaSessionData || {};
-
-                const payload = {
-                    code: code,
-                    waba_id: sessionInfo.waba_id || null,
-                    phone_number_id: sessionInfo.phone_number_id || null,
-                };
-
-                console.log('📤 [Meta Embedded Signup] Forwarding code & session info to Laravel backend:', payload);
-
-                // Post code and session info to SaaS backend
-                fetch(CALLBACK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': CSRF_TOKEN,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => {
-                    console.log('📥 [Meta Embedded Signup] Backend HTTP Status:', res.status);
-                    return res.json();
-                })
-                .then(result => {
-                    console.log('✅ [Meta Embedded Signup] Backend JSON Result:', result);
-                    if (result.success) {
-                        alert("🎉 WhatsApp Business Account successfully connected!");
-                        window.location.reload();
-                    } else {
-                        console.error('❌ [Meta Embedded Signup] Backend Connection Failure:', result.message);
-                        alert("Connection failed: " + (result.message || 'Unknown error'));
-                        btnText.innerText = "Connect WhatsApp Business";
-                        spinner.classList.add('hidden');
-                    }
-                })
-                .catch(err => {
-                    console.error('💥 [Meta Embedded Signup] Network / Server Error:', err);
-                    alert("Error communicating with server: " + err.message);
-                    btnText.innerText = "Connect WhatsApp Business";
-                    spinner.classList.add('hidden');
-                });
-            } else {
-                console.warn('⚠️ [Meta Embedded Signup] Login window closed or authorization not granted. Response status:', response.status);
-                btnText.innerText = "Connect WhatsApp Business";
-                spinner.classList.add('hidden');
-            }
-        }, {
-            config_id: META_CONFIG_ID,
-            response_type: 'code',
-            override_default_response_type: true,
-            extras: {
-                feature: 'whatsapp_embedded_signup',
-                version: 2,
-                sessionInfoVersion: 2
-            }
-        });
     }
 </script>
 @endsection

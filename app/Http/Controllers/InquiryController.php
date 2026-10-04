@@ -7,6 +7,8 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Exports\InquiriesExport;
+use App\Exports\InquiriesTemplateExport;
+use App\Imports\InquiriesImport;
 use Maatwebsite\Excel\Facades\Excel;
 
 class InquiryController extends Controller
@@ -48,8 +50,9 @@ class InquiryController extends Controller
 
         $inquiries = $query->latest()->paginate(20);
         $project = Project::findOrFail($selectedProjectId);
+        $projectUsers = $project->users()->get();
 
-        return view('inquiries.index', compact('inquiries', 'project'));
+        return view('inquiries.index', compact('inquiries', 'project', 'projectUsers'));
     }
 
     /**
@@ -390,6 +393,73 @@ class InquiryController extends Controller
         $filename = 'inquiries_' . $project->name . '_' . now()->format('Y-m-d_H-i-s') . '.xlsx';
 
         return Excel::download(new InquiriesExport($query), $filename);
+    }
+
+    /**
+     * Download sample Excel template for importing inquiries
+     */
+    public function downloadImportTemplate()
+    {
+        $filename = 'sample_inquiries_import_template.xlsx';
+        return Excel::download(new InquiriesTemplateExport(), $filename);
+    }
+
+    /**
+     * Import inquiries from Excel or CSV file
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt|max:10240',
+            'assigned_to' => 'nullable|exists:users,id',
+            'skip_duplicates' => 'nullable|boolean',
+            'auto_score' => 'nullable|boolean',
+            'auto_allocate' => 'nullable|boolean',
+        ], [
+            'excel_file.required' => 'Please select an Excel or CSV file to import.',
+            'excel_file.mimes' => 'The uploaded file must be an Excel document (.xlsx, .xls) or CSV file (.csv).',
+            'excel_file.max' => 'The file size must not exceed 10MB.',
+        ]);
+
+        $selectedProjectId = session('selected_project_id');
+        $project = Project::findOrFail($selectedProjectId);
+        $companyId = auth()->user()->company_id;
+
+        $skipDuplicates = $request->boolean('skip_duplicates', true);
+        $autoScore = $request->boolean('auto_score', true);
+        $autoAllocate = $request->boolean('auto_allocate', false);
+        $assignedTo = $request->filled('assigned_to') ? (int)$request->input('assigned_to') : null;
+
+        try {
+            $import = new InquiriesImport(
+                $project->id,
+                $companyId,
+                $assignedTo,
+                $skipDuplicates,
+                $autoScore,
+                $autoAllocate
+            );
+
+            Excel::import($import, $request->file('excel_file'));
+
+            $messageParts = [];
+            $messageParts[] = "Successfully imported {$import->importedCount} inquiry lead(s)!";
+
+            if ($import->skippedDuplicatesCount > 0) {
+                $messageParts[] = "{$import->skippedDuplicatesCount} duplicate mobile number(s) skipped.";
+            }
+
+            if ($import->failedRowsCount > 0) {
+                $messageParts[] = "{$import->failedRowsCount} row(s) skipped due to missing/invalid phone numbers.";
+            }
+
+            $successMessage = implode(' ', $messageParts);
+
+            return redirect()->route('inquiries.index')->with('success', $successMessage);
+        } catch (\Throwable $e) {
+            return redirect()->route('inquiries.index')
+                ->with('error', 'Error reading Excel file: ' . $e->getMessage());
+        }
     }
 
     /**

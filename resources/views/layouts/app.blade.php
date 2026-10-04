@@ -512,6 +512,28 @@
             prefetch.href = link.href;
             document.head.appendChild(prefetch);
         }, { passive: true });
+
+        // Global toggle password visibility helper
+        window.togglePasswordVisibility = function(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            
+            const eyeIcon = btn.querySelector('.eye-icon');
+            const eyeOffIcon = btn.querySelector('.eye-off-icon');
+            if (eyeIcon && eyeOffIcon) {
+                if (isPassword) {
+                    eyeIcon.classList.add('hidden');
+                    eyeOffIcon.classList.remove('hidden');
+                    btn.setAttribute('aria-label', 'Hide password');
+                } else {
+                    eyeIcon.classList.remove('hidden');
+                    eyeOffIcon.classList.add('hidden');
+                    btn.setAttribute('aria-label', 'Show password');
+                }
+            }
+        };
     });
     </script>
     @stack('scripts')

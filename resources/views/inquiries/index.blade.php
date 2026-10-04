@@ -21,6 +21,12 @@
                 <span style="color: #ffffff !important;">⚡ Send WhatsApp (<span id="bulkDripCount">0</span>)</span>
             </button>
 
+            <button type="button" onclick="openImportExcelModal()" class="btn-secondary text-xs space-x-2 cursor-pointer hover:border-emerald-300 hover:text-emerald-700 transition">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                <span>Import Excel</span>
+            </button>
             <a href="{{ route('inquiries.export', request()->query()) }}" class="btn-secondary text-xs space-x-2">
                 <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
                 <span>Export Excel</span>
@@ -411,6 +417,160 @@
     </div>
 </div>
 
+<!-- Import Inquiries from Excel / CSV Modal -->
+<div id="importExcelModal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fade-in" style="margin: 0 !important;">
+    <div class="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto transition-all">
+        <!-- Modal Header -->
+        <div class="p-5 sm:px-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div class="flex items-center space-x-3">
+                <div class="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/80 shadow-xs">
+                    <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-extrabold text-slate-900 leading-tight">Import Inquiries from Excel</h3>
+                    <p class="text-xs text-slate-500">Bulk upload lead inquiries for <strong class="text-slate-800">{{ $project->name }}</strong></p>
+                </div>
+            </div>
+            <button type="button" onclick="closeImportExcelModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-xl transition cursor-pointer">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Import Form -->
+        <form method="POST" action="{{ route('inquiries.import') }}" enctype="multipart/form-data" onsubmit="handleImportSubmit(event)">
+            @csrf
+            <div class="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+                <!-- Download Template Banner -->
+                <div class="bg-indigo-50/70 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between gap-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="h-9 w-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900">Need a sample format?</div>
+                            <div class="text-[11px] text-slate-500">Download our pre-formatted template with sample rows.</div>
+                        </div>
+                    </div>
+                    <a href="{{ route('inquiries.import.template') }}" class="inline-flex items-center px-3 py-1.5 rounded-xl bg-white border border-indigo-200 text-indigo-700 text-xs font-extrabold hover:bg-indigo-50 shadow-xs transition shrink-0">
+                        <span>Download .xlsx</span>
+                    </a>
+                </div>
+
+                <!-- Drag & Drop File Upload Box -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Select Excel or CSV Spreadsheet <span class="text-rose-500">*</span></label>
+                    <div id="dropzoneContainer" 
+                        onclick="document.getElementById('excel_file_input').click()"
+                        ondragover="handleDragOver(event)" 
+                        ondragleave="handleDragLeave(event)" 
+                        ondrop="handleFileDrop(event)"
+                        class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-6 text-center cursor-pointer transition-all bg-slate-50/50 hover:bg-indigo-50/10 group">
+                        
+                        <input type="file" id="excel_file_input" name="excel_file" accept=".xlsx,.xls,.csv" required class="hidden" onchange="handleFileSelect(this)">
+                        
+                        <div id="uploadPrompt" class="space-y-2">
+                            <div class="w-12 h-12 rounded-2xl bg-white shadow-xs border border-slate-200/80 mx-auto flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:scale-105 transition-all">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-indigo-600 group-hover:underline">Click to browse file</span>
+                                <span class="text-xs text-slate-500"> or drag & drop here</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400">Accepted formats: .xlsx, .xls, .csv (Max: 10MB)</div>
+                        </div>
+
+                        <!-- Selected File Preview -->
+                        <div id="selectedFilePreview" class="hidden flex items-center justify-center space-x-3 text-left">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0 font-bold text-xs">
+                                📊
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div id="selectedFileName" class="text-xs font-bold text-slate-900 truncate">filename.xlsx</div>
+                                <div id="selectedFileSize" class="text-[11px] text-slate-400">0 KB</div>
+                            </div>
+                            <button type="button" onclick="clearSelectedFile(event)" class="text-rose-500 hover:text-rose-700 p-1.5 rounded-lg hover:bg-rose-50 transition cursor-pointer" title="Remove file">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recognized Columns Pill List -->
+                <div class="space-y-1.5">
+                    <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Expected Column Headers</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">Customer Name *</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60">Phone *</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">Email</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">Budget</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">Unit/Property Type</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">Message</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-700 border border-slate-200/60">Status</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400">Supported statuses: <span class="font-semibold text-slate-600">new</span>, <span class="font-semibold text-slate-600">contacted</span>, <span class="font-semibold text-slate-600">interested</span>, <span class="font-semibold text-slate-600">site_visit</span>, <span class="font-semibold text-slate-600">booked</span>, <span class="font-semibold text-slate-600">lost</span> (defaults to <em>new</em>)</div>
+                </div>
+
+                <!-- Assignment Option -->
+                @if(isset($projectUsers) && $projectUsers->count() > 0)
+                <div class="space-y-1.5">
+                    <label for="import_assigned_to" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Assign Leads To (Optional)</label>
+                    <select id="import_assigned_to" name="assigned_to" class="w-full text-xs font-medium rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition">
+                        <option value="">Leave Unassigned / Round-Robin</option>
+                        @foreach($projectUsers as $pUser)
+                            <option value="{{ $pUser->id }}">{{ $pUser->name }} ({{ ucfirst($pUser->role ?? 'Agent') }})</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <!-- Import Configuration Toggles -->
+                <div class="bg-slate-50 rounded-2xl p-4 space-y-3 border border-slate-200/80">
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                        <input type="checkbox" name="skip_duplicates" value="1" checked class="mt-0.5 h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-900 block">Skip duplicate phone numbers</span>
+                            <span class="text-slate-500 text-[11px]">Prevents creating duplicate inquiry records if mobile number is already registered in this project.</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                        <input type="checkbox" name="auto_score" value="1" checked class="mt-0.5 h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-900 block">Run AI Intent Scoring (0–100)</span>
+                            <span class="text-slate-500 text-[11px]">Automatically classifies leads into HOT (70+), WARM (40–69), and COLD (&lt;40).</span>
+                        </div>
+                    </label>
+
+                    <label class="flex items-start space-x-3 cursor-pointer">
+                        <input type="checkbox" name="auto_allocate" value="1" class="mt-0.5 h-4 w-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                        <div class="text-xs">
+                            <span class="font-bold text-slate-900 block">Auto-allocate unassigned leads via Round-Robin</span>
+                            <span class="text-slate-500 text-[11px]">Distributes incoming leads evenly among team members assigned to this project.</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 sm:px-6 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
+                <button type="button" onclick="closeImportExcelModal()" class="btn-secondary text-xs py-2.5 px-5 font-bold cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" id="submitImportBtn" class="btn-primary text-xs py-2.5 px-6 font-bold space-x-2 cursor-pointer shadow-md">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <span id="submitImportText">Import Leads Now</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     // State management for selected leads
     let selectedLeads = [];
@@ -718,6 +878,99 @@
             if (btn) btn.disabled = false;
             if (textSpan) textSpan.textContent = '🚀 Send WhatsApp Message Now';
         });
+    }
+
+    // Import Excel Modal Handlers
+    function openImportExcelModal() {
+        const modal = document.getElementById('importExcelModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeImportExcelModal() {
+        const modal = document.getElementById('importExcelModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    function handleFileSelect(input) {
+        if (input.files && input.files[0]) {
+            showFilePreview(input.files[0]);
+        }
+    }
+
+    function showFilePreview(file) {
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const preview = document.getElementById('selectedFilePreview');
+        const nameEl = document.getElementById('selectedFileName');
+        const sizeEl = document.getElementById('selectedFileSize');
+
+        if (uploadPrompt && preview && nameEl && sizeEl) {
+            uploadPrompt.classList.add('hidden');
+            preview.classList.remove('hidden');
+            nameEl.textContent = file.name;
+            sizeEl.textContent = (file.size / 1024).toFixed(1) + ' KB';
+        }
+    }
+
+    function clearSelectedFile(e) {
+        if (e) e.stopPropagation();
+        const input = document.getElementById('excel_file_input');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const preview = document.getElementById('selectedFilePreview');
+        if (input) input.value = '';
+        if (uploadPrompt && preview) {
+            uploadPrompt.classList.remove('hidden');
+            preview.classList.add('hidden');
+        }
+    }
+
+    function handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropzone = document.getElementById('dropzoneContainer');
+        if (dropzone) {
+            dropzone.classList.add('border-indigo-500', 'bg-indigo-50/30');
+        }
+    }
+
+    function handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropzone = document.getElementById('dropzoneContainer');
+        if (dropzone) {
+            dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/30');
+        }
+    }
+
+    function handleFileDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropzone = document.getElementById('dropzoneContainer');
+        if (dropzone) {
+            dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/30');
+        }
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            const file = e.dataTransfer.files[0];
+            const input = document.getElementById('excel_file_input');
+            if (input) {
+                input.files = e.dataTransfer.files;
+                showFilePreview(file);
+            }
+        }
+    }
+
+    function handleImportSubmit(e) {
+        const btn = document.getElementById('submitImportBtn');
+        const text = document.getElementById('submitImportText');
+        if (btn && text) {
+            btn.disabled = true;
+            text.textContent = '⏳ Importing Spreadsheet...';
+        }
     }
 </script>
 @endsection

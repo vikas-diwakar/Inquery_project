@@ -92,6 +92,8 @@ Route::middleware('auth')->group(function () {
         // Inquiries
         Route::get('/inquiries', [InquiryController::class, 'index'])->name('inquiries.index');
         Route::get('/inquiries/export', [InquiryController::class, 'export'])->name('inquiries.export');
+        Route::get('/inquiries/import-template', [InquiryController::class, 'downloadImportTemplate'])->name('inquiries.import.template');
+        Route::post('/inquiries/import', [InquiryController::class, 'import'])->name('inquiries.import');
         Route::get('/inquiries/create', [InquiryController::class, 'create'])->name('inquiries.create');
         Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
         Route::get('/inquiries/{inquiry}', [InquiryController::class, 'show'])->name('inquiries.show');

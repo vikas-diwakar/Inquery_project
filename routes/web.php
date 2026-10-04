@@ -10,6 +10,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\FormQRController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\IntegrationController;
+use App\Http\Controllers\SocialMediaController;
 use App\Http\Controllers\LeadDripController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectUnitController;
@@ -39,12 +40,12 @@ Route::post('/inquiry/{project}', [InquiryController::class, 'storePublic'])
 Route::get('/brochure/{brochure}/download', [BrochureController::class, 'download'])
     ->name('public.brochure.download');
 
-// Public integrations (accessible via lead_token)
-Route::get('/inquiry/widget/{token}', [IntegrationController::class, 'showWidget'])
+// Public Social Media & Webhook leads (accessible via lead_token)
+Route::get('/inquiry/widget/{token}', [SocialMediaController::class, 'showWidget'])
     ->name('public.inquiry.widget');
-Route::post('/inquiry/widget/{token}', [IntegrationController::class, 'storeWidget'])
+Route::post('/inquiry/widget/{token}', [SocialMediaController::class, 'storeWidget'])
     ->name('public.inquiry.widget.store');
-Route::post('/api/v1/leads/{token}', [IntegrationController::class, 'handleWebhook'])
+Route::post('/api/v1/leads/{token}', [SocialMediaController::class, 'handleWebhook'])
     ->name('api.leads.webhook');
 
 Route::get('/webhook/facebook', [FacebookWebhookController::class, 'verify']);
@@ -145,16 +146,21 @@ Route::middleware('auth')->group(function () {
         Route::get('/forms-qr/inquiry-qr/download', [FormQRController::class, 'downloadInquiryQR'])->name('forms-qr.download-inquiry-qr');
         Route::get('/forms-qr/brochure-qr', [FormQRController::class, 'brochureQR'])->name('forms-qr.brochure-qr');
         Route::get('/forms-qr/brochure-qr/{brochure}', [FormQRController::class, 'showBrochureQR'])->name('forms-qr.show-brochure-qr');
-
-        // Integrations panel
-        Route::get('/integrations', [IntegrationController::class, 'index'])->name('integrations.index');
-        Route::post('/projects/{project}/regenerate-token', [IntegrationController::class, 'regenerateToken'])->name('projects.regenerate-token');
     });
 
     // Admin-only management
-    Route::middleware('role:Admin')->group(function () {
+    Route::middleware(['tenant', 'role:Admin'])->group(function () {
         Route::resource('users', UserController::class);
         Route::get('/settings/company', [CompanySettingController::class, 'edit'])->name('settings.company');
         Route::put('/settings/company', [CompanySettingController::class, 'update'])->name('settings.company.update');
+
+        // Social Media & Lead Capture (Admin only, project-wise)
+        Route::get('/social-media', [SocialMediaController::class, 'index'])->name('social-media.index');
+        Route::get('/social-media/{project}', [SocialMediaController::class, 'showProject'])->name('social-media.project');
+        Route::post('/projects/{project}/regenerate-token', [SocialMediaController::class, 'regenerateToken'])->name('projects.regenerate-token');
+
+        // Aliases for backward compatibility
+        Route::get('/integrations', [SocialMediaController::class, 'index'])->name('integrations.index');
+        Route::get('/integrations/{project}', [SocialMediaController::class, 'showProject'])->name('integrations.project');
     });
 });

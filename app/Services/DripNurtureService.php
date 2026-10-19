@@ -207,7 +207,7 @@ class DripNurtureService
     /**
      * Compile message template with inquiry specific dynamic tags
      */
-    public function compileTemplate(string $template, Inquiry $inquiry): string
+    public function compileTemplate(string $template, Inquiry $inquiry, array $extraTags = []): string
     {
         $company = $inquiry->company;
         $project = $inquiry->project;
@@ -215,10 +215,33 @@ class DripNurtureService
         $brochure = $project ? $project->brochures()->latest()->first() : null;
         $brochureUrl = $brochure ? $brochure->getDownloadUrl() : ($project ? $project->getInquiryFormUrl() : url('/'));
 
-        return str_replace(
-            ['{customer_name}', '{project_name}', '{company_name}', '{brochure_url}', '{executive_name}', '{phone}'],
-            [$inquiry->customer_name, $project ? $project->name : 'Project', $company ? $company->name : 'Real Estate SaaS', $brochureUrl, $executive, $inquiry->phone],
-            $template
-        );
+        $replacements = [
+            '{customer_name}' => $inquiry->customer_name,
+            '{project_name}' => $project ? $project->name : 'Project',
+            '{company_name}' => $company ? $company->name : 'Real Estate SaaS',
+            '{brochure_url}' => $brochureUrl,
+            '{executive_name}' => $executive,
+            '{festival_name}' => $extraTags['festival_name'] ?? ($extraTags['offer_event'] ?? 'Festive Special'),
+            '{event_name}' => $extraTags['event_name'] ?? ($extraTags['offer_event'] ?? 'Special Event'),
+            '{offer_event}' => $extraTags['offer_event'] ?? ($extraTags['festival_name'] ?? ($extraTags['event_name'] ?? 'Festive Special')),
+            '{offer_percentage}' => $extraTags['offer_percentage'] ?? 'Exclusive Offer',
+            '{offer_validity}' => $extraTags['offer_validity'] ?? 'Limited Time Only',
+            '{new_project_name}' => $extraTags['new_project_name'] ?? ($project ? $project->name : 'New Project'),
+            '{new_project_location}' => $extraTags['new_project_location'] ?? ($project?->location ?? 'Prime Location'),
+            '{new_project_pricing}' => $extraTags['new_project_pricing'] ?? 'Special Pre-launch Pricing',
+            '{new_project_price}' => $extraTags['new_project_pricing'] ?? 'Special Pre-launch Pricing',
+            '{project_pricing}' => $extraTags['new_project_pricing'] ?? 'Special Pre-launch Pricing',
+            '{pricing}' => $extraTags['new_project_pricing'] ?? 'Special Pre-launch Pricing',
+        ];
+
+        // Also merge any extra dynamic tags passed in $extraTags
+        foreach ($extraTags as $key => $val) {
+            $tagKey = '{' . trim((string)$key, '{}') . '}';
+            if (!isset($replacements[$tagKey]) && is_string($val)) {
+                $replacements[$tagKey] = $val;
+            }
+        }
+
+        return str_replace(array_keys($replacements), array_values($replacements), $template);
     }
 }

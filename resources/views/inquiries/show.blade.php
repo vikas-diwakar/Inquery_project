@@ -227,43 +227,6 @@
         </form>
     </div>
 
-    <!-- Automated Lead Drip Nurturing Timeline Card -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-8 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 border-b border-slate-100 pb-3">
-            <div>
-                <h2 class="text-lg font-bold text-slate-900">Automated Lead Nurturing Drip Timeline</h2>
-                <p class="text-xs text-slate-500">Multi-touch scheduled WhatsApp sequence (Day 1, Day 3, Day 7, Day 14).</p>
-            </div>
-            <a href="{{ route('settings.drip') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 shrink-0">Configure Drip Templates →</a>
-        </div>
-
-        <div class="space-y-3">
-            @forelse($inquiry->dripLogs as $dripLog)
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 gap-2">
-                    <div class="flex items-center space-x-3">
-                        <div class="h-9 w-9 rounded-xl bg-indigo-600 text-white font-extrabold text-xs flex items-center justify-center shrink-0">
-                            D{{ $dripLog->step->day_offset ?? '?' }}
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-900">{{ $dripLog->step->step_title ?? 'Drip Step' }}</h4>
-                            <p class="text-[10px] text-slate-500">Scheduled for {{ $dripLog->scheduled_for->format('M d, Y h:i A') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-2">
-                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border {{ $dripLog->status_badge }}">
-                            {{ ucfirst($dripLog->status) }}
-                        </span>
-                        @if($dripLog->sent_at)
-                            <span class="text-[10px] text-slate-400 font-medium">Sent on {{ $dripLog->sent_at->format('M d, h:i A') }}</span>
-                        @endif
-                    </div>
-                </div>
-            @empty
-                <p class="text-xs text-slate-400 text-center py-4">No drip sequence logs scheduled yet.</p>
-            @endforelse
-        </div>
-    </div>
 
     <!-- Follow-up scheduler -->
     <div class="mt-6">

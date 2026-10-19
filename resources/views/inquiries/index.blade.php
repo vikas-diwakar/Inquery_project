@@ -289,11 +289,236 @@
                     
                     <!-- Left Column: Message Writing & Placeholders (7 cols on lg) -->
                     <div class="lg:col-span-7 space-y-4">
+                        
+                        <!-- Template Selector: 3 Template Options -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-black text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                    <span>Select Message Template:</span>
+                                </label>
+                                <span class="text-[11px] font-bold text-slate-400">Click to load copy</span>
+                            </div>
+
+                            <!-- 3 Template Cards -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <!-- 1. Welcome Template -->
+                                <button type="button" onclick="selectTemplate('welcome', true)" id="templateBtn_welcome"
+                                    class="template-card relative p-3 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer border-emerald-500 bg-emerald-50/70 shadow-xs">
+                                    <div class="flex items-start justify-between">
+                                        <span class="text-xl">👋</span>
+                                        <span id="templateIndicator_welcome" class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <div class="text-xs font-black text-slate-900">1. Welcome Greeting</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Intro & digital brochure</div>
+                                    </div>
+                                </button>
+
+                                <!-- 2. New Project Detail -->
+                                <button type="button" onclick="selectTemplate('new_project', true)" id="templateBtn_new_project"
+                                    class="template-card relative p-3 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer border-slate-200 bg-white hover:border-slate-300">
+                                    <div class="flex items-start justify-between">
+                                        <span class="text-xl">🏗️</span>
+                                        <span id="templateIndicator_new_project" class="h-2 w-2 rounded-full bg-emerald-500" style="display: none;"></span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <div class="text-xs font-black text-slate-900">2. New Project Detail</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Broadcast to existing user list</div>
+                                    </div>
+                                </button>
+
+                                <!-- 3. Festival / Event Offer Template -->
+                                <button type="button" onclick="selectTemplate('offer', true)" id="templateBtn_offer"
+                                    class="template-card relative p-3 rounded-2xl border-2 text-left transition-all duration-200 cursor-pointer border-slate-200 bg-white hover:border-slate-300">
+                                    <div class="flex items-start justify-between">
+                                        <span class="text-xl">🎁</span>
+                                        <span id="templateIndicator_offer" class="h-2 w-2 rounded-full bg-emerald-500" style="display: none;"></span>
+                                    </div>
+                                    <div class="mt-1.5">
+                                        <div class="text-xs font-black text-slate-900">3. Dynamic Offer</div>
+                                        <div class="text-[10px] text-slate-500 leading-tight mt-0.5">Festival & dynamic % offer</div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Template 3: Dynamic Offer Configuration Panel -->
+                        <div id="offerConfigPanel" class="hidden bg-gradient-to-br from-amber-50/90 via-orange-50/40 to-amber-50/70 border border-amber-300/80 rounded-2xl p-3.5 space-y-3 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-amber-950 flex items-center space-x-1.5">
+                                    <span>🎉</span>
+                                    <span>Dynamic Festival & Event Offer Settings</span>
+                                </span>
+                                <span class="text-[10px] font-bold text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded-md border border-amber-200">
+                                    Auto-syncs with WhatsApp preview
+                                </span>
+                            </div>
+
+                            <!-- Mode Selector: Festive vs Event -->
+                            <div class="p-1 bg-amber-100/70 border border-amber-200 rounded-xl grid grid-cols-2 gap-1 text-xs">
+                                <button type="button" onclick="setOfferCategory('festival')" id="offerCatBtn_festival"
+                                    class="py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer bg-white text-amber-950 shadow-xs border border-amber-300">
+                                    🪔 Festive Celebration Offer
+                                </button>
+                                <button type="button" onclick="setOfferCategory('event')" id="offerCatBtn_event"
+                                    class="py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer text-amber-800 hover:text-amber-950 border border-transparent">
+                                    🏢 Special Event / Expo Offer
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <!-- Festival Section -->
+                                <div id="festivalSection" class="space-y-1">
+                                    <label for="festivalNameInput" class="block text-[11px] font-bold text-amber-950">
+                                        Festival Name / Occasion:
+                                    </label>
+                                    <input type="text" id="festivalNameInput" name="festival_name" value="Diwali Festive Offer"
+                                        oninput="onOfferConfigChange()"
+                                        placeholder="e.g. Diwali Festive Offer, New Year Bonanza"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-900">
+                                    <!-- Preset Festival Chips -->
+                                    <div class="flex flex-wrap gap-1 pt-0.5">
+                                        <button type="button" onclick="setFestivalName('Diwali Festive Offer')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🪔 Diwali</button>
+                                        <button type="button" onclick="setFestivalName('New Year 2026 Special')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🎆 New Year</button>
+                                        <button type="button" onclick="setFestivalName('Akshaya Tritiya Fortune Offer')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🪙 Akshaya Tritiya</button>
+                                        <button type="button" onclick="setFestivalName('Holi Festive Bonanza')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🌸 Holi</button>
+                                        <button type="button" onclick="setFestivalName('Navratri Shubharambh Deal')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🪔 Navratri</button>
+                                        <button type="button" onclick="setFestivalName('Eid Mubarak Special Offer')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🌙 Eid</button>
+                                        <button type="button" onclick="setFestivalName('Christmas Year-End Deal')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🎄 Christmas</button>
+                                    </div>
+                                </div>
+
+                                <!-- Event Section (Hidden when Festival mode is active) -->
+                                <div id="eventSection" class="hidden space-y-1">
+                                    <label for="eventNameInput" class="block text-[11px] font-bold text-amber-950">
+                                        Event Name / Occasion:
+                                    </label>
+                                    <input type="text" id="eventNameInput" name="event_name" value="Mega Property Expo 2026"
+                                        oninput="onOfferConfigChange()"
+                                        placeholder="e.g. Mega Property Expo, Weekend Flash Deal"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-900">
+                                    <!-- Preset Event Chips -->
+                                    <div class="flex flex-wrap gap-1 pt-0.5">
+                                        <button type="button" onclick="setEventName('Mega Property Expo 2026')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏢 Property Expo</button>
+                                        <button type="button" onclick="setEventName('48-Hour Weekend Flash Sale')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">⚡ Flash Sale</button>
+                                        <button type="button" onclick="setEventName('Grand Tower Launch Event')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🚀 Tower Launch</button>
+                                        <button type="button" onclick="setEventName('Exclusive Open House Carnival')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏡 Open House</button>
+                                        <button type="button" onclick="setEventName('Investors & Pre-Launch Meet')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🎯 Investors Meet</button>
+                                        <button type="button" onclick="setEventName('Weekend VIP Site Visit Fair')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏖️ Site Visit Fair</button>
+                                    </div>
+                                </div>
+
+                                <!-- Dynamic Offer Percentage / Discount -->
+                                <div class="space-y-1">
+                                    <label for="offerPercentInput" class="block text-[11px] font-bold text-amber-950">
+                                        Dynamic Offer Percentage / Discount:
+                                    </label>
+                                    <input type="text" id="offerPercentInput" name="offer_percentage" value="10% Discount"
+                                        oninput="onOfferConfigChange()"
+                                        placeholder="e.g. 10% Discount, 15% Off, ₹2,00,000 Off"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-amber-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-slate-900">
+                                    <!-- Preset Percentage Chips -->
+                                    <div class="flex flex-wrap gap-1 pt-0.5">
+                                        <button type="button" onclick="setOfferPercent('5% Discount')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 5%</button>
+                                        <button type="button" onclick="setOfferPercent('8% Special Discount')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 8%</button>
+                                        <button type="button" onclick="setOfferPercent('10% Spot Discount')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 10%</button>
+                                        <button type="button" onclick="setOfferPercent('12% Festive Privilege')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 12%</button>
+                                        <button type="button" onclick="setOfferPercent('15% Exclusive Discount')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 15%</button>
+                                        <button type="button" onclick="setOfferPercent('20% Flash Savings')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ 20%</button>
+                                        <button type="button" onclick="setOfferPercent('Zero Stamp Duty + 5% Off')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ Zero Stamp Duty</button>
+                                        <button type="button" onclick="setOfferPercent('₹2,50,000 Cash Discount')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100/80 rounded-md text-amber-900 font-bold transition-colors cursor-pointer">🏷️ ₹2.5L Off</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Offer Validity Input -->
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 pt-1 border-t border-amber-200/80 text-xs">
+                                <label for="offerValidityInput" class="text-[11px] font-bold text-amber-950 shrink-0">Offer Validity / Deadline:</label>
+                                <input type="text" id="offerValidityInput" name="offer_validity" value="Valid till this Sunday only"
+                                    oninput="onOfferConfigChange()"
+                                    placeholder="e.g. Valid till this Sunday only"
+                                    class="flex-1 text-xs font-semibold px-2.5 py-1 bg-white border border-amber-300 rounded-lg focus:ring-1 focus:ring-amber-500 focus:outline-none text-slate-900">
+                                <div class="flex items-center gap-1 shrink-0">
+                                    <button type="button" onclick="setOfferValidity('Valid till this Sunday only')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100 rounded text-amber-900 font-bold cursor-pointer">This Sunday</button>
+                                    <button type="button" onclick="setOfferValidity('First 10 Bookings Only')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100 rounded text-amber-900 font-bold cursor-pointer">First 10 Units</button>
+                                    <button type="button" onclick="setOfferValidity('Valid for the next 48 hours')" class="text-[10px] px-2 py-0.5 bg-white border border-amber-200 hover:bg-amber-100 rounded text-amber-900 font-bold cursor-pointer">48 Hours</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template 2: New Project Detail Configuration Panel -->
+                        <div id="newProjectConfigPanel" class="hidden bg-gradient-to-br from-indigo-50/90 via-sky-50/40 to-blue-50/70 border border-indigo-300/80 rounded-2xl p-3.5 space-y-2.5 shadow-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-extrabold text-indigo-950 flex items-center space-x-1.5">
+                                    <span>🏗️</span>
+                                    <span>Configure New Project Details for Existing Users / Leads</span>
+                                </span>
+                                <span class="text-[10px] font-bold text-indigo-800 bg-indigo-100/90 px-2 py-0.5 rounded-md border border-indigo-200">
+                                    Priority Pre-Launch
+                                </span>
+                            </div>
+
+                            @if(isset($companyProjects) && $companyProjects->count() > 1)
+                            <div class="space-y-1">
+                                <label for="newProjectSelect" class="block text-[11px] font-bold text-indigo-950">
+                                    Pick from existing projects to auto-fill (or customize below):
+                                </label>
+                                <select id="newProjectSelect" onchange="onSelectExistingProject(this)" class="w-full text-xs font-semibold p-2 bg-white border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-800">
+                                    <option value="">-- Choose a project to auto-populate --</option>
+                                    @foreach($companyProjects as $cp)
+                                        <option value="{{ $cp->id }}"
+                                            data-name="{{ $cp->name }}"
+                                            data-location="{{ $cp->location ?? 'Prime Location' }}">
+                                            {{ $cp->name }} ({{ $cp->location ?? 'Prime Location' }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                <div class="space-y-1">
+                                    <label for="newProjectNameInput" class="block text-[11px] font-bold text-indigo-950">New Project Name:</label>
+                                    <input type="text" id="newProjectNameInput" name="new_project_name" value="Imperial Heights Phase 2"
+                                        oninput="onNewProjectConfigChange()"
+                                        placeholder="e.g. Imperial Heights Phase 2"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900">
+                                </div>
+                                <div class="space-y-1">
+                                    <label for="newProjectLocationInput" class="block text-[11px] font-bold text-indigo-950">Location / Prime Area:</label>
+                                    <input type="text" id="newProjectLocationInput" name="new_project_location" value="Golf Course Extension Road"
+                                        oninput="onNewProjectConfigChange()"
+                                        placeholder="e.g. Prime Downtown / Expressway"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900">
+                                </div>
+                                <div class="space-y-1">
+                                    <label for="newProjectPricingInput" class="block text-[11px] font-bold text-indigo-950">Configurations & Starting Price:</label>
+                                    <input type="text" id="newProjectPricingInput" name="new_project_pricing" value="2 & 3 BHK starting ₹65 Lakhs"
+                                        oninput="onNewProjectConfigChange()"
+                                        placeholder="e.g. 2 & 3 BHK starting ₹65 Lakhs"
+                                        class="w-full text-xs font-semibold p-2 bg-white border border-indigo-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-900">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Template 1: Welcome Greeting Info Panel -->
+                        <div id="welcomeInfoPanel" class="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-3 flex items-center justify-between text-xs text-emerald-900">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-base">👋</span>
+                                <span class="font-bold">Welcome Template active: Personalized greeting for new leads with brochure download & site visit invitation.</span>
+                            </div>
+                            <button type="button" onclick="selectTemplate('welcome', true)" class="text-[11px] font-extrabold text-emerald-700 hover:underline shrink-0 ml-2">Reset Copy</button>
+                        </div>
+
                         <!-- Dynamic Placeholders -->
                         <div class="space-y-1.5">
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                                Click to Insert Dynamic Placeholders:
-                            </label>
+                            <div class="flex items-center justify-between">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                                    Click to Insert Dynamic Placeholders:
+                                </label>
+                                <span class="text-[10px] text-slate-400">Inserts tag at cursor</span>
+                            </div>
                             <div class="flex flex-wrap gap-1.5">
                                 <button type="button" onclick="insertTag('{customer_name}')" 
                                     style="background-color: #e0e7ff; color: #3730a3; border-color: #c7d2fe;"
@@ -319,6 +544,41 @@
                                     style="background-color: #f1f5f9; color: #334155; border-color: #cbd5e1;"
                                     class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-slate-200 transition-colors cursor-pointer">
                                     + {company_name}
+                                </button>
+                                <button type="button" onclick="insertTag('{festival_name}')" 
+                                    style="background-color: #fef3c7; color: #92400e; border-color: #fde68a;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-amber-100 transition-colors cursor-pointer">
+                                    + {festival_name}
+                                </button>
+                                <button type="button" onclick="insertTag('{event_name}')" 
+                                    style="background-color: #fef3c7; color: #92400e; border-color: #fde68a;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-amber-100 transition-colors cursor-pointer">
+                                    + {event_name}
+                                </button>
+                                <button type="button" onclick="insertTag('{offer_percentage}')" 
+                                    style="background-color: #fef3c7; color: #92400e; border-color: #fde68a;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-amber-100 transition-colors cursor-pointer">
+                                    + {offer_percentage}
+                                </button>
+                                <button type="button" onclick="insertTag('{offer_validity}')" 
+                                    style="background-color: #fef3c7; color: #92400e; border-color: #fde68a;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-amber-100 transition-colors cursor-pointer">
+                                    + {offer_validity}
+                                </button>
+                                <button type="button" onclick="insertTag('{new_project_name}')" 
+                                    style="background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-sky-100 transition-colors cursor-pointer">
+                                    + {new_project_name}
+                                </button>
+                                <button type="button" onclick="insertTag('{new_project_location}')" 
+                                    style="background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-sky-100 transition-colors cursor-pointer">
+                                    + {new_project_location}
+                                </button>
+                                <button type="button" onclick="insertTag('{new_project_pricing}')" 
+                                    style="background-color: #e0f2fe; color: #0369a1; border-color: #bae6fd;"
+                                    class="px-2.5 py-1 rounded-lg text-xs font-bold border hover:bg-sky-100 transition-colors cursor-pointer">
+                                    + {new_project_pricing}
                                 </button>
                             </div>
                         </div>
@@ -365,28 +625,31 @@
                                 </div>
                             </div>
 
-                            <!-- WhatsApp Chat Body with Wallpaper -->
-                            <div style="background-color: #efeae2; min-height: 240px; max-height: 320px; background-image: radial-gradient(#d6cbbe 1.2px, transparent 1.2px); background-size: 16px 16px;" 
-                                 class="p-3 overflow-y-auto rounded-b-2xl flex flex-col justify-end">
+                            <!-- WhatsApp Chat Body with Wallpaper (Top-aligned for clean reading) -->
+                            <div id="whatsappChatBody" 
+                                 style="background-color: #efeae2; min-height: 380px; max-height: 480px; background-image: radial-gradient(#d6cbbe 1.2px, transparent 1.2px); background-size: 16px 16px;" 
+                                 class="p-3.5 overflow-y-auto rounded-b-2xl space-y-2.5">
                                 
-                                <div class="self-center bg-white/80 backdrop-blur-xs text-[10px] text-slate-600 font-semibold px-2.5 py-0.5 rounded-md shadow-xs my-2">
-                                    TODAY
+                                <div class="text-center">
+                                    <span class="inline-block bg-white/90 backdrop-blur-xs text-[10px] text-slate-600 font-semibold px-2.5 py-0.5 rounded-md shadow-xs">
+                                        TODAY
+                                    </span>
                                 </div>
 
                                 <!-- Speech Bubble -->
-                                <div style="background-color: #ffffff; border-radius: 12px; border-top-left-radius: 0px;" 
-                                     class="p-3 shadow-md max-w-[94%] self-start space-y-1.5 border border-slate-200/60 relative">
+                                <div style="background-color: #ffffff; border-radius: 12px; border-top-left-radius: 2px;" 
+                                     class="p-3.5 shadow-md w-full self-start space-y-2 border border-slate-200/60 relative">
                                     
                                     <div class="text-[10px] font-bold text-emerald-800 border-b border-emerald-100 pb-1 flex items-center justify-between">
                                         <span id="previewHeaderSender">{{ auth()->user()->company->name ?? 'Real Estate Team' }}</span>
                                         <span class="text-slate-400 font-normal">Now</span>
                                     </div>
 
-                                    <div id="liveMessagePreviewText" class="whitespace-pre-line text-xs font-sans text-slate-900 leading-relaxed break-words">
+                                    <div id="liveMessagePreviewText" class="text-xs font-sans text-slate-900 leading-relaxed break-words">
                                         Your WhatsApp message will appear here in real-time...
                                     </div>
 
-                                    <div class="text-right text-[9px] text-slate-400 flex items-center justify-end space-x-1 pt-1">
+                                    <div class="text-right text-[9px] text-slate-400 flex items-center justify-end space-x-1 pt-1 border-t border-slate-100">
                                         <span id="previewTimestamp">12:00 PM</span>
                                         <span style="color: #34B7F1; font-weight: bold;">✓✓</span>
                                     </div>
@@ -687,6 +950,157 @@
         openCustomDripModal();
     }
 
+    // Template Definitions & State
+    let currentTemplateKey = 'welcome';
+    let offerCategory = 'festival';
+
+    const messageTemplates = {
+        welcome: "Hello {customer_name}! 👋\n\nThank you for showing interest in *{project_name}* with *{company_name}*. We would be delighted to assist you with unit pricing, floor plans, and site visits.\n\n📄 *Download Official Brochure & Layout Plans:*\n{brochure_url}\n\nOur property advisor *{executive_name}* is available to answer any questions and assist your property exploration.\n\nBest regards,\n*{executive_name}* | {company_name}",
+
+        new_project: "Hello {customer_name}! 🌟\n\nAs a valued client of *{company_name}*, we are excited to give you exclusive priority access to our brand new project launch:\n\n🏗️ *Project:* *{new_project_name}*\n📍 *Location:* {new_project_location}\n💰 *Configuration:* {new_project_pricing}\n\n✨ *Exclusive Benefits for Our Existing Clients:*\n✔️ Priority unit allocation before public launch\n✔️ Special pre-launch inaugural pricing\n✔️ Personalized VIP site tour & consultation\n\n📄 *Download Project Brochure:*\n{brochure_url}\n\nReply to this message to claim your priority booking slot today!\n\nWarm regards,\n*{executive_name}*\n{company_name} Team",
+
+        offer_festival: "Greetings {customer_name}! 🎁✨\n\nCelebrate this *{festival_name}* with an exclusive festival offer on *{project_name}*!\n\n🔥 *FESTIVE SPECIAL: Avail {offer_percentage} on Your Dream Home!*\n⏰ *Offer Validity:* {offer_validity}\n\n🎁 *Exclusive Festive Privileges Included:*\n✔️ Special {offer_percentage} savings upon unit booking\n✔️ Flexible payment schedule & zero loan processing fees\n✔️ Guaranteed preferred floor & complimentary covered parking\n\n📄 *View Project Brochure & Available Units:*\n{brochure_url}\n\nHurry, inventory is limited under our {festival_name} promotion! Reply \"INTERESTED\" or call us now to lock in this special rate today.\n\nWarm regards,\n*{executive_name}* | {company_name}",
+
+        offer_event: "Hello {customer_name}! 🎟️✨\n\nYou are cordially invited to our upcoming *{event_name}* for *{project_name}*!\n\n🔥 *EXCLUSIVE EVENT PRIVILEGE: Unlock {offer_percentage} Savings!*\n⏰ *Event Validity:* {offer_validity}\n\n🌟 *Special Event Day Highlights:*\n✔️ Exclusive {offer_percentage} on-the-spot booking incentive\n✔️ Direct interaction with our project architects & leadership\n✔️ Express bank loan pre-approvals & personalized site tours\n\n📄 *Download Project Details & Event Schedule:*\n{brochure_url}\n\nSeats and slots are limited for the {event_name}! Reply \"CONFIRM\" to reserve your VIP entry pass today.\n\nWarm regards,\n*{executive_name}*\n{company_name} Team"
+    };
+
+    function selectTemplate(key, forceReset = false) {
+        currentTemplateKey = key;
+
+        // Update Template card active styling
+        ['welcome', 'new_project', 'offer'].forEach(k => {
+            const btn = document.getElementById('templateBtn_' + k);
+            const indicator = document.getElementById('templateIndicator_' + k);
+            if (btn) {
+                if (k === key) {
+                    btn.classList.add('border-emerald-500', 'bg-emerald-50/70', 'shadow-xs');
+                    btn.classList.remove('border-slate-200', 'bg-white', 'hover:border-slate-300');
+                } else {
+                    btn.classList.remove('border-emerald-500', 'bg-emerald-50/70', 'shadow-xs');
+                    btn.classList.add('border-slate-200', 'bg-white', 'hover:border-slate-300');
+                }
+            }
+            if (indicator) {
+                indicator.style.display = (k === key) ? 'inline-block' : 'none';
+            }
+        });
+
+        // Show/hide relevant dynamic configuration panels
+        const offerPanel = document.getElementById('offerConfigPanel');
+        const newProjectPanel = document.getElementById('newProjectConfigPanel');
+        const welcomePanel = document.getElementById('welcomeInfoPanel');
+
+        if (offerPanel) offerPanel.classList.toggle('hidden', key !== 'offer');
+        if (newProjectPanel) newProjectPanel.classList.toggle('hidden', key !== 'new_project');
+        if (welcomePanel) welcomePanel.classList.toggle('hidden', key !== 'welcome');
+
+        // Set textarea value if requested or empty
+        const textarea = document.getElementById('modalMessageContent');
+        if (textarea && (forceReset || !textarea.value.trim())) {
+            if (key === 'offer') {
+                textarea.value = (offerCategory === 'event') ? messageTemplates.offer_event : messageTemplates.offer_festival;
+            } else {
+                textarea.value = messageTemplates[key] || '';
+            }
+        }
+
+        updateLivePreview();
+    }
+
+    function setOfferCategory(category, forceResetTextarea = true) {
+        offerCategory = category;
+
+        const festivalBtn = document.getElementById('offerCatBtn_festival');
+        const eventBtn = document.getElementById('offerCatBtn_event');
+        const festivalSection = document.getElementById('festivalSection');
+        const eventSection = document.getElementById('eventSection');
+
+        if (category === 'festival') {
+            if (festivalBtn) {
+                festivalBtn.className = 'py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer bg-white text-amber-950 shadow-xs border border-amber-300';
+            }
+            if (eventBtn) {
+                eventBtn.className = 'py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer text-amber-800 hover:text-amber-950 border border-transparent';
+            }
+            if (festivalSection) festivalSection.classList.remove('hidden');
+            if (eventSection) eventSection.classList.add('hidden');
+        } else {
+            if (festivalBtn) {
+                festivalBtn.className = 'py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer text-amber-800 hover:text-amber-950 border border-transparent';
+            }
+            if (eventBtn) {
+                eventBtn.className = 'py-1.5 px-3 rounded-lg font-bold text-center transition-all cursor-pointer bg-white text-amber-950 shadow-xs border border-amber-300';
+            }
+            if (festivalSection) festivalSection.classList.add('hidden');
+            if (eventSection) eventSection.classList.remove('hidden');
+        }
+
+        const textarea = document.getElementById('modalMessageContent');
+        if (textarea && forceResetTextarea) {
+            textarea.value = (category === 'festival') ? messageTemplates.offer_festival : messageTemplates.offer_event;
+        }
+
+        updateLivePreview();
+    }
+
+    function setFestivalName(val) {
+        const input = document.getElementById('festivalNameInput');
+        if (input) {
+            input.value = val;
+            onOfferConfigChange();
+        }
+    }
+
+    function setEventName(val) {
+        const input = document.getElementById('eventNameInput');
+        if (input) {
+            input.value = val;
+            onOfferConfigChange();
+        }
+    }
+
+    function setOfferPercent(val) {
+        const input = document.getElementById('offerPercentInput');
+        if (input) {
+            input.value = val;
+            onOfferConfigChange();
+        }
+    }
+
+    function setOfferValidity(val) {
+        const input = document.getElementById('offerValidityInput');
+        if (input) {
+            input.value = val;
+            onOfferConfigChange();
+        }
+    }
+
+    function onOfferConfigChange() {
+        updateLivePreview();
+    }
+
+    function onNewProjectConfigChange() {
+        updateLivePreview();
+    }
+
+    function onSelectExistingProject(select) {
+        const opt = select.options[select.selectedIndex];
+        if (!opt || !opt.value) return;
+
+        const name = opt.getAttribute('data-name');
+        const location = opt.getAttribute('data-location');
+
+        if (name) {
+            const nameInput = document.getElementById('newProjectNameInput');
+            if (nameInput) nameInput.value = name;
+        }
+        if (location) {
+            const locInput = document.getElementById('newProjectLocationInput');
+            if (locInput) locInput.value = location;
+        }
+        updateLivePreview();
+    }
+
     function populateModalData() {
         const container = document.getElementById('modalRecipientsList');
         const countBadge = document.getElementById('modalRecipientCount');
@@ -714,13 +1128,8 @@
             container.appendChild(badge);
         });
 
-        // Set default starter message if textarea is empty
-        const textarea = document.getElementById('modalMessageContent');
-        if (textarea && !textarea.value.trim()) {
-            textarea.value = "Hello {customer_name}! 👋\n\nThank you for showing interest in {project_name}. We would be delighted to assist you with unit pricing, floor plans, and site visits.\n\nBest regards,\n{executive_name}";
-        }
-
-        updateLivePreview();
+        // Initialize template selection and copy
+        selectTemplate(currentTemplateKey, false);
     }
 
     function insertTag(tag) {
@@ -736,6 +1145,30 @@
         textarea.focus();
 
         updateLivePreview();
+    }
+
+    function formatWhatsAppText(str) {
+        if (!str) return '';
+        // Escape HTML
+        let escaped = str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+        // Format **bold**
+        escaped = escaped.replace(/\*\*([^\*\n]+)\*\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
+        // Format *bold*
+        escaped = escaped.replace(/\*([^\*\n]+)\*/g, '<strong class="font-extrabold text-slate-900">$1</strong>');
+        // Format _italic_
+        escaped = escaped.replace(/_([^_\n]+)_/g, '<em class="italic">$1</em>');
+        // Format ~strikethrough~
+        escaped = escaped.replace(/~([^~\n]+)~/g, '<del class="line-through text-slate-500">$1</del>');
+        // Format newlines
+        escaped = escaped.replace(/\n/g, '<br>');
+
+        return escaped;
     }
 
     function updateLivePreview() {
@@ -757,7 +1190,7 @@
         }
 
         if (!raw.trim()) {
-            previewElem.textContent = 'Your WhatsApp message will appear here in real-time...';
+            previewElem.innerHTML = 'Your WhatsApp message will appear here in real-time...';
             return;
         }
 
@@ -768,15 +1201,35 @@
             executive: 'Sales Desk'
         };
 
+        const festivalName = document.getElementById('festivalNameInput')?.value?.trim() || 'Diwali Festive Offer';
+        const eventName = document.getElementById('eventNameInput')?.value?.trim() || 'Mega Property Expo 2026';
+        const offerPercent = document.getElementById('offerPercentInput')?.value?.trim() || '10% Discount';
+        const offerValidity = document.getElementById('offerValidityInput')?.value?.trim() || 'Valid till this Sunday only';
+        const currentOfferName = (offerCategory === 'event') ? eventName : festivalName;
+        const newProjName = document.getElementById('newProjectNameInput')?.value?.trim() || 'Imperial Heights Phase 2';
+        const newProjLoc = document.getElementById('newProjectLocationInput')?.value?.trim() || 'Golf Course Extension Road';
+        const newProjPrice = document.getElementById('newProjectPricingInput')?.value?.trim() || '2 & 3 BHK starting ₹65 Lakhs';
+
         let compiled = raw
             .replace(/{customer_name}/g, sampleLead.name)
             .replace(/{project_name}/g, sampleLead.project || projectNameDefault)
             .replace(/{executive_name}/g, sampleLead.executive || 'Sales Desk')
             .replace(/{company_name}/g, "{{ e(auth()->user()->company->name ?? 'Real Estate Team') }}")
             .replace(/{brochure_url}/g, window.location.origin + '/brochure/demo/download')
-            .replace(/{phone}/g, sampleLead.phone);
+            .replace(/{phone}/g, sampleLead.phone)
+            .replace(/{festival_name}/g, festivalName)
+            .replace(/{event_name}/g, eventName)
+            .replace(/{offer_event}/g, currentOfferName)
+            .replace(/{offer_percentage}/g, offerPercent)
+            .replace(/{offer_validity}/g, offerValidity)
+            .replace(/{new_project_name}/g, newProjName)
+            .replace(/{new_project_location}/g, newProjLoc)
+            .replace(/{new_project_pricing}/g, newProjPrice)
+            .replace(/{new_project_price}/g, newProjPrice)
+            .replace(/{project_pricing}/g, newProjPrice)
+            .replace(/{pricing}/g, newProjPrice);
 
-        previewElem.textContent = compiled;
+        previewElem.innerHTML = formatWhatsAppText(compiled);
     }
 
     function openCustomDripModal() {
@@ -831,6 +1284,16 @@
             return;
         }
 
+        // Gather dynamic offer & new project values
+        const festivalName = document.getElementById('festivalNameInput')?.value?.trim() || null;
+        const eventName = document.getElementById('eventNameInput')?.value?.trim() || null;
+        const currentOfferEvent = (offerCategory === 'event') ? eventName : festivalName;
+        const offerPercentage = document.getElementById('offerPercentInput')?.value?.trim() || null;
+        const offerValidity = document.getElementById('offerValidityInput')?.value?.trim() || null;
+        const newProjectName = document.getElementById('newProjectNameInput')?.value?.trim() || null;
+        const newProjectLocation = document.getElementById('newProjectLocationInput')?.value?.trim() || null;
+        const newProjectPricing = document.getElementById('newProjectPricingInput')?.value?.trim() || null;
+
         // Loading state
         if (btn) btn.disabled = true;
         if (textSpan) textSpan.textContent = '⏳ Dispatching WhatsApp Messages...';
@@ -847,7 +1310,15 @@
             body: JSON.stringify({
                 inquiry_ids: inquiryIds,
                 message_content: messageContent,
-                lead_drip_step_id: null
+                lead_drip_step_id: null,
+                festival_name: festivalName,
+                event_name: eventName,
+                offer_event: currentOfferEvent,
+                offer_percentage: offerPercentage,
+                offer_validity: offerValidity,
+                new_project_name: newProjectName,
+                new_project_location: newProjectLocation,
+                new_project_pricing: newProjectPricing
             })
         })
         .then(response => response.json().then(data => ({ status: response.status, body: data })))

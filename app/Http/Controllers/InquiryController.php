@@ -51,8 +51,9 @@ class InquiryController extends Controller
         $inquiries = $query->latest()->paginate(20);
         $project = Project::findOrFail($selectedProjectId);
         $projectUsers = $project->users()->get();
+        $companyProjects = Project::where('company_id', auth()->user()->company_id)->orderBy('name')->get();
 
-        return view('inquiries.index', compact('inquiries', 'project', 'projectUsers'));
+        return view('inquiries.index', compact('inquiries', 'project', 'projectUsers', 'companyProjects'));
     }
 
     /**
@@ -170,13 +171,12 @@ class InquiryController extends Controller
             'status' => 'new',
         ]);
 
-        // Calculate AI Intent Score, allocate via Round-Robin, send WhatsApp & enroll in drip
+        // Calculate AI Intent Score, allocate via Round-Robin & send WhatsApp brochure
         app(\App\Services\LeadScoringService::class)->evaluateAndUpdate($inquiry);
         if (!$inquiry->assigned_to) {
             app(\App\Services\LeadAllocationService::class)->allocateInquiry($inquiry);
         }
         app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
-        app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
 
         // Dispatch email sending queued jobs asynchronously (does not block HTTP response)
         \App\Jobs\SendInquiryConfirmationEmailJob::dispatch($inquiry);
@@ -235,20 +235,19 @@ class InquiryController extends Controller
             'status' => 'new',
         ]);
 
-        // Calculate AI Intent Score, allocate via Round-Robin, send WhatsApp & enroll in drip
+        // Calculate AI Intent Score, allocate via Round-Robin & send WhatsApp brochure
         app(\App\Services\LeadScoringService::class)->evaluateAndUpdate($inquiry);
         if (!$inquiry->assigned_to) {
             app(\App\Services\LeadAllocationService::class)->allocateInquiry($inquiry);
         }
         app(\App\Services\WhatsAppService::class)->sendInstantBrochure($inquiry);
-        app(\App\Services\DripNurtureService::class)->enrollInquiry($inquiry);
 
         // Dispatch email sending queued jobs asynchronously
         \App\Jobs\SendInquiryConfirmationEmailJob::dispatch($inquiry);
         \App\Jobs\SendNewLeadNotificationEmailJob::dispatch($inquiry);
 
         return redirect()->route('inquiries.index')
-            ->with('success', 'Inquiry created, auto-allocated, brochure sent & drip sequence active!');
+            ->with('success', 'Inquiry created, auto-allocated & brochure sent!');
     }
 
     /**
@@ -472,6 +471,14 @@ class InquiryController extends Controller
             'inquiry_ids.*' => 'integer|exists:inquiries,id',
             'message_content' => 'required|string|max:4000',
             'lead_drip_step_id' => 'nullable|integer|exists:lead_drip_steps,id',
+            'offer_event' => 'nullable|string|max:255',
+            'festival_name' => 'nullable|string|max:255',
+            'event_name' => 'nullable|string|max:255',
+            'offer_percentage' => 'nullable|string|max:255',
+            'offer_validity' => 'nullable|string|max:255',
+            'new_project_name' => 'nullable|string|max:255',
+            'new_project_location' => 'nullable|string|max:255',
+            'new_project_pricing' => 'nullable|string|max:255',
         ], [
             'inquiry_ids.required' => 'Please select at least one inquiry to send drip message.',
             'message_content.required' => 'Message content is required.',
@@ -497,8 +504,20 @@ class InquiryController extends Controller
         $failedCount = 0;
         $errors = [];
 
+        $extraTags = [
+            'festival_name' => $validated['festival_name'] ?? $request->input('festival_name'),
+            'event_name' => $validated['event_name'] ?? $request->input('event_name'),
+            'offer_event' => $validated['offer_event'] ?? $request->input('offer_event'),
+            'offer_percentage' => $validated['offer_percentage'] ?? $request->input('offer_percentage'),
+            'offer_validity' => $validated['offer_validity'] ?? $request->input('offer_validity'),
+            'new_project_name' => $validated['new_project_name'] ?? $request->input('new_project_name'),
+            'new_project_location' => $validated['new_project_location'] ?? $request->input('new_project_location'),
+            'new_project_pricing' => $validated['new_project_pricing'] ?? $request->input('new_project_pricing'),
+        ];
+        $extraTags = array_filter($extraTags, fn($val) => !is_null($val) && $val !== '');
+
         foreach ($inquiries as $inquiry) {
-            $compiledMessage = $dripService->compileTemplate($validated['message_content'], $inquiry);
+            $compiledMessage = $dripService->compileTemplate($validated['message_content'], $inquiry, $extraTags);
 
             $result = $whatsAppService->sendCustomMessage($inquiry, $compiledMessage, true);
 

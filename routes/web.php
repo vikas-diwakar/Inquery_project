@@ -11,7 +11,6 @@ use App\Http\Controllers\FormQRController;
 use App\Http\Controllers\InquiryController;
 use App\Http\Controllers\IntegrationController;
 use App\Http\Controllers\SocialMediaController;
-use App\Http\Controllers\LeadDripController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectUnitController;
 use App\Http\Controllers\ResetPasswordController;
@@ -113,16 +112,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/whatsapp/disconnect', [WhatsAppSettingController::class, 'disconnect'])->name('settings.whatsapp.disconnect');
         Route::post('/settings/whatsapp/quick-demo-connect', [WhatsAppSettingController::class, 'quickDemoConnect'])->name('settings.whatsapp.demo-connect');
 
-        // Lead Drip Automation Sequences
-        Route::get('/settings/drip', [LeadDripController::class, 'index'])->name('settings.drip');
-        Route::post('/settings/drip', [LeadDripController::class, 'store'])->name('settings.drip.store');
-        Route::delete('/settings/drip/{step}', [LeadDripController::class, 'destroy'])->name('settings.drip.destroy');
-        Route::post('/settings/drip/process-now', [LeadDripController::class, 'processNow'])->name('settings.drip.process-now');
-        Route::post('/settings/drip/process-selected', [LeadDripController::class, 'processSelected'])->name('settings.drip.process-selected');
-        Route::post('/settings/drip/discard-selected', [LeadDripController::class, 'discardSelected'])->name('settings.drip.discard-selected');
-        Route::post('/settings/drip/{log}/process-single', [LeadDripController::class, 'processSingle'])->name('settings.drip.process-single');
-        Route::post('/settings/drip/{log}/discard', [LeadDripController::class, 'discardSingle'])->name('settings.drip.discard-single');
-        Route::post('/settings/drip/enroll-past', [LeadDripController::class, 'enrollPastLeads'])->name('settings.drip.enroll-past');
 
         // Follow-up routes
         Route::get('/follow-ups', [FollowUpController::class, 'index'])->name('follow-ups.index');
